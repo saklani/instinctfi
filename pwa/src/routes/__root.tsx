@@ -10,12 +10,12 @@ export const Route = createRootRoute({
 function RootLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Nav />
-      <main className="mx-auto max-w-2xl px-4 pb-24 pt-4">
+      <main className="mx-auto max-w-2xl px-4 pb-24 pt-6">
         <Outlet />
       </main>
       <Toaster />
       <InstallBanner />
+      <Nav />
     </div>
   )
 }
