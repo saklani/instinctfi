@@ -10,7 +10,12 @@ export const Route = createRootRoute({
 function RootLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <main className="mx-auto max-w-2xl px-4 pb-24 pt-6">
+      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
+        <div className="mx-auto flex h-12 max-w-2xl items-center px-4">
+          <span className="text-base font-bold tracking-tight">Instinct</span>
+        </div>
+      </header>
+      <main className="mx-auto max-w-2xl px-4 pb-24 pt-4">
         <Outlet />
       </main>
       <Toaster />
