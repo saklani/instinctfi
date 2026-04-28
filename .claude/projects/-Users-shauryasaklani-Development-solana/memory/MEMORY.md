@@ -1,0 +1,1 @@
+- [Use bunx not npx](feedback_use_bunx.md) — Project uses Bun; always use bunx/bun instead of npx/npm
