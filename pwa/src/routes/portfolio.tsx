@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import { usePrivy } from "@privy-io/react-auth"
 import { useVault } from "@/hooks/use-vault"
 import { useVaultBalance } from "@/hooks/use-vault-balance"
-import { useSolBalance } from "@/hooks/use-sol-balance"
 import { SolBalance } from "@/components/sol-balance"
 import { Column } from "@/components/ui/column"
 import { Row } from "@/components/ui/row"
@@ -24,7 +23,6 @@ function PortfolioPage() {
   const { ready, authenticated, login } = usePrivy()
   const { vault } = useVault()
   const { balance: vaultTokens, loading: vaultLoading } = useVaultBalance()
-  const { balance: solBalance } = useSolBalance()
 
   if (!ready) {
     return (
@@ -55,7 +53,6 @@ function PortfolioPage() {
 
   const vaultPrice = vault?.price ? parseFloat(vault.price) : 0
   const positionValue = vaultTokens && vaultPrice ? vaultTokens * vaultPrice : 0
-  const totalValue = positionValue + (solBalance ?? 0) * (vault?.tvl ? parseFloat(vault.tvl) / 1.4 : 0) // rough SOL price
 
   return (
     <Column className="gap-6">

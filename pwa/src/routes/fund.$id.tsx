@@ -33,7 +33,6 @@ export const Route = createFileRoute("/fund/$id")({
 })
 
 function FundDetailPage() {
-  const { id } = Route.useParams()
   const { vault, loading, error } = useVault()
   const { ready, authenticated, login } = usePrivy()
   const { address, wallet } = useWallet()

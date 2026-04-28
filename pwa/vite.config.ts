@@ -11,7 +11,11 @@ export default defineConfig({
     react(),
     tailwindcss(),
     tanstackRouter(),
-    VitePWA(),
+    VitePWA({
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+      },
+    }),
     nodePolyfills({ include: ["buffer", "crypto", "stream", "util"] }),
   ],
   resolve: {
