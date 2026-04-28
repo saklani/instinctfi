@@ -11,7 +11,7 @@ function RootLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
-        <div className="mx-auto flex h-12 max-w-2xl items-center px-4">
+        <div className="mx-auto flex h-14 max-w-2xl items-center px-6">
           <span className="text-base font-bold tracking-tight">Instinct</span>
         </div>
       </header>
