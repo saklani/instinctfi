@@ -6,7 +6,7 @@ export function Nav() {
       <div className="mx-auto flex h-14 max-w-2xl items-center px-4">
         <div className="flex items-center gap-6">
           <Link to="/" className="text-base font-bold tracking-tight">
-            xFunds
+            Instinct
           </Link>
           <nav className="flex items-center gap-4">
             <Link

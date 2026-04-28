@@ -12,6 +12,20 @@ export default defineConfig({
     tailwindcss(),
     tanstackRouter(),
     VitePWA({
+      registerType: "autoUpdate",
+      manifest: {
+        name: "Instinct",
+        short_name: "Instinct",
+        description: "Invest like the 1%. Tokenized US equities on Solana.",
+        theme_color: "#0D0D0D",
+        background_color: "#0D0D0D",
+        display: "standalone",
+        start_url: "/",
+        icons: [
+          { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+          { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
+        ],
+      },
       workbox: {
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },

@@ -25,7 +25,7 @@ function DiscoverPage() {
       <Column>
         <h1 className="text-2xl font-bold tracking-tight">Discover</h1>
         <p className="text-sm text-muted-foreground">
-          Invest in tokenized US equities through diversified index funds.
+          Invest like the 1%. Tokenized US equities on Solana.
         </p>
       </Column>
 
