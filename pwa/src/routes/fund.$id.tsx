@@ -36,7 +36,7 @@ function FundDetailPage() {
   const { id } = Route.useParams()
   const { vault, loading, error } = useVault()
   const { ready, authenticated, login } = usePrivy()
-  const { address, getWalletAdapter } = useWallet()
+  const { address, wallet } = useWallet()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [amount, setAmount] = useState("")
   const [investing, setInvesting] = useState(false)
@@ -60,14 +60,13 @@ function FundDetailPage() {
     setInvesting(true)
 
     try {
-      const walletAdapter = await getWalletAdapter()
       const lamports = Math.floor(numAmount * 1_000_000_000)
 
       await investInVault({
         buyerAddress: address,
         vaultMint: import.meta.env.VITE_VAULT_MINT,
         amountLamports: lamports,
-        wallet: walletAdapter,
+        wallet: wallet,
       })
 
       toast.success("Investment successful", {

@@ -52,7 +52,7 @@ async function main() {
   console.log("Press Ctrl+C to stop.\n")
 
   let runs = 0
-  const maxRuns = 10 // Run 10 cycles then stop
+  const maxRuns = parseInt(process.argv[2] ?? "10")
 
   while (runs < maxRuns) {
     try {
