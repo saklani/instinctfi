@@ -5,6 +5,7 @@ import "react-native-reanimated"
 import { PrivyProvider } from "@privy-io/expo"
 
 import { useColorScheme } from "@/hooks/use-color-scheme"
+import { ConnectWalletFab } from "@/components/connect-wallet-fab"
 
 const PRIVY_APP_ID = process.env.EXPO_PUBLIC_PRIVY_APP_ID ?? ""
 const PRIVY_CLIENT_ID = process.env.EXPO_PUBLIC_PRIVY_CLIENT_ID ?? ""
@@ -20,11 +21,11 @@ export default function RootLayout() {
     <PrivyProvider appId={PRIVY_APP_ID} clientId={PRIVY_CLIENT_ID}>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(auth)" />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="basket/[id]" options={{ presentation: "card" }} />
           <Stack.Screen name="invest/[id]" options={{ presentation: "modal" }} />
         </Stack>
+        <ConnectWalletFab />
         <StatusBar style="auto" />
       </ThemeProvider>
     </PrivyProvider>
