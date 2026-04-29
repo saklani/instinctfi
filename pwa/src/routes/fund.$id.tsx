@@ -322,7 +322,6 @@ function WithdrawTab({
   vault,
   vaultPrice,
   vaultTokens,
-  rawBalance,
   address,
   wallet,
   onDone,
