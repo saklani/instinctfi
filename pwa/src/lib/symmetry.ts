@@ -120,3 +120,37 @@ export async function investInVault(params: {
 
   console.log("[invest] Done!")
 }
+
+export async function withdrawFromVault(params: {
+  sellerAddress: string
+  vaultMint: string
+  amount: number // raw vault token amount (6 decimals)
+  wallet: any
+}) {
+  const sdk = getSDK()
+
+  console.log("[withdraw] Building sell tx...", {
+    seller: params.sellerAddress,
+    vault_mint: params.vaultMint,
+    amount: params.amount,
+  })
+
+  const sellPayload = await sdk.sellVaultTx({
+    seller: params.sellerAddress,
+    vault_mint: params.vaultMint,
+    withdraw_amount: params.amount,
+    keep_tokens: [SOL_MINT],
+    rebalance_slippage_bps: 500,
+    per_trade_rebalance_slippage_bps: 500,
+  })
+
+  const sellTxs = extractTransactions(sellPayload)
+  console.log(`[withdraw] Sending ${sellTxs.length} sell transaction(s)...`)
+
+  for (let i = 0; i < sellTxs.length; i++) {
+    console.log(`[withdraw] Signing sell tx ${i + 1}/${sellTxs.length}...`)
+    await signAndSend(params.wallet, sellTxs[i])
+  }
+
+  console.log("[withdraw] Done!")
+}
