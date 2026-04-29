@@ -3,10 +3,10 @@ import { Connection, PublicKey } from "@solana/web3.js"
 import { getAssociatedTokenAddress } from "@solana/spl-token"
 import { useWallet } from "./use-wallet"
 
-const connection = new Connection("https://api.devnet.solana.com", "confirmed")
+const connection = new Connection("https://mainnet.helius-rpc.com/?api-key=7ab8b174-ab40-4c2a-aef7-93a19dbd364c", "confirmed")
 
-// Symmetry devnet USDC mint
-const USDC_MINT = new PublicKey("USDCoctVLVnvTXBEuP9s8hntucdJokbo17RwHuNXemT")
+// Mainnet USDC mint
+const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")
 const USDC_DECIMALS = 6
 
 export function useUsdcBalance() {

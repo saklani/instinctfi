@@ -1,8 +1,8 @@
 import { Connection, VersionedTransaction } from "@solana/web3.js"
 import { SymmetryCore } from "@symmetry-hq/sdk"
 
-const RPC_URL = "https://api.devnet.solana.com"
-const NETWORK = "devnet" as const
+const RPC_URL = import.meta.env.VITE_RPC_URL ?? "https://api.devnet.solana.com"
+const NETWORK = "mainnet" as const
 const SOL_MINT = "So11111111111111111111111111111111111111112"
 
 let sdk: SymmetryCore | null = null
@@ -53,7 +53,7 @@ async function signAndSend(
 
   const result = await wallet.signAndSendTransaction({
     transaction: serialized,
-    chain: "solana:devnet",
+    chain: "solana:mainnet",
     options: {
       skipPreflight: true,
     },

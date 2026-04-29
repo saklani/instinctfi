@@ -3,7 +3,7 @@ import { Connection, PublicKey } from "@solana/web3.js"
 import { getAssociatedTokenAddress } from "@solana/spl-token"
 import { useWallet } from "./use-wallet"
 
-const connection = new Connection("https://api.devnet.solana.com", "confirmed")
+const connection = new Connection("https://mainnet.helius-rpc.com/?api-key=7ab8b174-ab40-4c2a-aef7-93a19dbd364c", "confirmed")
 
 const VAULT_MINT = new PublicKey(import.meta.env.VITE_VAULT_MINT)
 const VAULT_DECIMALS = 6

@@ -25,7 +25,7 @@ function DiscoverPage() {
       <Column>
         <h1 className="text-2xl font-bold tracking-tight">Discover</h1>
         <p className="text-sm text-muted-foreground">
-          Invest like the 1%. Tokenized US equities on Solana.
+          Your cheatcode to Internet Capital Markets.
         </p>
       </Column>
 
@@ -89,14 +89,16 @@ function VaultCard({ vault }: { vault: NonNullable<ReturnType<typeof useVault>["
                 Composition
               </p>
               <Row className="flex-wrap">
-                {vault.composition.map((asset) => {
-                  const meta = getTokenMeta(asset.mint)
-                  return (
-                    <Badge key={asset.mint} variant="secondary">
-                      {meta.symbol} {(asset.weight / 100).toFixed(0)}%
-                    </Badge>
-                  )
-                })}
+                {vault.composition
+                  .filter((asset) => asset.weight > 0)
+                  .map((asset) => {
+                    const meta = getTokenMeta(asset.mint)
+                    return (
+                      <Badge key={asset.mint} variant="secondary">
+                        {meta.symbol} {(asset.weight / 100).toFixed(0)}%
+                      </Badge>
+                    )
+                  })}
               </Row>
             </Column>
           </Column>

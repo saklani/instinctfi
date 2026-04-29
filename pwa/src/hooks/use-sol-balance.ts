@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js"
 import { useWallet } from "./use-wallet"
 
-const connection = new Connection("https://api.devnet.solana.com", "confirmed")
+const connection = new Connection("https://mainnet.helius-rpc.com/?api-key=7ab8b174-ab40-4c2a-aef7-93a19dbd364c", "confirmed")
 
 export function useSolBalance() {
   const { address } = useWallet()

@@ -132,23 +132,25 @@ function FundDetailPage() {
           </CardHeader>
           <CardContent>
             <Column className="gap-3">
-              {vault.composition.map((asset, i) => {
-                const meta = getTokenMeta(asset.mint)
-                return (
-                  <Column key={asset.mint} className="gap-3">
-                    <Row className="items-center justify-between">
-                      <Row className="items-center">
-                        <span className="text-sm font-medium">{meta.name}</span>
-                        <Badge variant="secondary">{meta.symbol}</Badge>
+              {vault.composition
+                .filter((asset) => asset.weight > 0)
+                .map((asset, i, arr) => {
+                  const meta = getTokenMeta(asset.mint)
+                  return (
+                    <Column key={asset.mint} className="gap-3">
+                      <Row className="items-center justify-between">
+                        <Row className="items-center">
+                          <span className="text-sm font-medium">{meta.name}</span>
+                          <Badge variant="secondary">{meta.symbol}</Badge>
+                        </Row>
+                        <span className="text-sm font-semibold">
+                          {(asset.weight / 100).toFixed(0)}%
+                        </span>
                       </Row>
-                      <span className="text-sm font-semibold">
-                        {(asset.weight / 100).toFixed(0)}%
-                      </span>
-                    </Row>
-                    {i < vault.composition.length - 1 && <Separator />}
-                  </Column>
-                )
-              })}
+                      {i < arr.length - 1 && <Separator />}
+                    </Column>
+                  )
+                })}
             </Column>
           </CardContent>
         </Card>

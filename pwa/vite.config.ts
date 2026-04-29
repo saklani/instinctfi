@@ -16,9 +16,9 @@ export default defineConfig({
       manifest: {
         name: "Instinct",
         short_name: "Instinct",
-        description: "Invest like the 1%. Tokenized US equities on Solana.",
-        theme_color: "#0D0D0D",
-        background_color: "#0D0D0D",
+        description: "Your cheatcode to Internet Capital Markets. Curated tokenized stock baskets on Solana.",
+        theme_color: "#FFFFFF",
+        background_color: "#FFFFFF",
         display: "standalone",
         start_url: "/",
         icons: [

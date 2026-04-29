@@ -89,7 +89,7 @@ function SettingsPage() {
 
             <Row className="items-center justify-between">
               <span className="text-sm text-muted-foreground">Network</span>
-              <span className="text-sm font-medium">Solana Devnet</span>
+              <span className="text-sm font-medium">Solana Mainnet</span>
             </Row>
 
             {user?.email && (

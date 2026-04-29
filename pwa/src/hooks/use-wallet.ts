@@ -29,7 +29,7 @@ export function useWallet() {
         const bytes = tx.serialize()
         const result = await wallet.signTransaction({
           transaction: bytes,
-          chain: "solana:devnet",
+          chain: "solana:mainnet",
         })
         return VersionedTransaction.deserialize(result.signedTransaction)
       },
@@ -38,7 +38,7 @@ export function useWallet() {
         // Privy supports variadic signTransaction(...inputs)
         const inputs = txs.map((tx) => ({
           transaction: tx.serialize(),
-          chain: "solana:devnet" as const,
+          chain: "solana:mainnet" as const,
         }))
         const results = await wallet.signTransaction(...inputs)
         // Variadic returns an array
