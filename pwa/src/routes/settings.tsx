@@ -17,7 +17,7 @@ export const Route = createFileRoute("/settings")({
 })
 
 function SettingsPage() {
-  const { ready, authenticated, login, logout, userId } = useWallet()
+  const { ready, authenticated, login, logout } = useWallet()
 
   if (!ready) {
     return (
