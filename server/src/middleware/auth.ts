@@ -15,7 +15,9 @@ export const authMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
   }
 
   try {
-    const verified = await privy.verifyAuthToken(token)
+    const verified = await privy.utils().auth().verifyAccessToken({
+      access_token: token,
+    })
     c.set("userId", verified.userId)
     await next()
   } catch {
