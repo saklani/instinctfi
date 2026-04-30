@@ -1,33 +1,58 @@
 import { Hono } from "hono"
+import { Connection } from "@solana/web3.js"
 import { db } from "../db"
-import { orders } from "../db/schema"
+import { orders, wallets } from "../db/schema"
 import { eq, desc } from "drizzle-orm"
 import { authMiddleware } from "../middleware/auth"
-import { getOrCreateUserWallet } from "../lib/privy"
 import { inngest } from "../inngest/client"
 
 type AuthEnv = { Variables: { userId: string } }
 
 const app = new Hono<AuthEnv>()
+const connection = new Connection(process.env.RPC_URL!, "confirmed")
 
 app.use("*", authMiddleware)
 
-// POST /api/orders — create order, returns deposit address
+// POST /api/orders — verify transfer tx, create order as funded, trigger processing
 app.post("/", async (c) => {
   const userId = c.get("userId")
-  const body = await c.req.json()
-  const { vaultId, type, amount } = body
+  const { vaultId, type, amount, signature } = await c.req.json()
 
-  if (!vaultId || !type || !amount) {
-    return c.json({ error: "Missing required fields: vaultId, type, amount" }, 400)
+  if (!vaultId || !type || !amount || !signature) {
+    return c.json({ error: "Missing required fields: vaultId, type, amount, signature" }, 400)
   }
 
   if (type !== "deposit" && type !== "withdraw") {
     return c.json({ error: "Type must be 'deposit' or 'withdraw'" }, 400)
   }
 
-  const { address: depositAddress } = await getOrCreateUserWallet(userId)
+  // Get user's server wallet
+  const [wallet] = await db
+    .select()
+    .from(wallets)
+    .where(eq(wallets.userId, userId))
+    .limit(1)
 
+  if (!wallet) {
+    return c.json({ error: "No wallet found. Call POST /api/auth first." }, 400)
+  }
+
+  // Verify the transaction on-chain
+  const tx = await connection.getTransaction(signature, {
+    maxSupportedTransactionVersion: 0,
+  })
+
+  if (!tx) {
+    return c.json({ error: "Transaction not found" }, 400)
+  }
+
+  if (tx.meta?.err) {
+    return c.json({ error: "Transaction failed on-chain" }, 400)
+  }
+
+  // TODO: verify the tx actually transfers the correct USDC amount to wallet.address
+
+  // Create order as funded
   const [order] = await db
     .insert(orders)
     .values({
@@ -35,11 +60,18 @@ app.post("/", async (c) => {
       vaultId,
       type,
       amount: String(amount),
-      status: "pending",
+      signature,
+      status: "funded",
     })
     .returning()
 
-  return c.json({ ...order, depositAddress }, 201)
+  // Trigger processing
+  await inngest.send({
+    name: "order/funded",
+    data: { orderId: order.id },
+  })
+
+  return c.json(order, 201)
 })
 
 // GET /api/orders — list user's orders
@@ -53,38 +85,6 @@ app.get("/", async (c) => {
     .orderBy(desc(orders.createdAt))
 
   return c.json(userOrders)
-})
-
-// POST /api/orders/:id/confirm — user confirms USDC sent
-app.post("/:id/confirm", async (c) => {
-  const userId = c.get("userId")
-  const orderId = c.req.param("id")
-
-  const [order] = await db
-    .select()
-    .from(orders)
-    .where(eq(orders.id, orderId))
-    .limit(1)
-
-  if (!order || order.userId !== userId) {
-    return c.json({ error: "Order not found" }, 404)
-  }
-
-  if (order.status !== "pending") {
-    return c.json({ error: "Order is not pending" }, 400)
-  }
-
-  await db
-    .update(orders)
-    .set({ status: "funded", updatedAt: new Date() })
-    .where(eq(orders.id, orderId))
-
-  await inngest.send({
-    name: "order/funded",
-    data: { orderId },
-  })
-
-  return c.json({ status: "funded" })
 })
 
 export default app

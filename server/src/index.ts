@@ -3,6 +3,7 @@ import { cors } from "hono/cors"
 import { serve } from "inngest/hono"
 import { inngest } from "./inngest/client"
 import { processOrder } from "./inngest/functions"
+import authRoute from "./routes/auth"
 import ordersRoute from "./routes/orders"
 import positionsRoute from "./routes/positions"
 import vaultsRoute from "./routes/vaults"
@@ -14,6 +15,7 @@ app.use("*", cors())
 
 app.get("/", (c) => c.json({ name: "Instinct API", status: "ok" }))
 
+app.route("/api/auth", authRoute)
 app.route("/api/orders", ordersRoute)
 app.route("/api/positions", positionsRoute)
 app.route("/api/vaults", vaultsRoute)
