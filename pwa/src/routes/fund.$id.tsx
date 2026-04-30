@@ -286,9 +286,7 @@ function DepositTab({ vaultId, onDone }: { vaultId: string; onDone: () => void }
       await queryClient.invalidateQueries({ queryKey: ["positions"] })
       await queryClient.invalidateQueries({ queryKey: ["usdc-balance"] })
 
-      toast.success("Deposit submitted", {
-        description: "Your deposit will be processed at next market open.",
-      })
+      toast.success("Your order is placed.")
       reset()
       onDone()
     } catch (e: any) {
@@ -401,9 +399,7 @@ function WithdrawTab({ vaultId, onDone }: { vaultId: string; onDone: () => void 
       await queryClient.invalidateQueries({ queryKey: ["orders"] })
       await queryClient.invalidateQueries({ queryKey: ["positions"] })
 
-      toast.success("Withdrawal submitted", {
-        description: "Will be processed at next market open.",
-      })
+      toast.success("Your order is placed.")
       reset()
       onDone()
     } catch (e: any) {
