@@ -61,9 +61,10 @@ export interface Stock {
   id: string
   name: string
   ticker: string
-  symbol: string
+  imageUrl: string
   description: string | null
-  mint: string
+  address: string
+  decimals: number
 }
 
 export function fetchStocks(): Promise<Stock[]> {
@@ -76,7 +77,7 @@ export interface Order {
   id: string
   vaultId: string
   type: "deposit" | "withdraw"
-  amountUsdc: string
+  amount: string
   status: "pending" | "funded" | "processing" | "completed" | "failed" | "cancelled"
   depositAddress?: string
   createdAt: string
@@ -89,7 +90,7 @@ export function fetchOrders(): Promise<Order[]> {
 export function createOrder(params: {
   vaultId: string
   type: "deposit" | "withdraw"
-  amountUsdc: string
+  amount: string
 }): Promise<Order & { depositAddress: string }> {
   return request("/api/orders", {
     method: "POST",
@@ -109,7 +110,7 @@ export interface Position {
   id: string
   vaultId: string
   shares: string
-  costBasisUsdc: string
+  amount: string
 }
 
 export function fetchPositions(): Promise<Position[]> {

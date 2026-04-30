@@ -1,13 +1,29 @@
 import { Hono } from "hono"
 import { db } from "../db"
-import { vaults } from "../db/schema"
+import { vaults, compositions, stocks } from "../db/schema"
 import { eq } from "drizzle-orm"
 
 const app = new Hono()
 
 app.get("/", async (c) => {
-  const data = await db.select().from(vaults)
-  return c.json(data)
+  const allVaults = await db.select().from(vaults)
+
+  const result = await Promise.all(
+    allVaults.map(async (vault) => {
+      const comp = await db
+        .select({
+          weightBps: compositions.weightBps,
+          stock: stocks,
+        })
+        .from(compositions)
+        .innerJoin(stocks, eq(compositions.stockId, stocks.id))
+        .where(eq(compositions.vaultId, vault.id))
+
+      return { ...vault, compositions: comp }
+    }),
+  )
+
+  return c.json(result)
 })
 
 app.get("/:id", async (c) => {
@@ -18,7 +34,17 @@ app.get("/:id", async (c) => {
     .limit(1)
 
   if (!vault) return c.json({ error: "Vault not found" }, 404)
-  return c.json(vault)
+
+  const comp = await db
+    .select({
+      weightBps: compositions.weightBps,
+      stock: stocks,
+    })
+    .from(compositions)
+    .innerJoin(stocks, eq(compositions.stockId, stocks.id))
+    .where(eq(compositions.vaultId, vault.id))
+
+  return c.json({ ...vault, compositions: comp })
 })
 
 export default app

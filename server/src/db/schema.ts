@@ -6,7 +6,6 @@ import {
   integer,
   numeric,
   pgEnum,
-  jsonb,
 } from "drizzle-orm/pg-core"
 
 // ── Enums ───────────────────────────────────────────────
@@ -39,18 +38,24 @@ export const stocks = pgTable("stocks", {
 
 export const vaults = pgTable("vaults", {
   id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),                    // "Pelosi Tracker"
+  name: text("name").notNull(),
   description: text("description"),
   imageUrl: text("image_url"),
-  vaultAddress: text("vault_address").notNull().unique(),  // Symmetry vault PDA
-  vaultMint: text("vault_mint").notNull().unique(),        // Vault token mint
-  composition: jsonb("composition").notNull().$type<
-    { stockId: string; weightBps: number }[]
-  >(),
+  vaultAddress: text("vault_address").notNull().unique(),
+  vaultMint: text("vault_mint").notNull().unique(),
   depositFeeBps: integer("deposit_fee_bps").notNull().default(0),
   withdrawFeeBps: integer("withdraw_fee_bps").notNull().default(50),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+})
+
+// ── Compositions ────────────────────────────────────────
+
+export const compositions = pgTable("compositions", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  vaultId: uuid("vault_id").notNull().references(() => vaults.id),
+  stockId: uuid("stock_id").notNull().references(() => stocks.id),
+  weightBps: integer("weight_bps").notNull(),
 })
 
 // ── Orders ──────────────────────────────────────────────

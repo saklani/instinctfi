@@ -44,7 +44,7 @@ function PortfolioPage() {
     )
   }
 
-  const totalCostBasis = positions.reduce((sum, p) => sum + Number(p.costBasisUsdc), 0)
+  const totalCostBasis = positions.reduce((sum, p) => sum + Number(p.amount), 0)
 
   return (
     <Column className="gap-6">
@@ -76,7 +76,7 @@ function PortfolioPage() {
                   <Column className="gap-0">
                     <span className="text-sm font-medium capitalize">{order.type}</span>
                     <span className="text-xs text-muted-foreground">
-                      ${order.amountUsdc} USDC
+                      ${order.amount} USDC
                     </span>
                   </Column>
                   <Badge variant="secondary">
@@ -99,7 +99,7 @@ function PortfolioPage() {
                   <Row className="items-center justify-between">
                     <span className="text-sm text-muted-foreground">Cost Basis</span>
                     <span className="text-sm font-semibold">
-                      ${Number(position.costBasisUsdc).toFixed(2)}
+                      ${Number(position.amount).toFixed(2)}
                     </span>
                   </Row>
                   <Separator />
