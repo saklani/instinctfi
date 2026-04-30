@@ -10,9 +10,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { TrendingUp } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { formatUsd, formatUsdcRaw, formatShares } from "@/lib/format"
 
 export const Route = createFileRoute("/portfolio")({
   component: PortfolioPage,
@@ -23,11 +26,38 @@ function PortfolioPage() {
   const { positions, loading: posLoading } = usePositions()
   const { orders: pendingOrders } = usePendingOrders()
 
-  if (!ready) {
+  if (!ready || (authenticated && posLoading)) {
     return (
       <Column className="gap-6">
-        <h1 className="text-2xl font-bold tracking-tight">Portfolio</h1>
-        <p className="text-sm text-muted-foreground">Loading...</p>
+        <Column>
+          <h1 className="text-2xl font-bold tracking-tight">Portfolio</h1>
+          <Skeleton className="h-4 w-48" />
+        </Column>
+        <Card>
+          <CardContent className="pt-6">
+            <Row className="items-center justify-between">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-6 w-20" />
+            </Row>
+          </CardContent>
+        </Card>
+        {Array.from({ length: 2 }).map((_, i) => (
+          <Card key={i}>
+            <CardContent className="pt-6">
+              <Column className="gap-3">
+                <Row className="items-center justify-between">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-16" />
+                </Row>
+                <Separator />
+                <Row className="items-center justify-between">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-4 w-16" />
+                </Row>
+              </Column>
+            </CardContent>
+          </Card>
+        ))}
       </Column>
     )
   }
@@ -44,7 +74,7 @@ function PortfolioPage() {
     )
   }
 
-  const totalCostBasis = positions.reduce((sum, p) => sum + Number(p.amount), 0)
+  const totalCostBasis = positions.reduce((sum, p) => sum + Number(p.amount) / 1e6, 0)
 
   return (
     <Column className="gap-6">
@@ -58,7 +88,7 @@ function PortfolioPage() {
         <CardContent className="pt-6">
           <Row className="items-center justify-between">
             <span className="text-sm text-muted-foreground">Total Invested</span>
-            <span className="text-lg font-semibold">${totalCostBasis.toFixed(2)}</span>
+            <span className="text-lg font-semibold">{formatUsd(totalCostBasis)}</span>
           </Row>
         </CardContent>
       </Card>
@@ -76,7 +106,7 @@ function PortfolioPage() {
                   <Column className="gap-0">
                     <span className="text-sm font-medium capitalize">{order.type}</span>
                     <span className="text-xs text-muted-foreground">
-                      ${order.amount} USDC
+                      {formatUsdcRaw(order.amount)}
                     </span>
                   </Column>
                   <Badge variant="secondary">
@@ -99,14 +129,14 @@ function PortfolioPage() {
                   <Row className="items-center justify-between">
                     <span className="text-sm text-muted-foreground">Cost Basis</span>
                     <span className="text-sm font-semibold">
-                      ${Number(position.amount).toFixed(2)}
+                      {formatUsdcRaw(position.amount)}
                     </span>
                   </Row>
                   <Separator />
                   <Row className="items-center justify-between">
                     <span className="text-sm text-muted-foreground">Shares</span>
                     <span className="text-sm font-semibold">
-                      {Number(position.shares).toLocaleString()}
+                      {formatShares(position.shares)}
                     </span>
                   </Row>
                 </Column>
@@ -116,10 +146,11 @@ function PortfolioPage() {
         </Column>
       ) : !posLoading ? (
         <Card>
-          <CardContent className="py-12">
+          <CardContent className="py-16">
             <Column className="items-center gap-4">
+              <TrendingUp className="size-12 text-muted-foreground/30" />
               <p className="text-sm text-muted-foreground text-center">
-                No positions yet. Invest in a vault to get started.
+                You're all set up. Discover a vault to make your first investment.
               </p>
               <Link to="/">
                 <Button>Explore Vaults</Button>

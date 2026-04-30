@@ -8,8 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Row } from "@/components/ui/row"
 import { Column } from "@/components/ui/column"
+import { formatPercent } from "@/lib/format"
 import type { Vault } from "@/lib/api"
 
 export const Route = createFileRoute("/")({
@@ -28,13 +30,25 @@ function DiscoverPage() {
         </p>
       </Column>
 
-      {loading && (
-        <Card>
-          <CardContent className="py-12 text-center text-sm text-muted-foreground">
-            Loading vaults...
-          </CardContent>
-        </Card>
-      )}
+      {loading &&
+        Array.from({ length: 3 }).map((_, i) => (
+          <Card key={i}>
+            <CardHeader>
+              <Skeleton className="h-5 w-48" />
+              <Skeleton className="h-4 w-64" />
+            </CardHeader>
+            <CardContent>
+              <Column className="gap-4">
+                <Skeleton className="h-3 w-20" />
+                <Row className="flex-wrap">
+                  {Array.from({ length: 4 }).map((_, j) => (
+                    <Skeleton key={j} className="h-5 w-16 rounded-4xl" />
+                  ))}
+                </Row>
+              </Column>
+            </CardContent>
+          </Card>
+        ))}
 
       {error && (
         <Card>
@@ -54,7 +68,7 @@ function DiscoverPage() {
 function VaultCard({ vault }: { vault: Vault }) {
   return (
     <Link to="/fund/$id" params={{ id: vault.id }}>
-      <Card className="transition-colors hover:bg-accent/50 cursor-pointer">
+      <Card className="transition-all duration-150 hover:bg-accent/50 hover:shadow-md active:scale-[0.98] cursor-pointer">
         <CardHeader>
           <CardTitle className="text-lg">{vault.name}</CardTitle>
           <CardDescription>{vault.description}</CardDescription>
@@ -66,7 +80,7 @@ function VaultCard({ vault }: { vault: Vault }) {
             <Row className="flex-wrap">
               {vault.compositions?.map((c) => (
                 <Badge key={c.stock.id} variant="secondary">
-                  {c.stock.ticker} {(c.weightBps / 100).toFixed(0)}%
+                  {c.stock.ticker} {formatPercent(c.weightBps)}
                 </Badge>
               ))}
             </Row>

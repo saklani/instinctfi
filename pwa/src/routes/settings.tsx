@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Row } from "@/components/ui/row"
 import { Column } from "@/components/ui/column"
 
@@ -21,9 +22,30 @@ function SettingsPage() {
 
   if (!ready) {
     return (
-      <Column>
-        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground">Loading...</p>
+      <Column className="gap-6">
+        <Column>
+          <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+          <Skeleton className="h-4 w-40" />
+        </Column>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-4 w-48" />
+          </CardHeader>
+          <CardContent>
+            <Column className="gap-4">
+              <Row className="items-center justify-between">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-4 w-20" />
+              </Row>
+              <Separator />
+              <Row className="items-center justify-between">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-4 w-28" />
+              </Row>
+            </Column>
+          </CardContent>
+        </Card>
       </Column>
     )
   }

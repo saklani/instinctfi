@@ -12,6 +12,7 @@ import { useWallet } from "@/hooks/use-wallet"
 import { useServerWallet } from "@/components/api-provider"
 import { createDeposit, createWithdrawal } from "@/lib/api"
 import { getUsdcBalance } from "@/lib/transfer"
+import { formatUsd, formatUsdcRaw, formatShares, formatPercent } from "@/lib/format"
 import {
   Card,
   CardContent,
@@ -32,6 +33,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Row } from "@/components/ui/row"
 import { Column } from "@/components/ui/column"
 import { FormError } from "@/components/ui/form-error"
@@ -63,8 +65,27 @@ function FundDetailPage() {
 
   if (loading) {
     return (
-      <Column className="py-12 items-center">
-        <p className="text-sm text-muted-foreground">Loading vault...</p>
+      <Column className="gap-6">
+        <Column>
+          <Skeleton className="h-7 w-56" />
+          <Skeleton className="h-4 w-72" />
+        </Column>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-5 w-24" />
+          </CardHeader>
+          <CardContent>
+            <Column className="gap-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Row key={i} className="items-center justify-between">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-12" />
+                </Row>
+              ))}
+            </Column>
+          </CardContent>
+        </Card>
+        <Skeleton className="h-10 w-full rounded-4xl" />
       </Column>
     )
   }
@@ -87,9 +108,7 @@ function FundDetailPage() {
 
         {/* Pending Orders */}
         {authenticated && myPendingOrders.length > 0 && (
-          <>
-            <Separator />
-            <Card>
+          <Card>
               <CardHeader>
                 <CardTitle className="text-base">Open Orders</CardTitle>
               </CardHeader>
@@ -100,7 +119,7 @@ function FundDetailPage() {
                       <Column className="gap-0">
                         <span className="text-sm font-medium capitalize">{order.type}</span>
                         <span className="text-xs text-muted-foreground">
-                          {order.amount} USDC
+                          {formatUsdcRaw(order.amount)}
                         </span>
                       </Column>
                       <Badge variant="secondary">Processing</Badge>
@@ -109,14 +128,11 @@ function FundDetailPage() {
                 </Column>
               </CardContent>
             </Card>
-          </>
         )}
 
         {/* Position */}
         {authenticated && position && (
-          <>
-            <Separator />
-            <Card>
+          <Card>
               <CardHeader>
                 <CardTitle className="text-base">Your Position</CardTitle>
               </CardHeader>
@@ -125,23 +141,20 @@ function FundDetailPage() {
                   <Row className="items-center justify-between">
                     <span className="text-sm text-muted-foreground">Invested</span>
                     <span className="text-sm font-semibold">
-                      {Number(position.amount).toFixed(2)} USDC
+                      {formatUsdcRaw(position.amount)}
                     </span>
                   </Row>
                   <Separator />
                   <Row className="items-center justify-between">
                     <span className="text-sm text-muted-foreground">Shares</span>
                     <span className="text-sm font-semibold">
-                      {Number(position.shares).toLocaleString()}
+                      {formatShares(position.shares)}
                     </span>
                   </Row>
                 </Column>
               </CardContent>
             </Card>
-          </>
         )}
-
-        <Separator />
 
         {/* Holdings */}
         <Card>
@@ -159,7 +172,7 @@ function FundDetailPage() {
                       <Badge variant="secondary">{c.stock.ticker}</Badge>
                     </Row>
                     <span className="text-sm font-semibold">
-                      {(c.weightBps / 100).toFixed(0)}%
+                      {formatPercent(c.weightBps)}
                     </span>
                   </Row>
                   {i < arr.length - 1 && <Separator />}
@@ -181,6 +194,7 @@ function FundDetailPage() {
       {/* Bottom Sheet */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent side="bottom" className="rounded-t-2xl px-6">
+          <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-muted-foreground/20" />
           <SheetHeader>
             <SheetTitle>{vault.name}</SheetTitle>
             <SheetDescription>Deposit or withdraw USDC</SheetDescription>
@@ -253,7 +267,7 @@ function DepositTab({ vaultId, onDone }: { vaultId: string; onDone: () => void }
       })
 
       const { signature } = await signAndSendTransaction({
-        transaction,
+        transaction: new Uint8Array(transaction),
         wallet,
       })
 
@@ -299,7 +313,7 @@ function DepositTab({ vaultId, onDone }: { vaultId: string; onDone: () => void }
                 className="text-muted-foreground"
                 onClick={() => setValue("amount", String(balance), { shouldValidate: true })}
               >
-                Balance: {balance.toFixed(2)} USDC
+                Balance: {formatUsd(balance)}
               </Button>
             )}
           </Row>
@@ -308,6 +322,7 @@ function DepositTab({ vaultId, onDone }: { vaultId: string; onDone: () => void }
             type="number"
             step="any"
             placeholder="0.00"
+            className="h-12 text-lg"
             disabled={isPending}
             aria-invalid={!!errors.amount}
             {...register("amount")}
@@ -315,13 +330,14 @@ function DepositTab({ vaultId, onDone }: { vaultId: string; onDone: () => void }
           {errors.amount && <FormError message={errors.amount.message} />}
         </Column>
 
-        <Row>
+        <Row className="gap-2">
           {[10, 25, 50, 100].map((preset) => (
             <Button
               key={preset}
               type="button"
               variant="outline"
               size="sm"
+              className="flex-1"
               disabled={isPending}
               onClick={() => setValue("amount", String(preset), { shouldValidate: true })}
             >
@@ -411,7 +427,7 @@ function WithdrawTab({ vaultId, onDone }: { vaultId: string; onDone: () => void 
                 className="text-muted-foreground"
                 onClick={() => setValue("amount", String(balanceUsdc), { shouldValidate: true })}
               >
-                Balance: {balanceUsdc.toFixed(2)} USDC
+                Balance: {formatUsd(balanceUsdc)}
               </Button>
             )}
           </Row>
@@ -420,6 +436,7 @@ function WithdrawTab({ vaultId, onDone }: { vaultId: string; onDone: () => void 
             type="number"
             step="any"
             placeholder="0.00"
+            className="h-12 text-lg"
             disabled={isPending}
             aria-invalid={!!errors.amount}
             {...register("amount")}
