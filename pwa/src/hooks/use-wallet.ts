@@ -1,13 +1,13 @@
 import { usePrivy } from "@privy-io/react-auth"
 import {
   useWallets,
-  useStandardSignAndSendTransaction,
+  useSignAndSendTransaction,
 } from "@privy-io/react-auth/solana"
 
 export function useWallet() {
   const { ready, authenticated, user, login, logout } = usePrivy()
   const { wallets } = useWallets()
-  const { signAndSendTransaction } = useStandardSignAndSendTransaction()
+  const { signAndSendTransaction } = useSignAndSendTransaction()
 
   const wallet = wallets?.[0] ?? null
   const walletAddress = wallet?.address ?? null

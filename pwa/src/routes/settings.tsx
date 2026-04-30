@@ -58,13 +58,6 @@ function SettingsPage() {
             </Row>
             <Separator />
             <Row className="items-center justify-between">
-              <span className="text-sm text-muted-foreground">User ID</span>
-              <span className="text-xs font-mono text-muted-foreground">
-                {userId?.slice(0, 20)}...
-              </span>
-            </Row>
-            <Separator />
-            <Row className="items-center justify-between">
               <span className="text-sm text-muted-foreground">Network</span>
               <span className="text-sm font-medium">Solana Mainnet</span>
             </Row>
