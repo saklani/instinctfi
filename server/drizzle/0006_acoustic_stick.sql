@@ -1,0 +1,1 @@
+ALTER TABLE "positions" RENAME COLUMN "cost_basis_usdc" TO "amount";

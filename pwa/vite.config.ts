@@ -2,9 +2,8 @@ import path from "path"
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { tanstackRouter } from "@tanstack/router-vite-plugin"
-import { nodePolyfills } from "vite-plugin-node-polyfills"
 import { defineConfig } from "vite"
-import { VitePWA } from 'vite-plugin-pwa'
+import { VitePWA } from "vite-plugin-pwa"
 
 export default defineConfig({
   plugins: [
@@ -16,7 +15,8 @@ export default defineConfig({
       manifest: {
         name: "Instinct",
         short_name: "Instinct",
-        description: "Your cheatcode to Internet Capital Markets. Curated tokenized stock baskets on Solana.",
+        description:
+          "Your cheatcode to Internet Capital Markets. Curated tokenized stock baskets on Solana.",
         theme_color: "#FFFFFF",
         background_color: "#FFFFFF",
         display: "standalone",
@@ -30,7 +30,6 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },
     }),
-    nodePolyfills({ include: ["buffer", "crypto", "stream", "util"] }),
   ],
   resolve: {
     alias: {

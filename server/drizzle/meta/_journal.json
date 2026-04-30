@@ -8,6 +8,48 @@
       "when": 1777541293603,
       "tag": "0000_lucky_silvermane",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777544130734,
+      "tag": "0001_opposite_steve_rogers",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777544301816,
+      "tag": "0002_wealthy_lenny_balinger",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1777544327798,
+      "tag": "0003_daily_loki",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1777544467044,
+      "tag": "0004_panoramic_ink",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1777544611527,
+      "tag": "0005_perfect_black_cat",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1777545071829,
+      "tag": "0006_acoustic_stick",
+      "breakpoints": true
     }
   ]
 }

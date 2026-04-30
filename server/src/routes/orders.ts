@@ -12,37 +12,37 @@ const app = new Hono<AuthEnv>()
 
 app.use("*", authMiddleware)
 
+// POST /api/orders — create order, returns deposit address
 app.post("/", async (c) => {
   const userId = c.get("userId")
   const body = await c.req.json()
-  const { vaultId, type, amountUsdc } = body
+  const { vaultId, type, amount } = body
 
-  if (!vaultId || !type || !amountUsdc) {
-    return c.json({ error: "Missing required fields: vaultId, type, amountUsdc" }, 400)
+  if (!vaultId || !type || !amount) {
+    return c.json({ error: "Missing required fields: vaultId, type, amount" }, 400)
   }
 
   if (type !== "deposit" && type !== "withdraw") {
     return c.json({ error: "Type must be 'deposit' or 'withdraw'" }, 400)
   }
 
-  const { address: serverWallet } = await getOrCreateUserWallet(userId)
+  const { address: depositAddress } = await getOrCreateUserWallet(userId)
 
   const [order] = await db
     .insert(orders)
     .values({
       userId,
-      userWallet: "",
-      serverWallet,
       vaultId,
       type,
-      amountUsdc,
+      amount: String(amount),
       status: "pending",
     })
     .returning()
 
-  return c.json({ ...order, depositAddress: serverWallet }, 201)
+  return c.json({ ...order, depositAddress }, 201)
 })
 
+// GET /api/orders — list user's orders
 app.get("/", async (c) => {
   const userId = c.get("userId")
 
@@ -55,6 +55,7 @@ app.get("/", async (c) => {
   return c.json(userOrders)
 })
 
+// POST /api/orders/:id/confirm — user confirms USDC sent
 app.post("/:id/confirm", async (c) => {
   const userId = c.get("userId")
   const orderId = c.req.param("id")

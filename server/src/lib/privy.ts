@@ -1,6 +1,6 @@
 import { PrivyClient } from "@privy-io/server-auth"
 import { db } from "../db"
-import { userWallets } from "../db/schema"
+import { wallets } from "../db/schema"
 import { eq } from "drizzle-orm"
 
 export const privy = new PrivyClient(
@@ -13,8 +13,8 @@ const SOLANA_MAINNET_CAIP2 = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" as const
 export async function getOrCreateUserWallet(userId: string) {
   const [existing] = await db
     .select()
-    .from(userWallets)
-    .where(eq(userWallets.userId, userId))
+    .from(wallets)
+    .where(eq(wallets.userId, userId))
     .limit(1)
 
   if (existing) {
@@ -25,7 +25,7 @@ export async function getOrCreateUserWallet(userId: string) {
     chainType: "solana",
   })
 
-  await db.insert(userWallets).values({
+  await db.insert(wallets).values({
     userId,
     walletId: wallet.id,
     address: wallet.address,

@@ -1,0 +1,1 @@
+ALTER TABLE "stocks" RENAME COLUMN "symbol" TO "image_url";

@@ -1,3 +1,5 @@
+import { createFileRoute, Link } from "@tanstack/react-router"
+import { useVaults } from "@/hooks/use-vault"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -9,16 +11,14 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Row } from "@/components/ui/row"
 import { Column } from "@/components/ui/column"
-import { useVault } from "@/hooks/use-vault"
-import { getTokenMeta } from "@/lib/tokens"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import type { Vault } from "@/lib/api"
 
 export const Route = createFileRoute("/")({
   component: DiscoverPage,
 })
 
 function DiscoverPage() {
-  const { vault, loading, error } = useVault()
+  const { vaults, loading, error } = useVaults()
 
   return (
     <Column className="gap-6">
@@ -32,7 +32,7 @@ function DiscoverPage() {
       {loading && (
         <Card>
           <CardContent className="py-12 text-center text-sm text-muted-foreground">
-            Loading vault data from Solana...
+            Loading vaults...
           </CardContent>
         </Card>
       )}
@@ -45,25 +45,27 @@ function DiscoverPage() {
         </Card>
       )}
 
-      {vault && <VaultCard vault={vault} />}
+      {vaults.map((vault) => (
+        <VaultCard key={vault.id} vault={vault} />
+      ))}
     </Column>
   )
 }
 
-function VaultCard({ vault }: { vault: NonNullable<ReturnType<typeof useVault>["vault"]> }) {
+function VaultCard({ vault }: { vault: Vault }) {
   return (
-    <Link to="/fund/$id" params={{ id: import.meta.env.VITE_VAULT_ADDRESS }}>
+    <Link to="/fund/$id" params={{ id: vault.id }}>
       <Card className="transition-colors hover:bg-accent/50 cursor-pointer">
         <CardHeader>
           <Row className="items-start justify-between">
             <Column>
               <CardTitle className="text-lg">{vault.name}</CardTitle>
-              <CardDescription>${vault.symbol}</CardDescription>
+              <CardDescription>{vault.description}</CardDescription>
             </Column>
             <Column className="items-end">
               {vault.price && (
                 <p className="text-lg font-semibold">
-                  ${parseFloat(vault.price).toFixed(4)}
+                  ${parseFloat(vault.price).toFixed(6)}
                 </p>
               )}
               <p className="text-xs text-muted-foreground">per share</p>
@@ -75,30 +77,21 @@ function VaultCard({ vault }: { vault: NonNullable<ReturnType<typeof useVault>["
           <Column className="gap-4">
             <Row className="gap-6">
               <Stat label="TVL" value={vault.tvl ? `$${parseFloat(vault.tvl).toFixed(2)}` : "—"} />
-              <Stat label="Supply" value={vault.supplyOutstanding.toLocaleString()} />
-              <Stat
-                label="Deposit Fee"
-                value={`${(vault.feeSettings.creatorDepositFeeBps / 100).toFixed(2)}%`}
-              />
+              <Stat label="Supply" value={vault.supply?.toLocaleString() ?? "0"} />
             </Row>
 
             <Separator />
 
             <Column>
-              <p className="text-xs font-medium text-muted-foreground">
-                Composition
-              </p>
+              <p className="text-xs font-medium text-muted-foreground">Composition</p>
               <Row className="flex-wrap">
-                {vault.composition
-                  .filter((asset) => asset.weight > 0)
-                  .map((asset) => {
-                    const meta = getTokenMeta(asset.mint)
-                    return (
-                      <Badge key={asset.mint} variant="secondary">
-                        {meta.symbol} {(asset.weight / 100).toFixed(0)}%
-                      </Badge>
-                    )
-                  })}
+                {vault.onChainComposition
+                  ?.filter((a) => a.weight > 0)
+                  .map((asset) => (
+                    <Badge key={asset.mint} variant="secondary">
+                      {asset.mint.slice(0, 6)} {(asset.weight / 100).toFixed(0)}%
+                    </Badge>
+                  ))}
               </Row>
             </Column>
           </Column>

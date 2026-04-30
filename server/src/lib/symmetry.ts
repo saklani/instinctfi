@@ -1,15 +1,14 @@
-import { Connection, VersionedTransaction } from "@solana/web3.js"
+import { Connection } from "@solana/web3.js"
 import { SymmetryCore } from "@symmetry-hq/sdk"
 import { signAndSendTransaction } from "./privy"
 
 const RPC_URL = process.env.RPC_URL!
-const VAULT_MINT = process.env.VAULT_MINT!
 const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 
 let sdk: SymmetryCore | null = null
 const connection = new Connection(RPC_URL, "confirmed")
 
-function getSDK() {
+export function getSDK() {
   if (!sdk) {
     sdk = new SymmetryCore({
       connection,
@@ -20,9 +19,6 @@ function getSDK() {
   return sdk
 }
 
-/**
- * Extract VersionedTransactions from Symmetry's TxPayloadBatchSequence
- */
 function extractTransactions(payload: any): Buffer[] {
   const txs: Buffer[] = []
   for (const batch of payload.batches) {
@@ -34,20 +30,29 @@ function extractTransactions(payload: any): Buffer[] {
 }
 
 /**
+ * Fetch vault data from on-chain
+ */
+export async function fetchVault(vaultAddress: string) {
+  const sdk = getSDK()
+  let vault = await sdk.fetchVault(vaultAddress)
+  vault = await sdk.loadVaultPrice(vault)
+  return vault
+}
+
+/**
  * Execute a deposit: buyVaultTx + lockDepositsTx
- * Signs and sends using Privy server wallet
  */
 export async function executeDeposit(params: {
   walletId: string
   walletAddress: string
+  vaultMint: string
   amountLamports: number
 }) {
   const sdk = getSDK()
 
-  // 1. Build buy tx
   const buyPayload = await sdk.buyVaultTx({
     buyer: params.walletAddress,
-    vault_mint: VAULT_MINT,
+    vault_mint: params.vaultMint,
     contributions: [
       { mint: USDC_MINT, amount: params.amountLamports },
     ],
@@ -55,7 +60,6 @@ export async function executeDeposit(params: {
     per_trade_rebalance_slippage_bps: 500,
   })
 
-  // 2. Sign + send each tx via Privy
   const buyTxs = extractTransactions(buyPayload)
   const buySignatures: string[] = []
 
@@ -67,13 +71,11 @@ export async function executeDeposit(params: {
     buySignatures.push(result.hash)
   }
 
-  // 3. Build lock tx
   const lockPayload = await sdk.lockDepositsTx({
     buyer: params.walletAddress,
-    vault_mint: VAULT_MINT,
+    vault_mint: params.vaultMint,
   })
 
-  // 4. Sign + send lock
   const lockTxs = extractTransactions(lockPayload)
   const lockSignatures: string[] = []
 
@@ -94,13 +96,14 @@ export async function executeDeposit(params: {
 export async function executeWithdraw(params: {
   walletId: string
   walletAddress: string
-  amount: number // raw vault token amount
+  vaultMint: string
+  amount: number
 }) {
   const sdk = getSDK()
 
   const sellPayload = await sdk.sellVaultTx({
     seller: params.walletAddress,
-    vault_mint: VAULT_MINT,
+    vault_mint: params.vaultMint,
     withdraw_amount: params.amount,
     keep_tokens: [USDC_MINT],
     rebalance_slippage_bps: 500,

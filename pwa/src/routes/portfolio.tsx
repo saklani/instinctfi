@@ -1,17 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { usePrivy } from "@privy-io/react-auth"
-import { useVault } from "@/hooks/use-vault"
-import { useVaultBalance } from "@/hooks/use-vault-balance"
-import { SolBalance } from "@/components/sol-balance"
+import { useWallet } from "@/hooks/use-wallet"
+import { usePositions } from "@/hooks/use-positions"
+import { usePendingOrders } from "@/hooks/use-orders"
 import { Column } from "@/components/ui/column"
 import { Row } from "@/components/ui/row"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 
@@ -20,17 +19,15 @@ export const Route = createFileRoute("/portfolio")({
 })
 
 function PortfolioPage() {
-  const { ready, authenticated, login } = usePrivy()
-  const { vault } = useVault()
-  const { balance: vaultTokens, loading: vaultLoading } = useVaultBalance()
+  const { ready, authenticated, login } = useWallet()
+  const { positions, loading: posLoading } = usePositions()
+  const { orders: pendingOrders } = usePendingOrders()
 
   if (!ready) {
     return (
       <Column className="gap-6">
-        <Column>
-          <h1 className="text-2xl font-bold tracking-tight">Portfolio</h1>
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        </Column>
+        <h1 className="text-2xl font-bold tracking-tight">Portfolio</h1>
+        <p className="text-sm text-muted-foreground">Loading...</p>
       </Column>
     )
   }
@@ -40,116 +37,97 @@ function PortfolioPage() {
       <Column className="gap-6">
         <Column>
           <h1 className="text-2xl font-bold tracking-tight">Portfolio</h1>
-          <p className="text-sm text-muted-foreground">
-            Sign in to view your holdings.
-          </p>
-          <Button className="mt-2" onClick={() => login()}>
-            Sign In
-          </Button>
+          <p className="text-sm text-muted-foreground">Sign in to view your holdings.</p>
+          <Button className="mt-2" onClick={() => login()}>Sign In</Button>
         </Column>
       </Column>
     )
   }
 
-  const vaultPrice = vault?.price ? parseFloat(vault.price) : 0
-  const positionValue = vaultTokens && vaultPrice ? vaultTokens * vaultPrice : 0
+  const totalCostBasis = positions.reduce((sum, p) => sum + Number(p.costBasisUsdc), 0)
 
   return (
     <Column className="gap-6">
       <Column>
         <h1 className="text-2xl font-bold tracking-tight">Portfolio</h1>
-        <p className="text-sm text-muted-foreground">
-          Your holdings and balances.
-        </p>
+        <p className="text-sm text-muted-foreground">Your holdings and orders.</p>
       </Column>
 
-      {/* Wallet balance */}
+      {/* Summary */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Wallet</CardTitle>
-          <CardDescription>Available balances</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Column className="gap-4">
-            <Row className="items-center justify-between">
-              <span className="text-sm text-muted-foreground">SOL</span>
-              <SolBalance className="text-sm font-medium" />
-            </Row>
-          </Column>
+        <CardContent className="pt-6">
+          <Row className="items-center justify-between">
+            <span className="text-sm text-muted-foreground">Total Invested</span>
+            <span className="text-lg font-semibold">${totalCostBasis.toFixed(2)}</span>
+          </Row>
         </CardContent>
       </Card>
 
-      {/* Vault position */}
-      {vaultTokens != null && vaultTokens > 0 && vault ? (
-        <Link
-          to="/fund/$id"
-          params={{ id: import.meta.env.VITE_VAULT_ADDRESS }}
-        >
-          <Card className="transition-colors hover:bg-accent/50 cursor-pointer">
-            <CardHeader>
-              <Row className="items-start justify-between">
-                <Column>
-                  <CardTitle className="text-base">{vault.name}</CardTitle>
-                  <CardDescription>${vault.symbol}</CardDescription>
-                </Column>
-                <Column className="items-end">
-                  <p className="text-lg font-semibold">
-                    ${positionValue.toFixed(4)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">value</p>
-                </Column>
-              </Row>
-            </CardHeader>
-            <CardContent>
-              <Column className="gap-4">
-                <Row className="items-center justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    Shares held
-                  </span>
-                  <span className="text-sm font-medium">
-                    {vaultLoading
-                      ? "..."
-                      : vaultTokens.toLocaleString(undefined, {
-                          maximumFractionDigits: 2,
-                        })}
-                  </span>
-                </Row>
-                <Separator />
-                <Row className="items-center justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    Share price
-                  </span>
-                  <span className="text-sm font-medium">
-                    ${vaultPrice.toFixed(8)}
-                  </span>
-                </Row>
-                <Separator />
-                <Row className="items-center justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    Vault TVL
-                  </span>
-                  <span className="text-sm font-medium">
-                    ${vault.tvl ? parseFloat(vault.tvl).toFixed(2) : "—"}
-                  </span>
-                </Row>
-              </Column>
-            </CardContent>
-          </Card>
-        </Link>
-      ) : (
+      {/* Pending Orders */}
+      {pendingOrders.length > 0 && (
         <Card>
-          <CardContent className="py-12">
-            <Column className="items-center gap-4">
-              <p className="text-sm text-muted-foreground text-center">
-                No vault positions yet. Invest in an index fund to get started.
-              </p>
-              <Link to="/">
-                <Button>Explore Funds</Button>
-              </Link>
+          <CardHeader>
+            <CardTitle className="text-base">Open Orders</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Column className="gap-3">
+              {pendingOrders.map((order) => (
+                <Row key={order.id} className="items-center justify-between">
+                  <Column className="gap-0">
+                    <span className="text-sm font-medium capitalize">{order.type}</span>
+                    <span className="text-xs text-muted-foreground">
+                      ${order.amountUsdc} USDC
+                    </span>
+                  </Column>
+                  <Badge variant="secondary">
+                    {order.status === "pending" ? "Awaiting USDC" : "Processing"}
+                  </Badge>
+                </Row>
+              ))}
             </Column>
           </CardContent>
         </Card>
       )}
+
+      {/* Positions */}
+      {positions.length > 0 ? (
+        <Column className="gap-3">
+          {positions.map((position) => (
+            <Card key={position.id}>
+              <CardContent className="pt-6">
+                <Column className="gap-3">
+                  <Row className="items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Cost Basis</span>
+                    <span className="text-sm font-semibold">
+                      ${Number(position.costBasisUsdc).toFixed(2)}
+                    </span>
+                  </Row>
+                  <Separator />
+                  <Row className="items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Shares</span>
+                    <span className="text-sm font-semibold">
+                      {Number(position.shares).toLocaleString()}
+                    </span>
+                  </Row>
+                </Column>
+              </CardContent>
+            </Card>
+          ))}
+        </Column>
+      ) : !posLoading ? (
+        <Card>
+          <CardContent className="py-12">
+            <Column className="items-center gap-4">
+              <p className="text-sm text-muted-foreground text-center">
+                No positions yet. Invest in a vault to get started.
+              </p>
+              <Link to="/">
+                <Button>Explore Vaults</Button>
+              </Link>
+            </Column>
+          </CardContent>
+        </Card>
+      ) : null}
     </Column>
   )
 }

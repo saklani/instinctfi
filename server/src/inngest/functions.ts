@@ -1,6 +1,6 @@
 import { inngest } from "./client"
 import { db } from "../db"
-import { orders, positions, userWallets } from "../db/schema"
+import { orders, positions, wallets, vaults } from "../db/schema"
 import { eq, and } from "drizzle-orm"
 import { executeDeposit, executeWithdraw } from "../lib/symmetry"
 
@@ -56,13 +56,11 @@ export const processOrder = inngest.createFunction(
   async ({ event, step }) => {
     const orderId = event.data.orderId as string
 
-    // Wait for market open
     if (!isMarketOpen()) {
       const waitSeconds = secondsUntilMarketOpen()
       await step.sleep("wait-for-market-open", `${waitSeconds}s`)
     }
 
-    // Fetch order
     const [order] = await step.run("fetch-order", async () => {
       return db.select().from(orders).where(eq(orders.id, orderId)).limit(1)
     })
@@ -71,12 +69,19 @@ export const processOrder = inngest.createFunction(
       return { skipped: true, reason: "Order not found or not funded" }
     }
 
-    // Fetch user wallet
+    const [vault] = await step.run("fetch-vault", async () => {
+      return db.select().from(vaults).where(eq(vaults.id, order.vaultId)).limit(1)
+    })
+
+    if (!vault) {
+      return { skipped: true, reason: "Vault not found" }
+    }
+
     const [wallet] = await step.run("fetch-wallet", async () => {
       return db
         .select()
-        .from(userWallets)
-        .where(eq(userWallets.userId, order.userId))
+        .from(wallets)
+        .where(eq(wallets.userId, order.userId))
         .limit(1)
     })
 
@@ -84,7 +89,6 @@ export const processOrder = inngest.createFunction(
       return { skipped: true, reason: "No server wallet found" }
     }
 
-    // Process
     return await step.run("execute", async () => {
       try {
         await db
@@ -93,19 +97,18 @@ export const processOrder = inngest.createFunction(
           .where(eq(orders.id, order.id))
 
         if (order.type === "deposit") {
-          const usdcLamports = Math.floor(Number(order.amountUsdc) * 1_000_000)
-
           const result = await executeDeposit({
             walletId: wallet.walletId,
             walletAddress: wallet.address,
-            amountLamports: usdcLamports,
+            vaultMint: vault.vaultMint,
+            amountLamports: Number(order.amount),
           })
 
           await db
             .update(orders)
             .set({
               status: "completed",
-              txSignature: result.buySignatures[0],
+              signature: result.buySignatures[0],
               updatedAt: new Date(),
             })
             .where(eq(orders.id, order.id))
@@ -126,9 +129,7 @@ export const processOrder = inngest.createFunction(
             await db
               .update(positions)
               .set({
-                costBasisUsdc: String(
-                  Number(existing.costBasisUsdc) + Number(order.amountUsdc),
-                ),
+                amount: String(Number(existing.amount) + Number(order.amount)),
                 updatedAt: new Date(),
               })
               .where(eq(positions.id, existing.id))
@@ -136,26 +137,24 @@ export const processOrder = inngest.createFunction(
             await db.insert(positions).values({
               userId: order.userId,
               vaultId: order.vaultId,
-              costBasisUsdc: order.amountUsdc,
+              amount: order.amount,
             })
           }
 
           return { orderId: order.id, status: "completed", ...result }
         } else {
-          // Withdraw
-          const shareAmount = Math.floor(Number(order.amountUsdc) * 1_000_000) // TODO: convert USDC to shares
-
           const result = await executeWithdraw({
             walletId: wallet.walletId,
             walletAddress: wallet.address,
-            amount: shareAmount,
+            vaultMint: vault.vaultMint,
+            amount: Number(order.amount),
           })
 
           await db
             .update(orders)
             .set({
               status: "completed",
-              txSignature: result.signatures[0],
+              signature: result.signatures[0],
               updatedAt: new Date(),
             })
             .where(eq(orders.id, order.id))
@@ -167,7 +166,7 @@ export const processOrder = inngest.createFunction(
           .update(orders)
           .set({
             status: "failed",
-            errorMessage: e.message ?? "Unknown error",
+            error: e.message ?? "Unknown error",
             updatedAt: new Date(),
           })
           .where(eq(orders.id, order.id))
