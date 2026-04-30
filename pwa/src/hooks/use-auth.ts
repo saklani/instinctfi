@@ -1,21 +1,16 @@
-import { useEffect, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { usePrivy } from "@privy-io/react-auth"
 import { authenticate } from "@/lib/api"
 
 export function useAuth() {
   const { ready, authenticated } = usePrivy()
-  const [walletAddress, setWalletAddress] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!ready || !authenticated) {
-      setWalletAddress(null)
-      return
-    }
+  const { data } = useQuery({
+    queryKey: ["auth"],
+    queryFn: authenticate,
+    enabled: ready && authenticated,
+    staleTime: Infinity,
+  })
 
-    authenticate()
-      .then((res) => setWalletAddress(res.walletAddress))
-      .catch(() => setWalletAddress(null))
-  }, [ready, authenticated])
-
-  return { walletAddress }
+  return { walletAddress: data?.walletAddress ?? null }
 }

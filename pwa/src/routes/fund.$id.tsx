@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
+import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { useVault } from "@/hooks/use-vault"
 import { usePendingOrders } from "@/hooks/use-orders"
@@ -200,6 +201,7 @@ function FundDetailPage() {
 }
 
 function DepositTab({ vaultId, onDone }: { vaultId: string; onDone: () => void }) {
+  const queryClient = useQueryClient()
   const serverWallet = useServerWallet()
   const { wallet, walletAddress, signAndSendTransaction } = useWallet()
   const [amount, setAmount] = useState("")
@@ -237,6 +239,9 @@ function DepositTab({ vaultId, onDone }: { vaultId: string; onDone: () => void }
           ? signature
           : new TextDecoder().decode(signature),
       })
+
+      await queryClient.invalidateQueries({ queryKey: ["orders"] })
+      await queryClient.invalidateQueries({ queryKey: ["positions"] })
 
       toast.success("Deposit submitted", {
         description: "Your deposit will be processed at next market open.",
@@ -289,6 +294,7 @@ function DepositTab({ vaultId, onDone }: { vaultId: string; onDone: () => void }
 }
 
 function WithdrawTab({ vaultId, onDone }: { vaultId: string; onDone: () => void }) {
+  const queryClient = useQueryClient()
   const [amount, setAmount] = useState("")
   const [processing, setProcessing] = useState(false)
   const numAmount = parseFloat(amount) || 0
@@ -298,13 +304,15 @@ function WithdrawTab({ vaultId, onDone }: { vaultId: string; onDone: () => void 
     setProcessing(true)
 
     try {
-      // Withdraw amount in shares (vault token smallest unit)
       const rawAmount = String(Math.floor(numAmount * 1e6))
 
       await createWithdrawal({
         vaultId,
         amount: rawAmount,
       })
+
+      await queryClient.invalidateQueries({ queryKey: ["orders"] })
+      await queryClient.invalidateQueries({ queryKey: ["positions"] })
 
       toast.success("Withdrawal submitted", {
         description: "Will be processed at next market open.",

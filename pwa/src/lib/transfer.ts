@@ -10,10 +10,13 @@ import {
   getTransactionEncoder,
   address,
 } from "@solana/kit"
-import { getTransferInstruction } from "@solana-program/token"
-import { findAssociatedTokenPda } from "@solana-program/token"
+import {
+  getTransferInstruction,
+  findAssociatedTokenPda,
+  TOKEN_PROGRAM_ADDRESS,
+} from "@solana-program/token"
 
-const DEFAULT_RPC_URL = import.meta.env?.VITE_RPC_URL ?? "https://api.mainnet-beta.solana.com"
+const DEFAULT_RPC_URL = import.meta.env.VITE_RPC_URL ?? "https://api.mainnet-beta.solana.com"
 const USDC_MINT = address("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")
 
 /**
@@ -24,9 +27,8 @@ export async function buildUsdcTransfer(params: {
   from: string
   to: string
   amount: bigint
-  rpcUrl?: string
 }) {
-  const rpc = createSolanaRpc(params.rpcUrl ?? DEFAULT_RPC_URL)
+  const rpc = createSolanaRpc(DEFAULT_RPC_URL)
   const { value: latestBlockhash } = await rpc.getLatestBlockhash().send()
 
   const fromAddress = address(params.from)
@@ -35,11 +37,13 @@ export async function buildUsdcTransfer(params: {
   // Derive ATAs
   const [sourceAta] = await findAssociatedTokenPda({
     owner: fromAddress,
+    tokenProgram: TOKEN_PROGRAM_ADDRESS,
     mint: USDC_MINT,
   })
 
   const [destAta] = await findAssociatedTokenPda({
     owner: toAddress,
+    tokenProgram: TOKEN_PROGRAM_ADDRESS,
     mint: USDC_MINT,
   })
 

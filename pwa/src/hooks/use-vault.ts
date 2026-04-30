@@ -1,69 +1,31 @@
-import { useEffect, useState } from "react"
-import { fetchVaults, type Vault } from "@/lib/api"
+import { useQuery } from "@tanstack/react-query"
+import { fetchVaults, fetchVault } from "@/lib/api"
 
 export function useVaults() {
-  const [vaults, setVaults] = useState<Vault[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["vaults"],
+    queryFn: fetchVaults,
+    staleTime: 30_000,
+  })
 
-  useEffect(() => {
-    let cancelled = false
-
-    const load = async () => {
-      setLoading(true)
-      try {
-        const data = await fetchVaults()
-        if (!cancelled) setVaults(data)
-      } catch (e: any) {
-        if (!cancelled) setError(e.message)
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-
-    load()
-    const interval = setInterval(load, 30_000)
-
-    return () => {
-      cancelled = true
-      clearInterval(interval)
-    }
-  }, [])
-
-  return { vaults, loading, error }
+  return {
+    vaults: data ?? [],
+    loading: isLoading,
+    error: error?.message ?? null,
+  }
 }
 
 export function useVault(id: string) {
-  const [vault, setVault] = useState<Vault | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["vault", id],
+    queryFn: () => fetchVault(id),
+    enabled: !!id,
+    staleTime: 30_000,
+  })
 
-  useEffect(() => {
-    if (!id) return
-
-    let cancelled = false
-
-    const load = async () => {
-      setLoading(true)
-      try {
-        const { fetchVault } = await import("@/lib/api")
-        const data = await fetchVault(id)
-        if (!cancelled) setVault(data)
-      } catch (e: any) {
-        if (!cancelled) setError(e.message)
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-
-    load()
-    const interval = setInterval(load, 30_000)
-
-    return () => {
-      cancelled = true
-      clearInterval(interval)
-    }
-  }, [id])
-
-  return { vault, loading, error }
+  return {
+    vault: data ?? null,
+    loading: isLoading,
+    error: error?.message ?? null,
+  }
 }
