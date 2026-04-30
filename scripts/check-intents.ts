@@ -1,11 +1,13 @@
 import { Connection } from "@solana/web3.js"
 import { SymmetryCore } from "@symmetry-hq/sdk"
 
-const VAULT_ADDRESS = "EeDideZqgCwCuQFd4241ZsZRVBcSgVYf1rPStqzov9qc"
+const VAULT_ADDRESS = process.argv[2] ?? "G54nsrBx9a59YVqiqk2Sg3yX9wQauRz5MEugdWDjvmsf"
+const RPC_URL = process.env.RPC_URL ?? "https://api.mainnet-beta.solana.com"
+const NETWORK = (process.env.NETWORK ?? "mainnet") as "mainnet" | "devnet"
 
 async function main() {
-  const connection = new Connection("https://api.devnet.solana.com", "confirmed")
-  const sdk = new SymmetryCore({ connection, network: "devnet" })
+  const connection = new Connection(RPC_URL, "confirmed")
+  const sdk = new SymmetryCore({ connection, network: NETWORK })
 
   console.log("Checking rebalance intents...")
   const intents = await sdk.fetchVaultRebalanceIntents(VAULT_ADDRESS)

@@ -1,6 +1,6 @@
 import { Connection } from "@solana/web3.js"
 import { SymmetryCore } from "@symmetry-hq/sdk"
-import { signAndSendTransaction } from "./privy.js"
+import { signTransaction } from "./privy.js"
 
 const RPC_URL = process.env.RPC_URL!
 const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
@@ -64,11 +64,15 @@ export async function executeDeposit(params: {
   const buySignatures: string[] = []
 
   for (const txBuf of buyTxs) {
-    const result = await signAndSendTransaction(
+    const { signed_transaction } = await signTransaction(
       params.walletId,
       txBuf.toString("base64"),
     )
-    buySignatures.push(result.hash)
+    const sig = await connection.sendRawTransaction(
+      Buffer.from(signed_transaction, "base64"),
+    )
+    await connection.confirmTransaction(sig, "confirmed")
+    buySignatures.push(sig)
   }
 
   const lockPayload = await sdk.lockDepositsTx({
@@ -80,11 +84,15 @@ export async function executeDeposit(params: {
   const lockSignatures: string[] = []
 
   for (const txBuf of lockTxs) {
-    const result = await signAndSendTransaction(
+    const { signed_transaction } = await signTransaction(
       params.walletId,
       txBuf.toString("base64"),
     )
-    lockSignatures.push(result.hash)
+    const sig = await connection.sendRawTransaction(
+      Buffer.from(signed_transaction, "base64"),
+    )
+    await connection.confirmTransaction(sig, "confirmed")
+    lockSignatures.push(sig)
   }
 
   return { buySignatures, lockSignatures }
@@ -114,11 +122,15 @@ export async function executeWithdraw(params: {
   const signatures: string[] = []
 
   for (const txBuf of sellTxs) {
-    const result = await signAndSendTransaction(
+    const { signed_transaction } = await signTransaction(
       params.walletId,
       txBuf.toString("base64"),
     )
-    signatures.push(result.hash)
+    const sig = await connection.sendRawTransaction(
+      Buffer.from(signed_transaction, "base64"),
+    )
+    await connection.confirmTransaction(sig, "confirmed")
+    signatures.push(sig)
   }
 
   return { signatures }

@@ -8,9 +8,9 @@
 import { Connection, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js"
 import { SymmetryCore, KeeperMonitor } from "@symmetry-hq/sdk"
 
-const RPC_URL = "https://api.devnet.solana.com"
-const NETWORK = "devnet" as const
-const VAULT_ADDRESS = "EeDideZqgCwCuQFd4241ZsZRVBcSgVYf1rPStqzov9qc"
+const RPC_URL = process.env.RPC_URL ?? "https://api.mainnet-beta.solana.com"
+const NETWORK = (process.env.NETWORK ?? "mainnet") as "mainnet" | "devnet"
+const VAULT_ADDRESS = process.argv[2] ?? "G54nsrBx9a59YVqiqk2Sg3yX9wQauRz5MEugdWDjvmsf"
 
 function loadKeypair(): Keypair {
   const pk = process.env.PRIVATE_KEY
