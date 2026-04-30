@@ -7,7 +7,7 @@
 
 import { neon } from "@neondatabase/serverless"
 import { drizzle } from "drizzle-orm/neon-http"
-import { stocks, vaults, compositions } from "../src/db/schema"
+import { stocks, vaults, compositions } from "../server/src/db/schema"
 
 const sql = neon(process.env.DATABASE_URL!)
 const db = drizzle(sql)

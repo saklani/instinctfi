@@ -3,6 +3,19 @@ import { Connection, PublicKey, VersionedTransaction } from "@solana/web3.js"
 const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 const TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
 const TOKEN_2022_PROGRAM = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+const ASSOCIATED_TOKEN_PROGRAM = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+
+function deriveAta(owner: string): string {
+  const [ata] = PublicKey.findProgramAddressSync(
+    [
+      new PublicKey(owner).toBuffer(),
+      new PublicKey(TOKEN_PROGRAM).toBuffer(),
+      new PublicKey(USDC_MINT).toBuffer(),
+    ],
+    new PublicKey(ASSOCIATED_TOKEN_PROGRAM),
+  )
+  return ata.toBase58()
+}
 
 // SPL Token transfer instruction discriminator = 3
 // transferChecked instruction discriminator = 12
@@ -12,9 +25,10 @@ const TRANSFER_CHECKED_DISC = 12
 export async function verifyUsdcTransfer(
   connection: Connection,
   signature: string,
-  expectedDestination: string,
+  expectedWallet: string,
   expectedAmount: bigint,
 ): Promise<{ valid: boolean; error?: string }> {
+  const expectedDestination = deriveAta(expectedWallet)
   const tx = await connection.getTransaction(signature, {
     maxSupportedTransactionVersion: 0,
   })
