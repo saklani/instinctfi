@@ -8,7 +8,8 @@
     "@symmetry-hq/sdk": "^1.0.20",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.12.15",
-    "inngest": "^4.2.6"
+    "inngest": "^4.2.6",
+    "zod": "^4.4.1"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",

@@ -1,10 +1,12 @@
 import { Hono } from "hono"
 import { Connection } from "@solana/web3.js"
+import { z } from "zod"
 import { db } from "../db"
 import { orders, wallets } from "../db/schema"
 import { eq, desc } from "drizzle-orm"
 import { authMiddleware } from "../middleware/auth"
 import { inngest } from "../inngest/client"
+import { verifyUsdcTransfer } from "../lib/verify-transfer"
 
 type AuthEnv = { Variables: { userId: string } }
 
@@ -13,20 +15,24 @@ const connection = new Connection(process.env.RPC_URL!, "confirmed")
 
 app.use("*", authMiddleware)
 
-// POST /api/orders — verify transfer tx, create order as funded, trigger processing
+const createOrderSchema = z.object({
+  vaultId: z.uuid(),
+  type: z.enum(["deposit", "withdraw"]),
+  amount: z.string().regex(/^\d+$/, "Amount must be an integer string"),
+  signature: z.string().min(1),
+})
+
 app.post("/", async (c) => {
   const userId = c.get("userId")
-  const { vaultId, type, amount, signature } = await c.req.json()
+  const body = await c.req.json()
 
-  if (!vaultId || !type || !amount || !signature) {
-    return c.json({ error: "Missing required fields: vaultId, type, amount, signature" }, 400)
+  const parsed = createOrderSchema.safeParse(body)
+  if (!parsed.success) {
+    return c.json({ error: parsed.error.issues[0].message }, 400)
   }
 
-  if (type !== "deposit" && type !== "withdraw") {
-    return c.json({ error: "Type must be 'deposit' or 'withdraw'" }, 400)
-  }
+  const { vaultId, type, amount, signature } = parsed.data
 
-  // Get user's server wallet
   const [wallet] = await db
     .select()
     .from(wallets)
@@ -37,35 +43,22 @@ app.post("/", async (c) => {
     return c.json({ error: "No wallet found. Call POST /api/auth first." }, 400)
   }
 
-  // Verify the transaction on-chain
-  const tx = await connection.getTransaction(signature, {
-    maxSupportedTransactionVersion: 0,
-  })
+  const { valid, error } = await verifyUsdcTransfer(
+    connection,
+    signature,
+    wallet.address,
+    BigInt(amount),
+  )
 
-  if (!tx) {
-    return c.json({ error: "Transaction not found" }, 400)
+  if (!valid) {
+    return c.json({ error: error ?? "Transfer verification failed" }, 400)
   }
 
-  if (tx.meta?.err) {
-    return c.json({ error: "Transaction failed on-chain" }, 400)
-  }
-
-  // TODO: verify the tx actually transfers the correct USDC amount to wallet.address
-
-  // Create order as funded
   const [order] = await db
     .insert(orders)
-    .values({
-      userId,
-      vaultId,
-      type,
-      amount: String(amount),
-      signature,
-      status: "funded",
-    })
+    .values({ userId, vaultId, type, amount, signature, status: "funded" })
     .returning()
 
-  // Trigger processing
   await inngest.send({
     name: "order/funded",
     data: { orderId: order.id },
@@ -74,7 +67,6 @@ app.post("/", async (c) => {
   return c.json(order, 201)
 })
 
-// GET /api/orders — list user's orders
 app.get("/", async (c) => {
   const userId = c.get("userId")
 

@@ -1,0 +1,46 @@
+#!/bin/bash
+RPC="https://mainnet.helius-rpc.com/?api-key=7ab8b174-ab40-4c2a-aef7-93a19dbd364c"
+
+solana-test-validator \
+  --url "$RPC" \
+  --reset \
+  --clone-upgradeable-program BASKT7aKd8n7ibpUbwLP3Wiyxyi3yoiXsxBk4Hpumate \
+  --clone G54nsrBx9a59YVqiqk2Sg3yX9wQauRz5MEugdWDjvmsf \
+  --clone EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v \
+  --clone FXcxe5f3AwkJZRaoYFuGME7rEXS4NmBxZPYKVh3Q4bnD \
+  --clone EuUrY4SVUrWRqXEWkVE3HM2NtJbUfYcZnm2TwfRuAWij \
+  --clone 7mwxYQh3vE5rQn7cMWSkWN3cPQmjc4UzLphUZQLj5KkG \
+  --clone BV49JWNeVnRjvMg4BHVoRFXNXHMFqgZFsfHg2QUekynd \
+  --clone 7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE \
+  --clone Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX \
+  --clone 2w1Tg1XTZbUib7srfRoStJ4v5JXVsK7roQEGMsMaGZFC \
+  --clone HShKFQqhYkUiXpVyyLmrAALXwWqHB7ikLmPbrwJzpRNh \
+  --clone GBkjjFxbaFY9TBHpAPypk5JBchpPPve2jskAcd9zuFNd \
+  --clone DJ2FyTgUAkEtXW3U5P9PF19meFTRtW4ZWKKFgACfVbUy \
+  --clone GsKrMNoa1Mqjpif4SYk2WjdduWZP699hXRdP51yBM6K2 \
+  --clone 7RP45Z6dsTrHQakMg7xha1RLZGk1x2pVViBjpUMpzdBK \
+  --clone 7VYuuJxz8w2rLA9tJG2KZ9T1fSMcjC7uECoYA6nDaqtK \
+  --clone E8WFH8brgP58arcuW2wwsPHiomYrSvrgWTsRLZLAEZUQ \
+  --clone So11111111111111111111111111111111111111112 \
+  --clone F2z7JBEuUAoEjkDAJs1FXw7wXW6AQAnFpSNyj2iQrfht \
+  --clone AxVsnKm1dyDm4TUPeiEbkBd98uVEJuiAon6cefKV7Rt3 \
+  --clone Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh \
+  --clone XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN \
+  --clone Xs3eBt7uRfJX8QUs4suhyU8p2M6DoUDrJyWBa8LLZsg \
+  --clone XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp \
+  --clone Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu \
+  --clone XsoBhf2ufR8fTyNSjqfU71DYGaE6Z3SUGAidpzriAA4 \
+  --clone XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX \
+  --clone XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB \
+  --clone 3z5Wn6humJuxaKV4FHZdDX4C5QTFkB3SMemdBQBDcg1B \
+  --clone 5Q1akGYmfXa4LYYHrSxqk9Aat3G64awefEST8BWSB4Jr \
+  --clone 7YftbFaTtj4cYYznNP8CbYWR6227yhY1RJRNfrCoWSnD \
+  --clone FxGuwHrYua2SNJKsy5FbLzc7qyqskuRjWsT2zwx1qL8T \
+  --clone 5TxCNAcxWVYmVBz2oCb9RdjqfKKmkndNAZWXAtueKQkt \
+  --clone 3F2ufX9LMMrDTJGFdERX1hHFA44mJREPioR1LWZ3beyD \
+  --clone 5zDyo9uCKAwiNgUxFTsGPvVh7eJcddJK7pDVDGx1RKRQ \
+  --clone 2rXLwj1MeqHNepBwRErCPFPBcVzeV5hDigtzx786eXFn \
+  --clone TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb \
+  --clone 12KQBzEr1vUBPWKRoq2934VcbHDw3TPQZ2kdnVNKmD3P \
+  --clone 8UF6dpLjMRCpn8woGh1M4tzBDjQ4pV6ak3cZ2L9MsvNb \
+  --clone EzTH7aLABqTnoaEKH1X4snhHsmY7qXxi6HW1qbj9p9v3 \

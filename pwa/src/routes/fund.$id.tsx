@@ -5,7 +5,8 @@ import { useVault } from "@/hooks/use-vault"
 import { usePendingOrders } from "@/hooks/use-orders"
 import { usePositions } from "@/hooks/use-positions"
 import { useWallet } from "@/hooks/use-wallet"
-import { createOrder, confirmOrder } from "@/lib/api"
+import { useServerWallet } from "@/components/api-provider"
+import { createOrder } from "@/lib/api"
 import {
   Card,
   CardContent,
@@ -41,7 +42,6 @@ function FundDetailPage() {
   const { positions } = usePositions()
   const [sheetOpen, setSheetOpen] = useState(false)
 
-  const vaultPrice = vault?.price ? parseFloat(vault.price) : 0
   const position = positions.find((p) => p.vaultId === id)
   const myPendingOrders = pendingOrders.filter((o) => o.vaultId === id)
 
@@ -78,19 +78,6 @@ function FundDetailPage() {
           <p className="text-sm text-muted-foreground">{vault.description}</p>
         </Column>
 
-        <Column className="gap-1">
-          <p className="text-4xl font-bold tracking-tighter">
-            ${vaultPrice ? vaultPrice.toFixed(6) : "—"}
-          </p>
-          <p className="text-xs text-muted-foreground">per share</p>
-        </Column>
-
-        <Row className="gap-6">
-          <Stat label="TVL" value={vault.tvl ? `$${parseFloat(vault.tvl).toFixed(2)}` : "—"} />
-          <Stat label="Supply" value={vault.supply?.toLocaleString() ?? "0"} />
-          <Stat label="Withdraw Fee" value={`${(vault.withdrawFeeBps / 100).toFixed(2)}%`} />
-        </Row>
-
         {/* Pending Orders */}
         {authenticated && myPendingOrders.length > 0 && (
           <>
@@ -106,12 +93,10 @@ function FundDetailPage() {
                       <Column className="gap-0">
                         <span className="text-sm font-medium capitalize">{order.type}</span>
                         <span className="text-xs text-muted-foreground">
-                          ${order.amount} USDC
+                          {order.amount} USDC
                         </span>
                       </Column>
-                      <Badge variant="secondary">
-                        {order.status === "pending" ? "Awaiting USDC" : "Processing"}
-                      </Badge>
+                      <Badge variant="secondary">Processing</Badge>
                     </Row>
                   ))}
                 </Column>
@@ -131,9 +116,9 @@ function FundDetailPage() {
               <CardContent>
                 <Column className="gap-3">
                   <Row className="items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Cost Basis</span>
+                    <span className="text-sm text-muted-foreground">Invested</span>
                     <span className="text-sm font-semibold">
-                      ${Number(position.amount).toFixed(2)}
+                      {Number(position.amount).toFixed(2)} USDC
                     </span>
                   </Row>
                   <Separator />
@@ -155,23 +140,24 @@ function FundDetailPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Holdings</CardTitle>
-            <CardDescription>Current vault composition and target weights.</CardDescription>
+            <CardDescription>Current vault composition.</CardDescription>
           </CardHeader>
           <CardContent>
             <Column className="gap-3">
-              {vault.onChainComposition
-                ?.filter((a) => a.weight > 0)
-                .map((asset, i, arr) => (
-                  <Column key={asset.mint} className="gap-3">
-                    <Row className="items-center justify-between">
-                      <span className="text-sm font-medium">{asset.mint.slice(0, 8)}...</span>
-                      <span className="text-sm font-semibold">
-                        {(asset.weight / 100).toFixed(0)}%
-                      </span>
+              {vault.compositions?.map((c, i, arr) => (
+                <Column key={c.stock.id} className="gap-3">
+                  <Row className="items-center justify-between">
+                    <Row className="items-center">
+                      <span className="text-sm font-medium">{c.stock.name}</span>
+                      <Badge variant="secondary">{c.stock.ticker}</Badge>
                     </Row>
-                    {i < arr.length - 1 && <Separator />}
-                  </Column>
-                ))}
+                    <span className="text-sm font-semibold">
+                      {(c.weightBps / 100).toFixed(0)}%
+                    </span>
+                  </Row>
+                  {i < arr.length - 1 && <Separator />}
+                </Column>
+              ))}
             </Column>
           </CardContent>
         </Card>
@@ -190,9 +176,7 @@ function FundDetailPage() {
         <SheetContent side="bottom" className="rounded-t-2xl px-6">
           <SheetHeader>
             <SheetTitle>{vault.name}</SheetTitle>
-            <SheetDescription>
-              ${vaultPrice.toFixed(8)} per share
-            </SheetDescription>
+            <SheetDescription>Deposit or withdraw USDC</SheetDescription>
           </SheetHeader>
 
           <Tabs defaultValue="deposit" className="py-4">
@@ -216,73 +200,42 @@ function FundDetailPage() {
 }
 
 function DepositTab({ vaultId, onDone }: { vaultId: string; onDone: () => void }) {
+  const serverWallet = useServerWallet()
   const [amount, setAmount] = useState("")
-  const [depositAddress, setDepositAddress] = useState<string | null>(null)
-  const [orderId, setOrderId] = useState<string | null>(null)
-  const [step, setStep] = useState<"amount" | "send" | "confirming">("amount")
+  const [processing, setProcessing] = useState(false)
 
   const numAmount = parseFloat(amount) || 0
 
-  const handleCreateOrder = async () => {
-    if (numAmount <= 0) return
+  const handleDeposit = async () => {
+    if (numAmount <= 0 || !serverWallet) return
+    setProcessing(true)
 
     try {
-      const order = await createOrder({
+      // TODO: build USDC transfer tx from user wallet to serverWallet
+      // Sign with Privy embedded wallet
+      // Get tx signature
+      const signature = "TODO_TRANSFER_SIGNATURE"
+
+      // Convert to 8 decimal raw amount
+      const rawAmount = String(Math.floor(numAmount * 1e8))
+
+      await createOrder({
         vaultId,
         type: "deposit",
-        amount: amount,
+        amount: rawAmount,
+        signature,
       })
-      setDepositAddress(order.depositAddress)
-      setOrderId(order.id)
-      setStep("send")
-    } catch (e: any) {
-      toast.error("Failed to create order", { description: e.message })
-    }
-  }
 
-  const handleConfirm = async () => {
-    if (!orderId) return
-    setStep("confirming")
-
-    try {
-      await confirmOrder(orderId)
-      toast.success("Order submitted", {
+      toast.success("Deposit submitted", {
         description: "Your deposit will be processed at next market open.",
       })
+      setAmount("")
       onDone()
     } catch (e: any) {
-      toast.error("Failed to confirm", { description: e.message })
-      setStep("send")
+      toast.error("Deposit failed", { description: e.message })
+    } finally {
+      setProcessing(false)
     }
-  }
-
-  if (step === "send" && depositAddress) {
-    return (
-      <Column className="gap-4 pt-4">
-        <Column>
-          <Label>Send ${amount} USDC to:</Label>
-          <button
-            className="mt-2 rounded-md bg-muted p-3 font-mono text-xs break-all text-left"
-            onClick={() => {
-              navigator.clipboard.writeText(depositAddress)
-              toast.success("Copied!")
-            }}
-          >
-            {depositAddress}
-          </button>
-          <p className="text-xs text-muted-foreground mt-1">Tap to copy</p>
-        </Column>
-
-        <Button
-          size="lg"
-          className="w-full text-base font-semibold"
-          disabled={step === "confirming"}
-          onClick={handleConfirm}
-        >
-          {step === "confirming" ? "Confirming..." : "I've Sent the USDC"}
-        </Button>
-      </Column>
-    )
   }
 
   return (
@@ -314,10 +267,10 @@ function DepositTab({ vaultId, onDone }: { vaultId: string; onDone: () => void }
       <Button
         size="lg"
         className="w-full text-base font-semibold"
-        disabled={numAmount <= 0}
-        onClick={handleCreateOrder}
+        disabled={numAmount <= 0 || processing || !serverWallet}
+        onClick={handleDeposit}
       >
-        Continue
+        {processing ? "Processing..." : "Deposit"}
       </Button>
     </Column>
   )
@@ -333,14 +286,21 @@ function WithdrawTab({ vaultId, onDone }: { vaultId: string; onDone: () => void 
     setProcessing(true)
 
     try {
+      // For withdrawals, no transfer needed — just create the order
+      // The server will sell vault tokens and send USDC back
+      const rawAmount = String(Math.floor(numAmount * 1e8))
+
       await createOrder({
         vaultId,
         type: "withdraw",
-        amount: amount,
+        amount: rawAmount,
+        signature: "", // no transfer for withdrawals
       })
+
       toast.success("Withdrawal submitted", {
         description: "Will be processed at next market open.",
       })
+      setAmount("")
       onDone()
     } catch (e: any) {
       toast.error("Withdrawal failed", { description: e.message })
@@ -369,17 +329,8 @@ function WithdrawTab({ vaultId, onDone }: { vaultId: string; onDone: () => void 
         disabled={numAmount <= 0 || processing}
         onClick={handleWithdraw}
       >
-        {processing ? "Processing..." : "Confirm Withdrawal"}
+        {processing ? "Processing..." : "Withdraw"}
       </Button>
-    </Column>
-  )
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <Column className="gap-0">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="text-sm font-semibold">{value}</p>
     </Column>
   )
 }

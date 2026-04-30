@@ -29,7 +29,33 @@ async function request<T>(
   return res.json()
 }
 
+// ── Auth ────────────────────────────────────────────────
+
+export interface AuthResponse {
+  userId: string
+  walletAddress: string
+}
+
+export function authenticate(): Promise<AuthResponse> {
+  return request("/api/auth", { method: "POST" })
+}
+
 // ── Vaults ──────────────────────────────────────────────
+
+export interface Stock {
+  id: string
+  name: string
+  ticker: string
+  imageUrl: string
+  description: string | null
+  address: string
+  decimals: number
+}
+
+export interface VaultComposition {
+  weightBps: number
+  stock: Stock
+}
 
 export interface Vault {
   id: string
@@ -38,13 +64,9 @@ export interface Vault {
   imageUrl: string | null
   vaultAddress: string
   vaultMint: string
-  composition: { stockId: string; weightBps: number }[]
   depositFeeBps: number
   withdrawFeeBps: number
-  tvl: string | null
-  price: string | null
-  supply: number
-  onChainComposition?: { mint: string; weight: number; amount: number }[]
+  compositions: VaultComposition[]
 }
 
 export function fetchVaults(): Promise<Vault[]> {
@@ -56,16 +78,6 @@ export function fetchVault(id: string): Promise<Vault> {
 }
 
 // ── Stocks ──────────────────────────────────────────────
-
-export interface Stock {
-  id: string
-  name: string
-  ticker: string
-  imageUrl: string
-  description: string | null
-  address: string
-  decimals: number
-}
 
 export function fetchStocks(): Promise<Stock[]> {
   return request("/api/stocks")
@@ -79,7 +91,7 @@ export interface Order {
   type: "deposit" | "withdraw"
   amount: string
   status: "pending" | "funded" | "processing" | "completed" | "failed" | "cancelled"
-  depositAddress?: string
+  signature: string | null
   createdAt: string
 }
 
@@ -91,16 +103,11 @@ export function createOrder(params: {
   vaultId: string
   type: "deposit" | "withdraw"
   amount: string
-}): Promise<Order & { depositAddress: string }> {
+  signature: string
+}): Promise<Order> {
   return request("/api/orders", {
     method: "POST",
     body: JSON.stringify(params),
-  })
-}
-
-export function confirmOrder(orderId: string): Promise<{ status: string }> {
-  return request(`/api/orders/${orderId}/confirm`, {
-    method: "POST",
   })
 }
 

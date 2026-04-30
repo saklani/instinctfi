@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
 import { Row } from "@/components/ui/row"
 import { Column } from "@/components/ui/column"
 import type { Vault } from "@/lib/api"
@@ -57,55 +56,23 @@ function VaultCard({ vault }: { vault: Vault }) {
     <Link to="/fund/$id" params={{ id: vault.id }}>
       <Card className="transition-colors hover:bg-accent/50 cursor-pointer">
         <CardHeader>
-          <Row className="items-start justify-between">
-            <Column>
-              <CardTitle className="text-lg">{vault.name}</CardTitle>
-              <CardDescription>{vault.description}</CardDescription>
-            </Column>
-            <Column className="items-end">
-              {vault.price && (
-                <p className="text-lg font-semibold">
-                  ${parseFloat(vault.price).toFixed(6)}
-                </p>
-              )}
-              <p className="text-xs text-muted-foreground">per share</p>
-            </Column>
-          </Row>
+          <CardTitle className="text-lg">{vault.name}</CardTitle>
+          <CardDescription>{vault.description}</CardDescription>
         </CardHeader>
 
         <CardContent>
           <Column className="gap-4">
-            <Row className="gap-6">
-              <Stat label="TVL" value={vault.tvl ? `$${parseFloat(vault.tvl).toFixed(2)}` : "—"} />
-              <Stat label="Supply" value={vault.supply?.toLocaleString() ?? "0"} />
+            <p className="text-xs font-medium text-muted-foreground">Composition</p>
+            <Row className="flex-wrap">
+              {vault.compositions?.map((c) => (
+                <Badge key={c.stock.id} variant="secondary">
+                  {c.stock.ticker} {(c.weightBps / 100).toFixed(0)}%
+                </Badge>
+              ))}
             </Row>
-
-            <Separator />
-
-            <Column>
-              <p className="text-xs font-medium text-muted-foreground">Composition</p>
-              <Row className="flex-wrap">
-                {vault.onChainComposition
-                  ?.filter((a) => a.weight > 0)
-                  .map((asset) => (
-                    <Badge key={asset.mint} variant="secondary">
-                      {asset.mint.slice(0, 6)} {(asset.weight / 100).toFixed(0)}%
-                    </Badge>
-                  ))}
-              </Row>
-            </Column>
           </Column>
         </CardContent>
       </Card>
     </Link>
-  )
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <Column className="gap-0">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="text-sm font-semibold">{value}</p>
-    </Column>
   )
 }

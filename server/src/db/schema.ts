@@ -68,7 +68,7 @@ export const orders = pgTable("orders", {
   amount: numeric("amount").notNull(),              // raw amount in smallest unit
   shares: numeric("shares"),                        // vault tokens (filled after processing)
   status: orderStatusEnum("status").notNull().default("pending"),
-  signature: text("signature"),                // Symmetry tx sig
+  signature: text("signature").unique(),        // USDC transfer tx sig
   error: text("error"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
