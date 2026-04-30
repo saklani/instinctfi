@@ -1,8 +1,8 @@
-import { inngest } from "./client"
-import { db } from "../db"
-import { orders, positions, wallets, vaults } from "../db/schema"
+import { inngest } from "./client.js"
+import { db } from "../db/index.js"
+import { orders, positions, wallets, vaults } from "../db/schema.js"
 import { eq, and } from "drizzle-orm"
-import { executeDeposit, executeWithdraw } from "../lib/symmetry"
+import { executeDeposit, executeWithdraw } from "../lib/symmetry.js"
 
 function isMarketOpen(): boolean {
   const now = new Date()

@@ -1,6 +1,6 @@
 import { PrivyClient } from "@privy-io/server-auth"
-import { db } from "../db"
-import { wallets } from "../db/schema"
+import { db } from "../db/index.js"
+import { wallets } from "../db/schema.js"
 import { eq } from "drizzle-orm"
 
 export const privy = new PrivyClient(

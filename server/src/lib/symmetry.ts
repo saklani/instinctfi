@@ -1,6 +1,6 @@
 import { Connection } from "@solana/web3.js"
 import { SymmetryCore } from "@symmetry-hq/sdk"
-import { signAndSendTransaction } from "./privy"
+import { signAndSendTransaction } from "./privy.js"
 
 const RPC_URL = process.env.RPC_URL!
 const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"

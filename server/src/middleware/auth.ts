@@ -1,5 +1,5 @@
 import { createMiddleware } from "hono/factory"
-import { privy } from "../lib/privy"
+import { privy } from "../lib/privy.js"
 
 type AuthEnv = {
   Variables: {

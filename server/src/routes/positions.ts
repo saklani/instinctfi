@@ -1,8 +1,8 @@
 import { Hono } from "hono"
-import { db } from "../db"
-import { positions } from "../db/schema"
+import { db } from "../db/index.js"
+import { positions } from "../db/schema.js"
 import { eq, and } from "drizzle-orm"
-import { authMiddleware } from "../middleware/auth"
+import { authMiddleware } from "../middleware/auth.js"
 
 type AuthEnv = { Variables: { userId: string } }
 

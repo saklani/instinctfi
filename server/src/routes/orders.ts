@@ -1,12 +1,12 @@
 import { Hono } from "hono"
 import { Connection } from "@solana/web3.js"
 import { z } from "zod"
-import { db } from "../db"
-import { orders, wallets, positions } from "../db/schema"
+import { db } from "../db/index.js"
+import { orders, wallets, positions } from "../db/schema.js"
 import { eq, and, desc } from "drizzle-orm"
-import { authMiddleware } from "../middleware/auth"
-import { inngest } from "../inngest/client"
-import { verifyUsdcTransfer } from "../lib/verify-transfer"
+import { authMiddleware } from "../middleware/auth.js"
+import { inngest } from "../inngest/client.js"
+import { verifyUsdcTransfer } from "../lib/verify-transfer.js"
 
 type AuthEnv = { Variables: { userId: string } }
 

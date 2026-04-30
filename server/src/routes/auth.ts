@@ -1,6 +1,6 @@
 import { Hono } from "hono"
-import { authMiddleware } from "../middleware/auth"
-import { getOrCreateUserWallet } from "../lib/privy"
+import { authMiddleware } from "../middleware/auth.js"
+import { getOrCreateUserWallet } from "../lib/privy.js"
 
 type AuthEnv = { Variables: { userId: string } }
 
