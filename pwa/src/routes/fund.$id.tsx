@@ -6,6 +6,7 @@ import { useVault } from "@/hooks/use-vault"
 import { useVaultBalance } from "@/hooks/use-vault-balance"
 import { useWallet } from "@/hooks/use-wallet"
 import { investInVault, withdrawFromVault } from "@/lib/symmetry"
+import { usePendingIntents } from "@/hooks/use-pending-intents"
 import { getTokenMeta } from "@/lib/tokens"
 import {
   Card,
@@ -39,6 +40,7 @@ function FundDetailPage() {
   const { ready, authenticated, login } = usePrivy()
   const { address, wallet } = useWallet()
   const { balance: vaultTokens, rawBalance } = useVaultBalance()
+  const { intents } = usePendingIntents()
   const [sheetOpen, setSheetOpen] = useState(false)
 
   const vaultPrice = vault?.price ? parseFloat(vault.price) : 0
@@ -92,6 +94,36 @@ function FundDetailPage() {
           <Stat label="Supply" value={vault.supplyOutstanding.toLocaleString()} />
           <Stat label="Deposit Fee" value={`${(vault.feeSettings.creatorDepositFeeBps / 100).toFixed(2)}%`} />
         </Row>
+
+        {/* Pending Orders */}
+        {authenticated && intents.length > 0 && (
+          <>
+            <Separator />
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Open Orders</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Column className="gap-3">
+                  {intents.map((intent) => (
+                    <Row key={intent.pubkey} className="items-center justify-between">
+                      <Column className="gap-0">
+                        <span className="text-sm font-medium capitalize">{intent.type}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {intent.tokens.map((t) => {
+                            const meta = getTokenMeta(t.mint)
+                            return `${(t.amount / 1e9).toFixed(4)} ${meta.symbol}`
+                          }).join(", ")}
+                        </span>
+                      </Column>
+                      <Badge variant="secondary">Processing</Badge>
+                    </Row>
+                  ))}
+                </Column>
+              </CardContent>
+            </Card>
+          </>
+        )}
 
         {/* Your Position */}
         {authenticated && hasPosition && (
