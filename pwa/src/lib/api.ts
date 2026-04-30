@@ -99,13 +99,22 @@ export function fetchOrders(): Promise<Order[]> {
   return request("/api/orders")
 }
 
-export function createOrder(params: {
+export function createDeposit(params: {
   vaultId: string
-  type: "deposit" | "withdraw"
   amount: string
   signature: string
 }): Promise<Order> {
-  return request("/api/orders", {
+  return request("/api/orders/deposit", {
+    method: "POST",
+    body: JSON.stringify(params),
+  })
+}
+
+export function createWithdrawal(params: {
+  vaultId: string
+  amount: string
+}): Promise<Order> {
+  return request("/api/orders/withdraw", {
     method: "POST",
     body: JSON.stringify(params),
   })

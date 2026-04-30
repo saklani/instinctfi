@@ -6,7 +6,7 @@ import { usePendingOrders } from "@/hooks/use-orders"
 import { usePositions } from "@/hooks/use-positions"
 import { useWallet } from "@/hooks/use-wallet"
 import { useServerWallet } from "@/components/api-provider"
-import { createOrder } from "@/lib/api"
+import { createDeposit, createWithdrawal } from "@/lib/api"
 import {
   Card,
   CardContent,
@@ -201,29 +201,41 @@ function FundDetailPage() {
 
 function DepositTab({ vaultId, onDone }: { vaultId: string; onDone: () => void }) {
   const serverWallet = useServerWallet()
+  const { wallet, walletAddress, signAndSendTransaction } = useWallet()
   const [amount, setAmount] = useState("")
   const [processing, setProcessing] = useState(false)
 
   const numAmount = parseFloat(amount) || 0
 
   const handleDeposit = async () => {
-    if (numAmount <= 0 || !serverWallet) return
+    if (numAmount <= 0 || !serverWallet || !wallet || !walletAddress) return
     setProcessing(true)
 
     try {
-      // TODO: build USDC transfer tx from user wallet to serverWallet
-      // Sign with Privy embedded wallet
-      // Get tx signature
-      const signature = "TODO_TRANSFER_SIGNATURE"
+      // USDC has 6 decimals on Solana
+      const rawAmount = BigInt(Math.floor(numAmount * 1e6))
 
-      // Convert to 8 decimal raw amount
-      const rawAmount = String(Math.floor(numAmount * 1e8))
-
-      await createOrder({
-        vaultId,
-        type: "deposit",
+      // Build USDC transfer tx
+      const { buildUsdcTransfer } = await import("@/lib/transfer")
+      const { transaction } = await buildUsdcTransfer({
+        from: walletAddress,
+        to: serverWallet,
         amount: rawAmount,
-        signature,
+      })
+
+      // Sign and send via Privy
+      const { signature } = await signAndSendTransaction({
+        transaction,
+        wallet,
+      })
+
+      // Submit order with tx signature
+      await createDeposit({
+        vaultId,
+        amount: rawAmount.toString(),
+        signature: typeof signature === "string"
+          ? signature
+          : new TextDecoder().decode(signature),
       })
 
       toast.success("Deposit submitted", {
@@ -286,15 +298,12 @@ function WithdrawTab({ vaultId, onDone }: { vaultId: string; onDone: () => void 
     setProcessing(true)
 
     try {
-      // For withdrawals, no transfer needed — just create the order
-      // The server will sell vault tokens and send USDC back
-      const rawAmount = String(Math.floor(numAmount * 1e8))
+      // Withdraw amount in shares (vault token smallest unit)
+      const rawAmount = String(Math.floor(numAmount * 1e6))
 
-      await createOrder({
+      await createWithdrawal({
         vaultId,
-        type: "withdraw",
         amount: rawAmount,
-        signature: "", // no transfer for withdrawals
       })
 
       toast.success("Withdrawal submitted", {
