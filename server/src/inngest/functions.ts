@@ -22,11 +22,12 @@ function isMarketOpen(): boolean {
 }
 
 export const processOrderQueue = inngest.createFunction(
+  
   {
     id: "process-order-queue",
     retries: 0,
-  },
-  { cron: "* * * * *" }, // every minute
+    triggers: { cron: "* * * * *" } 
+  }, // every minute
   async ({ step }) => {
     // Skip if market is closed
     if (!isMarketOpen()) {
