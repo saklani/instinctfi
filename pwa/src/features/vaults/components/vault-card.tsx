@@ -12,7 +12,7 @@ import type { Vault } from "../api"
 export function VaultCard({ vault }: { vault: Vault }) {
   return (
     <Link to="/fund/$id" params={{ id: vault.id }}>
-      <Card className="transition-all duration-150 hover:bg-accent/50 hover:shadow-md active:scale-[0.98] cursor-pointer">
+      <Card interactive>
         <CardHeader>
           <CardTitle className="text-lg">{vault.name}</CardTitle>
           <CardDescription>{vault.description}</CardDescription>
