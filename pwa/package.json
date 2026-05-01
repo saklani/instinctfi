@@ -14,9 +14,14 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@fontsource-variable/inter": "^5.2.8",
+    "@fontsource-variable/geist": "^5.2.8",
+    "@fontsource-variable/geist-mono": "^5.2.7",
     "@hookform/resolvers": "^5.2.2",
     "@privy-io/react-auth": "^3.22.2",
+    "@solana-program/memo": "^0.11.0",
+    "@solana-program/token": "^0.13.0",
+    "@solana/codecs-strings": "^6.8.0",
+    "@solana/kit": "^6.8.0",
     "@solana/transaction-messages": "^6.8.0",
     "@tailwindcss/vite": "^4.2.1",
     "@tanstack/react-query": "^5.100.6",
