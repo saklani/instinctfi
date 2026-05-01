@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { useVault, MobileDepositButton, DesktopDepositButton } from "@/features/vaults"
+import { useVault, DesktopDepositButton } from "@/features/vaults"
 import { usePendingOrders, OrderCard } from "@/features/orders"
 import { PositionCard } from "@/features/positions"
 import { useWallet } from "@/hooks/use-wallet"
@@ -111,8 +111,6 @@ function FundDetailPage() {
           </Column>
         )}
       </Column>
-
-      <MobileDepositButton vaultId={vault.id} vaultName={vault.name} />
     </>
   )
 }

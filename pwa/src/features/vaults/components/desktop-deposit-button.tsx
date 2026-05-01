@@ -22,8 +22,8 @@ export function DesktopDepositButton({ vaultId, vaultName }: { vaultId: string; 
 
   return (
     <>
-      <Button className="hidden md:inline-flex" onClick={handleClick}>
-        {!ready ? "Loading..." : !authenticated ? "Connect Wallet" : "Deposit"}
+      <Button onClick={handleClick}>
+        {!ready ? "Loading..." : !authenticated ? "Start Investing" : "Deposit"}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
