@@ -1,7 +1,11 @@
-import { Link, Outlet, createRootRoute, useRouterState } from "@tanstack/react-router"
+import { Outlet, createRootRoute, useRouterState } from "@tanstack/react-router"
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
+
 import { Toaster } from "@/components/ui/sonner"
 import { Nav } from "@/components/nav"
+import { TopNav } from "@/components/top-nav"
 import { ApiProvider } from "@/components/api-provider"
+import { durations, outQuart } from "@/components/motion/easings"
 
 export const Route = createRootRoute({
   component: RootLayout,
@@ -9,24 +13,28 @@ export const Route = createRootRoute({
 
 function RootLayout() {
   const location = useRouterState({ select: (s) => s.location })
+  const reduce = useReducedMotion()
 
   return (
     <ApiProvider>
-      <div className="min-h-screen bg-background text-foreground">
-        <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
-          <div className="mx-auto flex h-14 max-w-4xl items-center px-4">
-            <Link to="/"><img src="/logo-black.png" alt="Instinct" className="h-6" /></Link>
-            <nav className="ml-auto hidden items-center gap-1 md:flex">
-              <Link to="/" className="px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground [&.active]:text-foreground [&.active]:font-medium">Discover</Link>
-              <Link to="/portfolio" className="px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground [&.active]:text-foreground [&.active]:font-medium">Portfolio</Link>
-              <Link to="/settings" className="px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground [&.active]:text-foreground [&.active]:font-medium">Settings</Link>
-            </nav>
-          </div>
-        </header>
-        <main className="mx-auto max-w-4xl px-4 pb-24 pt-4 md:pb-4">
-          <div key={location.pathname} className="animate-in fade-in-0 duration-200">
-            <Outlet />
-          </div>
+      <div className="relative min-h-screen bg-canvas text-ink">
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-0 -z-10 bg-canvas-glow"
+        />
+        <TopNav />
+        <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-6 md:px-6 md:pb-12">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={location.pathname}
+              initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduce ? { opacity: 0 } : { opacity: 0, y: -8 }}
+              transition={{ duration: durations.route, ease: outQuart }}
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </main>
         <Toaster position="top-center" />
         <Nav />

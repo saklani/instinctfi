@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { LayoutPill } from "@/components/motion/layout-pill"
 
 type TabPillContextValue = {
   value: string | undefined
@@ -99,17 +100,16 @@ function TabPillItem({
         onClick?.(event)
       }}
       className={cn(
-        "relative z-10 inline-flex h-8 items-center justify-center rounded-pill px-4 text-body-sm font-medium",
+        "relative inline-flex h-8 items-center justify-center rounded-pill px-4 text-body-sm font-medium",
         "transition-colors duration-150 outline-none",
         "focus-visible:ring-[3px] focus-visible:ring-accent/30",
-        isActive
-          ? "bg-surface text-ink shadow-card"
-          : "text-ink-muted hover:text-ink",
+        isActive ? "text-ink" : "text-ink-muted hover:text-ink",
         className
       )}
       {...props}
     >
-      {children}
+      {isActive && <LayoutPill layoutId={ctx.layoutId} />}
+      <span className="relative z-10">{children}</span>
     </button>
   )
 }

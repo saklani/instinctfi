@@ -29,7 +29,9 @@ createRoot(document.getElementById("root")!).render(
       config={{
         appearance: {
           walletChainType: "solana-only",
-          theme: "light",
+          theme: "#FCFAF6",
+          accentColor: "#024CC7",
+          logo: "/logo-black.png",
           showWalletLoginFirst: true,
           walletList: ["phantom", "solflare"],
         },
