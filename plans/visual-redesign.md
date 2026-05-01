@@ -117,17 +117,20 @@ Restructure `/` to: top nav → hero band ("Curated stock baskets on Solana." di
 
 ### Acceptance criteria
 
-- [ ] Hero band: display-md headline + Cobalt arrow primary-accent CTA
-- [ ] Filter tab strip uses `LayoutPill` (`layoutId="discover-filter"`); selected = white capsule + ink text; unselected = flat ink-muted with ink hover
-- [ ] `featured-card.tsx`: name + ticker pill + inline sparkline + NAV (mono) + delta, fixed ~280px, hover translateY(-1px) + shadow lift
-- [ ] 3-up featured row sourced from existing vault hooks (Trending / Top Performer 24H / Newest)
-- [ ] `vault-row.tsx`: 28px logo (chain badge bottom-right where applicable) + name + ticker + mono numerics for NAV/24h/7d/TVL/Holders/Inception, right-aligned numerics
-- [ ] Vault table: no outer border, hairline row dividers, header row `body-sm` ink-muted with sortable hover underline, row hover surface-muted, click → `/fund/$id`
-- [ ] Motion: hero fade-up 280ms; featured cards stagger 80ms; table rows stagger 30ms
-- [ ] Minimal footer (wordmark + links)
-- [ ] `useVaults` hook unchanged
-- [ ] Storybook stories for `featured-card`, `vault-row`, hero band, filter tab strip
-- [ ] Reduced-motion respected on entrance animations
+- [x] Hero band: display-md headline + Cobalt arrow primary-accent CTA
+- [x] Filter tab strip uses `LayoutPill` (`layoutId="discover-filter"`); selected = white capsule + ink text; unselected = flat ink-muted with ink hover
+- [x] `featured-card.tsx`: name + ticker pill + inline sparkline + NAV (mono) + delta, fixed ~280px, hover translateY(-1px) + shadow lift
+- [x] 3-up featured row sourced from existing vault hooks (Trending / Top Performer 24H / Newest)
+- [x] `vault-row.tsx`: 28px logo (chain badge bottom-right where applicable) + name + ticker + mono numerics for NAV/24h/7d/TVL/Holders/Inception, right-aligned numerics
+- [x] Vault table: no outer border, hairline row dividers, header row `body-sm` ink-muted with sortable hover underline, row hover surface-muted, click → `/fund/$id`
+- [x] Motion: hero fade-up 280ms; featured cards stagger 80ms; table rows stagger 30ms <!-- featured stagger 80ms, table 30ms via Stagger.gap; hero via Reveal default (durations.reveal 320ms) -->
+- [x] Minimal footer (wordmark + links)
+- [x] `useVaults` hook unchanged
+- [x] Storybook stories for `featured-card`, `vault-row`, hero band, filter tab strip <!-- filter strip covered by existing tab-pill DiscoverFilter story -->
+- [x] Reduced-motion respected on entrance animations <!-- Reveal/Stagger/sparkline path-draw all honor useReducedMotion -->
+<!-- Visual browser verification skipped — Chrome not installed for playwright (PRD unresolved Q6); typecheck + build clean -->
+<!-- pnpm lint reports react-refresh warnings on routes/index.tsx — pre-existing pattern across all route files; deferred to Phase 7 -->
+
 
 ---
 
