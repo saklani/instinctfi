@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { Column } from "./column"
 
 function Card({
   className,
@@ -68,7 +69,7 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
 
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
+    <Column
       data-slot="card-content"
       className={cn("px-6 group-data-[size=sm]/card:px-4", className)}
       {...props}

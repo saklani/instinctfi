@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
-import { fetchPositions } from "@/lib/api"
-import { useWallet } from "./use-wallet"
+import { fetchPositions } from "../api"
+import { useWallet } from "@/hooks/use-wallet"
 
 export function usePositions() {
   const { authenticated } = useWallet()

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { fetchVaults, fetchVault } from "@/lib/api"
+import { fetchVaults, fetchVault } from "../api"
 
 export function useVaults() {
   const { data, isLoading, error } = useQuery({
@@ -28,4 +28,10 @@ export function useVault(id: string) {
     loading: isLoading,
     error: error?.message ?? null,
   }
+}
+
+export function useVaultById(id: string) {
+  const { vaults, loading } = useVaults()
+  const vault = vaults.find((v) => v.id === id) ?? null
+  return { vault, loading }
 }

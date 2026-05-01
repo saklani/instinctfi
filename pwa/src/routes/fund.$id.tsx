@@ -1,18 +1,10 @@
 import { useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { toast } from "sonner"
-import { useVault } from "@/hooks/use-vault"
-import { usePendingOrders } from "@/hooks/use-orders"
-import { usePositions } from "@/hooks/use-positions"
+import { useVault, DepositTab } from "@/features/vaults"
+import { usePendingOrders, OrderCard } from "@/features/orders"
+import { usePositions } from "@/features/positions"
 import { useWallet } from "@/hooks/use-wallet"
-import { useServerWallet } from "@/components/api-provider"
-import { createDeposit } from "@/lib/api"
-import { getUsdcBalance } from "@/lib/transfer"
-import { formatUsd, formatUsdcRaw, formatShares, formatPercent } from "@/lib/format"
+import { formatRaw, formatShares, formatPercent } from "@/lib/format"
 import {
   Card,
   CardContent,
@@ -22,8 +14,6 @@ import {
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import {
   Sheet,
@@ -35,8 +25,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Row } from "@/components/ui/row"
 import { Column } from "@/components/ui/column"
-import { FormError } from "@/components/ui/form-error"
-import { LoadingButton } from "@/components/ui/loading-button"
 
 export const Route = createFileRoute("/fund/$id")({
   component: FundDetailPage,
@@ -84,7 +72,7 @@ function FundDetailPage() {
             </Column>
           </CardContent>
         </Card>
-        <Skeleton className="h-10 w-full rounded-4xl" />
+        <Skeleton className="h-10 w-full" />
       </Column>
     )
   }
@@ -92,7 +80,7 @@ function FundDetailPage() {
   if (error || !vault) {
     return (
       <Column className="py-12 items-center">
-        <p className="text-sm text-destructive">{error ?? "Vault not found"}</p>
+        <p className="text-destructive">{error ?? "Vault not found"}</p>
       </Column>
     )
   }
@@ -101,61 +89,9 @@ function FundDetailPage() {
     <>
       <Column className="gap-6">
         <Column>
-          <h1 className="text-2xl font-bold tracking-tight">{vault.name}</h1>
-          <p className="text-sm text-muted-foreground">{vault.description}</p>
+          <h1>{vault.name}</h1>
+          <p>{vault.description}</p>
         </Column>
-
-        {/* Pending Orders */}
-        {authenticated && myPendingOrders.length > 0 && (
-          <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Open Orders</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Column className="gap-3">
-                  {myPendingOrders.map((order) => (
-                    <Row key={order.id} className="items-center justify-between">
-                      <Column className="gap-0">
-                        <span className="text-sm font-medium capitalize">{order.type}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {formatUsdcRaw(order.amount)}
-                        </span>
-                      </Column>
-                      <Badge variant="secondary">
-                        {order.status === "funded" ? "Queued" : "Processing"}
-                      </Badge>
-                    </Row>
-                  ))}
-                </Column>
-              </CardContent>
-            </Card>
-        )}
-
-        {/* Position */}
-        {authenticated && position && (
-          <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Your Position</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Column className="gap-3">
-                  <Row className="items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Invested</span>
-                    <span className="text-sm font-semibold">
-                      {formatUsdcRaw(position.amount)}
-                    </span>
-                  </Row>
-                  <Separator />
-                  <Row className="items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Shares</span>
-                    <span className="text-sm font-semibold">
-                      {formatShares(position.shares)}
-                    </span>
-                  </Row>
-                </Column>
-              </CardContent>
-            </Card>
-        )}
 
         {/* Holdings */}
         <Card>
@@ -169,6 +105,7 @@ function FundDetailPage() {
                 <Column key={c.stock.id} className="gap-3">
                   <Row className="items-center justify-between">
                     <Row className="items-center">
+                      <img src={c.stock.imageUrl} alt={c.stock.ticker} className="size-6 rounded-full" />
                       <span className="text-sm font-medium">{c.stock.name}</span>
                       <Badge variant="secondary">{c.stock.ticker}</Badge>
                     </Row>
@@ -183,6 +120,41 @@ function FundDetailPage() {
           </CardContent>
         </Card>
 
+        {/* Position */}
+        {authenticated && position && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Your Position</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Column className="gap-3">
+                <Row className="items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Invested</span>
+                  <span className="text-sm font-semibold">
+                    {formatRaw(position.amount)}
+                  </span>
+                </Row>
+                <Separator />
+                <Row className="items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Shares</span>
+                  <span className="text-sm font-semibold">
+                    {formatShares(position.shares)}
+                  </span>
+                </Row>
+              </Column>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Open Orders */}
+        {authenticated && myPendingOrders.length > 0 && (
+          <Column className="gap-3">
+            {myPendingOrders.map((order) => (
+              <OrderCard key={order.id} order={order} />
+            ))}
+          </Column>
+        )}
+
         <Button
           size="lg"
           className="w-full text-base font-semibold"
@@ -192,15 +164,21 @@ function FundDetailPage() {
         </Button>
       </Column>
 
-      {/* Bottom Sheet */}
+      {/* Mobile: bottom sheet, Desktop: right side sheet */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="bottom" className="rounded-t-2xl px-6">
+        <SheetContent side="bottom" className="rounded-t-2xl px-6 md:hidden">
           <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-muted-foreground/20" />
           <SheetHeader>
             <SheetTitle>{vault.name}</SheetTitle>
             <SheetDescription>Deposit USDC</SheetDescription>
           </SheetHeader>
-
+          <DepositTab vaultId={vault.id} onDone={() => setSheetOpen(false)} />
+        </SheetContent>
+        <SheetContent side="right" showOverlay={false} className="hidden px-4 md:flex md:flex-col">
+          <SheetHeader>
+            <SheetTitle>{vault.name}</SheetTitle>
+            <SheetDescription>Deposit USDC</SheetDescription>
+          </SheetHeader>
           <DepositTab vaultId={vault.id} onDone={() => setSheetOpen(false)} />
         </SheetContent>
       </Sheet>
@@ -208,141 +186,4 @@ function FundDetailPage() {
   )
 }
 
-const depositSchema = z.object({
-  amount: z.string().min(1, "Amount is required").refine(
-    (v) => parseFloat(v) > 0,
-    "Amount must be greater than 0",
-  ),
-})
-
-type DepositFormData = z.infer<typeof depositSchema>
-
-function DepositTab({ vaultId, onDone }: { vaultId: string; onDone: () => void }) {
-  const queryClient = useQueryClient()
-  const serverWallet = useServerWallet()
-  const { wallet, walletAddress, signAndSendTransaction } = useWallet()
-  const [isPending, setIsPending] = useState(false)
-
-  const { data: balance } = useQuery({
-    queryKey: ["usdc-balance", walletAddress],
-    queryFn: () => getUsdcBalance(walletAddress!),
-    enabled: !!walletAddress,
-    refetchInterval: 30_000,
-  })
-
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-    reset,
-  } = useForm<DepositFormData>({
-    resolver: zodResolver(depositSchema),
-  })
-
-  const onSubmit = async (data: DepositFormData) => {
-    if (!serverWallet || !wallet || !walletAddress) return
-    setIsPending(true)
-
-    try {
-      const rawAmount = BigInt(Math.floor(parseFloat(data.amount) * 1e6))
-
-      const { buildUsdcTransfer } = await import("@/lib/transfer")
-      const { transaction } = await buildUsdcTransfer({
-        from: walletAddress,
-        to: serverWallet,
-        amount: rawAmount,
-      })
-
-      const { signature } = await signAndSendTransaction({
-        transaction: new Uint8Array(transaction),
-        wallet,
-      })
-
-      const { getBase58Codec } = await import("@solana/codecs-strings")
-      const sigString = typeof signature === "string"
-        ? signature
-        : getBase58Codec().decode(signature)
-
-      await createDeposit({
-        vaultId,
-        signature: sigString,
-        address: walletAddress!,
-      })
-
-      await queryClient.invalidateQueries({ queryKey: ["orders"] })
-      await queryClient.invalidateQueries({ queryKey: ["positions"] })
-      await queryClient.invalidateQueries({ queryKey: ["usdc-balance"] })
-
-      toast.success("Your order is placed.")
-      reset()
-      onDone()
-    } catch (e: any) {
-      console.error("Deposit error:", e)
-      toast.error("Deposit failed", { description: e.message })
-    } finally {
-      setIsPending(false)
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <Column className="gap-4 pt-4">
-        <Column>
-          <Row className="items-center justify-between">
-            <Label htmlFor="deposit-amount">Amount (USDC)</Label>
-            {balance !== undefined && (
-              <Button
-                type="button"
-                variant="link"
-                size="xs"
-                className="text-muted-foreground"
-                onClick={() => setValue("amount", String(balance), { shouldValidate: true })}
-              >
-                Balance: {formatUsd(balance)}
-              </Button>
-            )}
-          </Row>
-          <Input
-            id="deposit-amount"
-            type="number"
-            step="any"
-            placeholder="0.00"
-            className="h-12 text-lg"
-            disabled={isPending}
-            aria-invalid={!!errors.amount}
-            {...register("amount")}
-          />
-          {errors.amount && <FormError message={errors.amount.message} />}
-        </Column>
-
-        <Row className="gap-2">
-          {[10, 25, 50, 100].map((preset) => (
-            <Button
-              key={preset}
-              type="button"
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              disabled={isPending}
-              onClick={() => setValue("amount", String(preset), { shouldValidate: true })}
-            >
-              ${preset}
-            </Button>
-          ))}
-        </Row>
-
-        <LoadingButton
-          type="submit"
-          size="lg"
-          className="w-full text-base font-semibold"
-          isLoading={isPending}
-          disabled={!serverWallet}
-        >
-          Deposit
-        </LoadingButton>
-      </Column>
-    </form>
-  )
-}
 

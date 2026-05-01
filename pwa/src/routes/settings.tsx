@@ -24,7 +24,7 @@ function SettingsPage() {
     return (
       <Column className="gap-6">
         <Column>
-          <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+          <h1>Settings</h1>
           <Skeleton className="h-4 w-40" />
         </Column>
         <Card>
@@ -53,8 +53,8 @@ function SettingsPage() {
   if (!authenticated) {
     return (
       <Column>
-        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground">Sign in to continue.</p>
+        <h1>Settings</h1>
+        <p>Sign in to continue.</p>
         <Button className="mt-2" onClick={() => login()}>Sign In</Button>
       </Column>
     )
@@ -63,8 +63,8 @@ function SettingsPage() {
   return (
     <Column className="gap-6">
       <Column>
-        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground">Manage your account.</p>
+        <h1>Settings</h1>
+        <p>Manage your account.</p>
       </Column>
 
       <Card>

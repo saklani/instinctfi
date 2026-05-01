@@ -13,8 +13,8 @@ export function formatUsd(value: number): string {
   return usdFormatter.format(value)
 }
 
-export function formatUsdcRaw(raw: string): string {
-  return usdFormatter.format(Number(raw) / 1e6)
+export function formatRaw(raw: string | number, decimals: number = 6): string {
+  return usdFormatter.format(Number(raw) / 10 ** decimals)
 }
 
 export function formatShares(value: string | number): string {
