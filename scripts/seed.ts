@@ -13,14 +13,14 @@ const sql = neon(process.env.DATABASE_URL!)
 const db = drizzle(sql)
 
 const STOCKS = [
-  { name: "Nvidia", ticker: "NVDAx", imageUrl: "", description: "Leading GPU and AI chip manufacturer", address: "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh", decimals: 8 },
-  { name: "Alphabet", ticker: "GOOGLx", imageUrl: "", description: "Parent company of Google", address: "XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN", decimals: 8 },
-  { name: "Amazon", ticker: "AMZNx", imageUrl: "", description: "E-commerce and cloud computing giant", address: "Xs3eBt7uRfJX8QUs4suhyU8p2M6DoUDrJyWBa8LLZsg", decimals: 8 },
-  { name: "Apple", ticker: "AAPLx", imageUrl: "", description: "Consumer electronics and software", address: "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp", decimals: 8 },
-  { name: "Meta", ticker: "METAx", imageUrl: "", description: "Social media and metaverse company", address: "Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu", decimals: 8 },
-  { name: "Palantir", ticker: "PLTRx", imageUrl: "", description: "Data analytics and AI software", address: "XsoBhf2ufR8fTyNSjqfU71DYGaE6Z3SUGAidpzriAA4", decimals: 8 },
-  { name: "Microsoft", ticker: "MSFTx", imageUrl: "", description: "Enterprise software and cloud computing", address: "XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX", decimals: 8 },
-  { name: "Tesla", ticker: "TSLAx", imageUrl: "", description: "Electric vehicles and clean energy", address: "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB", decimals: 8 },
+  { name: "Nvidia", ticker: "NVDAx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/NVDAx.png", description: "Leading GPU and AI chip manufacturer", address: "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh", decimals: 8 },
+  { name: "Alphabet", ticker: "GOOGLx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/GOOGLx.png", description: "Parent company of Google", address: "XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN", decimals: 8 },
+  { name: "Amazon", ticker: "AMZNx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/AMZNx.png", description: "E-commerce and cloud computing giant", address: "Xs3eBt7uRfJX8QUs4suhyU8p2M6DoUDrJyWBa8LLZsg", decimals: 8 },
+  { name: "Apple", ticker: "AAPLx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/AAPLx.png", description: "Consumer electronics and software", address: "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp", decimals: 8 },
+  { name: "Meta", ticker: "METAx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/METAx.png", description: "Social media and metaverse company", address: "Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu", decimals: 8 },
+  { name: "Palantir", ticker: "PLTRx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/PLTRx.png", description: "Data analytics and AI software", address: "XsoBhf2ufR8fTyNSjqfU71DYGaE6Z3SUGAidpzriAA4", decimals: 8 },
+  { name: "Microsoft", ticker: "MSFTx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/MSFTx.png", description: "Enterprise software and cloud computing", address: "XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX", decimals: 8 },
+  { name: "Tesla", ticker: "TSLAx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/TSLAx.png", description: "Electric vehicles and clean energy", address: "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB", decimals: 8 },
 ]
 
 const WEIGHTS: Record<string, number> = {
@@ -42,7 +42,7 @@ async function main() {
     const [row] = await db
       .insert(stocks)
       .values(stock)
-      .onConflictDoUpdate({ target: stocks.address, set: { name: stock.name, ticker: stock.ticker, description: stock.description } })
+      .onConflictDoUpdate({ target: stocks.address, set: { name: stock.name, ticker: stock.ticker, description: stock.description, imageUrl: stock.imageUrl } })
       .returning()
     stockIds[stock.ticker] = row.id
     console.log(`  ${stock.ticker}: ${row.id}`)
