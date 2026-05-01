@@ -67,7 +67,6 @@ export const Trending: Story = {
       <FeaturedCard
         vault={sampleVault}
         kind="trending"
-        ticker="MAG7"
         nav={128.42}
         delta={0.0184}
         spark={buildSpark(11)}
@@ -82,7 +81,6 @@ export const TopPerformer: Story = {
       <FeaturedCard
         vault={{ ...sampleVault, name: "AI Infrastructure" }}
         kind="top-24h"
-        ticker="AIINF"
         nav={42.18}
         delta={0.0421}
         spark={buildSpark(31)}
@@ -97,7 +95,6 @@ export const Newest: Story = {
       <FeaturedCard
         vault={{ ...sampleVault, name: "Solana Treasury Plays" }}
         kind="newest"
-        ticker="SOLTRY"
         nav={97.61}
         delta={-0.0072}
         spark={buildSpark(73)}
@@ -112,7 +109,6 @@ export const ThreeUp: Story = {
       <FeaturedCard
         vault={sampleVault}
         kind="trending"
-        ticker="MAG7"
         nav={128.42}
         delta={0.0184}
         spark={buildSpark(11)}
@@ -120,7 +116,6 @@ export const ThreeUp: Story = {
       <FeaturedCard
         vault={{ ...sampleVault, id: "v-ai", name: "AI Infrastructure" }}
         kind="top-24h"
-        ticker="AIINF"
         nav={42.18}
         delta={0.0421}
         spark={buildSpark(31)}
@@ -128,7 +123,6 @@ export const ThreeUp: Story = {
       <FeaturedCard
         vault={{ ...sampleVault, id: "v-sol", name: "Solana Treasury" }}
         kind="newest"
-        ticker="SOLTRY"
         nav={97.61}
         delta={-0.0072}
         spark={buildSpark(73)}

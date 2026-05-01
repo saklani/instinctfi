@@ -52,7 +52,6 @@ function vault(id: string, name: string, imageUrl: string | null = null): Vault 
 const sample: VaultRowData[] = [
   {
     vault: vault("v1", "Magnificent Seven"),
-    ticker: "MAG7",
     nav: 128.42,
     delta24h: 0.0184,
     delta7d: 0.0412,
@@ -62,7 +61,6 @@ const sample: VaultRowData[] = [
   },
   {
     vault: vault("v2", "AI Infrastructure"),
-    ticker: "AIINF",
     nav: 42.18,
     delta24h: 0.0421,
     delta7d: 0.0689,
@@ -72,7 +70,6 @@ const sample: VaultRowData[] = [
   },
   {
     vault: vault("v3", "Solana Treasury Plays"),
-    ticker: "SOLTRY",
     nav: 97.61,
     delta24h: -0.0072,
     delta7d: 0.0153,
@@ -82,7 +79,6 @@ const sample: VaultRowData[] = [
   },
   {
     vault: vault("v4", "Defensive Income"),
-    ticker: "DEFINC",
     nav: 18.04,
     delta24h: 0.0021,
     delta7d: -0.0084,

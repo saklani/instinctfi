@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
 import { Delta } from "@/components/ui/delta"
 import { MonoNumber } from "@/components/ui/mono-number"
-import { Ticker } from "@/components/ui/pill"
+import { Row } from "@/components/ui/row"
 import { durations, outQuart } from "@/components/motion/easings"
 import type { Vault } from "../api"
 
@@ -21,7 +21,6 @@ const KIND_LABEL: Record<FeaturedKind, string> = {
 type FeaturedCardProps = {
   vault: Vault
   kind: FeaturedKind
-  ticker: string
   nav: number
   delta: number
   /** 16+ values, ascending in time. Cobalt stroke renders proportional. */
@@ -32,12 +31,12 @@ type FeaturedCardProps = {
 export function FeaturedCard({
   vault,
   kind,
-  ticker,
   nav,
   delta,
   spark,
   className,
 }: FeaturedCardProps) {
+  const holdingCount = vault.compositions?.length ?? 0
   return (
     <Link
       to="/fund/$id"
@@ -50,16 +49,11 @@ export function FeaturedCard({
       >
         <FeaturedHeader kind={kind} />
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <h3 className="line-clamp-2 text-display-md font-semibold leading-[1.05] tracking-tight text-ink">
             {vault.name}
           </h3>
-          <div className="flex items-center gap-2">
-            <Ticker symbol={ticker} />
-            <span className="text-body-sm text-ink-faint">
-              {vault.compositions?.length ?? 0} holdings
-            </span>
-          </div>
+          <HoldingStack vault={vault} count={holdingCount} />
         </div>
 
         <Sparkline values={spark} positive={delta >= 0} />
@@ -79,6 +73,35 @@ export function FeaturedCard({
         </div>
       </Card>
     </Link>
+  )
+}
+
+function HoldingStack({ vault, count }: { vault: Vault; count: number }) {
+  const visible = vault.compositions?.slice(0, 6) ?? []
+  const overflow = Math.max(0, count - visible.length)
+  return (
+    <div className="flex items-center gap-2">
+      <Row className="gap-0 -space-x-1.5">
+        {visible.map((c) => (
+          <img
+            key={c.stock.id}
+            src={c.stock.imageUrl}
+            alt={c.stock.ticker}
+            title={c.stock.ticker}
+            loading="lazy"
+            className="size-6 rounded-full bg-secondary object-cover ring-2 ring-surface"
+          />
+        ))}
+        {overflow > 0 && (
+          <span className="z-10 inline-flex size-6 items-center justify-center rounded-full bg-surface-muted text-[10px] font-medium tabular text-ink-muted ring-2 ring-surface">
+            +{overflow}
+          </span>
+        )}
+      </Row>
+      <span className="text-body-sm text-ink-faint">
+        {count} holdings
+      </span>
+    </div>
   )
 }
 

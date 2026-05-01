@@ -290,7 +290,9 @@ function AssetHeader({ vault }: { vault: Vault }) {
           </h1>
           <div className="flex flex-wrap items-center gap-2">
             <Verified label="Curated" />
-            <TickerPill symbol={tickerSymbolFor(vault)} />
+            {tickerSymbolFor(vault) && (
+              <TickerPill symbol={tickerSymbolFor(vault)!} />
+            )}
             {tickerCount > 0 && (
               <Count interactive>{tickerCount} HOLDINGS</Count>
             )}
@@ -369,12 +371,13 @@ function HeaderActions() {
   )
 }
 
-function tickerSymbolFor(vault: Vault) {
-  const slug = vault.name
-    .replace(/[^a-z0-9]/gi, "")
-    .slice(0, 6)
-    .toUpperCase()
-  return slug || "VAULT"
+const VAULT_TICKERS: Record<string, string> = {
+  "pelosi tracker": "PELO",
+  "anti finance finance club": "AFFC",
+}
+
+function tickerSymbolFor(vault: Vault): string | null {
+  return VAULT_TICKERS[vault.name.trim().toLowerCase()] ?? null
 }
 
 function NavPriceBlock({

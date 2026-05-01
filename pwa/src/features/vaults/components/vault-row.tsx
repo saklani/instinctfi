@@ -8,7 +8,6 @@ import type { Vault } from "../api"
 
 export type VaultRowData = {
   vault: Vault
-  ticker: string
   nav: number
   delta24h: number
   delta7d: number
@@ -113,7 +112,7 @@ export function VaultTableHeader({ sort, onSortChange }: VaultTableHeaderProps) 
 }
 
 export function VaultRow({ row }: { row: VaultRowData }) {
-  const { vault, ticker, nav, delta24h, delta7d, tvl, holders, inception } = row
+  const { vault, nav, delta24h, delta7d, tvl, holders, inception } = row
   return (
     <Link
       to="/fund/$id"
@@ -129,12 +128,7 @@ export function VaultRow({ row }: { row: VaultRowData }) {
     >
       <div className="flex min-w-0 items-center gap-3">
         <VaultRowLogo vault={vault} />
-        <div className="flex min-w-0 flex-col">
-          <span className="truncate font-medium text-ink">{vault.name}</span>
-          <span className="truncate font-mono text-mono-sm tabular text-ink-faint">
-            ${ticker}
-          </span>
-        </div>
+        <span className="truncate font-medium text-ink">{vault.name}</span>
       </div>
 
       <div className="flex justify-end">

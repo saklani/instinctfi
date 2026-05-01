@@ -15,7 +15,6 @@ import {
 } from "@/features/vaults/components/vault-row"
 
 import { Skeleton } from "@/components/ui/skeleton"
-import { TabPill, TabPillItem } from "@/components/ui/tab-pill"
 import { DiscoverHero } from "@/components/discover-hero"
 import { Reveal } from "@/components/motion/reveal"
 import { Stagger } from "@/components/motion/stagger"
@@ -25,12 +24,8 @@ export const Route = createFileRoute("/")({
   component: DiscoverPage,
 })
 
-const FILTERS = ["All", "Stocks", "ETFs", "Themes", "Sectors"] as const
-type Filter = (typeof FILTERS)[number]
-
 function DiscoverPage() {
   const { vaults, loading, error } = useVaults()
-  const [filter, setFilter] = React.useState<Filter>("All")
   const [sort, setSort] = React.useState<VaultSortState>({
     key: "tvl",
     dir: "desc",
@@ -60,10 +55,6 @@ function DiscoverPage() {
     <div className="flex flex-col gap-12 lg:gap-16">
       <Reveal>
         <DiscoverHero />
-      </Reveal>
-
-      <Reveal delay={0.06}>
-        <FilterStrip value={filter} onChange={setFilter} />
       </Reveal>
 
       <FeaturedSection
@@ -107,30 +98,6 @@ function DiscoverPage() {
   )
 }
 
-function FilterStrip({
-  value,
-  onChange,
-}: {
-  value: Filter
-  onChange: (v: Filter) => void
-}) {
-  return (
-    <div className="px-4">
-      <TabPill
-        value={value}
-        onValueChange={(v) => onChange(v as Filter)}
-        layoutId="discover-filter"
-      >
-        {FILTERS.map((f) => (
-          <TabPillItem key={f} value={f}>
-            {f}
-          </TabPillItem>
-        ))}
-      </TabPill>
-    </div>
-  )
-}
-
 function FeaturedSection({
   loading,
   items,
@@ -161,7 +128,6 @@ function FeaturedSection({
           <FeaturedCard
             kind={kind}
             vault={row.vault}
-            ticker={row.ticker}
             nav={row.nav}
             delta={row.delta24h}
             spark={row.spark}
@@ -227,12 +193,6 @@ function Footer() {
         >
           X
         </a>
-        <a href="#" className="hover:text-ink">
-          Docs
-        </a>
-        <a href="#" className="hover:text-ink">
-          Terms
-        </a>
       </nav>
     </footer>
   )
@@ -246,11 +206,6 @@ function seedFromString(input: string) {
     hash = (hash * 31 + input.charCodeAt(i)) >>> 0
   }
   return hash
-}
-
-function tickerSymbolFor(vault: Vault) {
-  const slug = vault.name.replace(/[^a-z0-9]/gi, "").slice(0, 6).toUpperCase()
-  return slug || "VAULT"
 }
 
 function buildSparkValues(seed: number, count = 28) {
@@ -281,7 +236,6 @@ function buildRowData(vault: Vault): EnrichedRow {
 
   return {
     vault,
-    ticker: tickerSymbolFor(vault),
     nav,
     delta24h,
     delta7d,
