@@ -85,7 +85,7 @@ function FundDetailPage() {
           </CardHeader>
           <CardContent>
             <Column className="gap-3">
-              {vault.compositions?.map((c, i, arr) => (
+              {vault.compositions?.toSorted((a, b) => b.weightBps - a.weightBps).map((c, i, arr) => (
                 <Column key={c.stock.id} className="gap-3">
                   <Row className="items-center justify-between">
                     <Row className="items-center">
