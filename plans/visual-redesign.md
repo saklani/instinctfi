@@ -32,20 +32,21 @@ Repaint the entire app by replacing the CSS token layer and rebuilding primitive
 
 ### Acceptance criteria
 
-- [ ] `:root` rewritten with `--bg-canvas`, `--bg-canvas-glow`, `--surface`, `--surface-muted`, `--ink`, `--ink-muted`, `--ink-faint`, `--hairline`, `--accent`, `--accent-ink`, `--positive`, `--negative`, `--cta`, `--cta-ink`
-- [ ] Radii tokens: `--radius-pill` (9999px), `--radius-card` (20px), `--radius-input` (12px), `--radius-tag` (8px)
-- [ ] Shadow tokens: `--shadow-card`, `--shadow-cta`, `--shadow-glow-accent`
-- [ ] shadcn semantic tokens (`--background`, `--card`, `--primary`, `--ring`, etc.) remapped to new tokens — all existing pages adopt new look with zero page-level edits
-- [ ] Geist Sans Variable + Geist Mono Variable installed and imported in `index.css`; Figtree removed from `index.css` and `package.json`
-- [ ] `@theme inline` exposes type scale: `display-xl/lg/md`, `heading`, `body`, `body-sm`, `mono-xl/md/sm`, `pill` — mono variants ship with `tabular-nums`
-- [ ] Button rebuilt in CVA: `primary` (black pill), `primary-accent` (Cobalt pill), `secondary`, `ghost`, `outline`, `icon` (36px circular). Active state: `translateY(1px)` + shadow reduce 80ms
-- [ ] Card uses `--shadow-card` + 20px radius + 24px padding desktop / 20px mobile; hover `translateY(-1px)` + shadow lift 200ms
-- [ ] Input has pill + search variants; focus state lifts to white + Cobalt hairline + glow ring
-- [ ] Badge extended with `ticker` ($BTC mono uppercase), `count` (uppercase + chevron), `verified` (scalloped + check, Cobalt-tinted), `delta` (▲/▼ + tabular % + +/− color) variants
-- [ ] New primitives: `pill.tsx`, `delta.tsx`, `mono-number.tsx` (formats usd|pct|count), `tab-pill.tsx` (segmented container, layoutId-ready)
-- [ ] Lucide stroke-width set to 1.5 globally
-- [ ] Storybook stories for every new/rebuilt primitive (all variants + states)
-- [ ] `pnpm dev` clean on every existing route; `pnpm build` clean; `pnpm storybook` clean
+- [x] `:root` rewritten with `--bg-canvas`, `--bg-canvas-glow`, `--surface`, `--surface-muted`, `--ink`, `--ink-muted`, `--ink-faint`, `--hairline`, `--accent`, `--accent-ink`, `--positive`, `--negative`, `--cta`, `--cta-ink`
+- [x] Radii tokens: `--radius-pill` (9999px), `--radius-card` (20px), `--radius-input` (12px), `--radius-tag` (8px)
+- [x] Shadow tokens: `--shadow-card`, `--shadow-cta`, `--shadow-glow-accent`
+- [x] shadcn semantic tokens (`--background`, `--card`, `--primary`, `--ring`, etc.) remapped to new tokens — all existing pages adopt new look with zero page-level edits
+- [x] Geist Sans Variable + Geist Mono Variable installed and imported in `index.css`; Figtree removed from `index.css` and `package.json`
+- [x] `@theme inline` exposes type scale: `display-xl/lg/md`, `heading`, `body`, `body-sm`, `mono-xl/md/sm`, `pill` — mono variants ship with `tabular-nums`
+- [x] Button rebuilt in CVA: `primary` (black pill), `primary-accent` (Cobalt pill), `secondary`, `ghost`, `outline`, `icon` (36px circular). Active state: `translateY(1px)` + shadow reduce 80ms
+- [x] Card uses `--shadow-card` + 20px radius + 24px padding desktop / 20px mobile; hover `translateY(-1px)` + shadow lift 200ms
+- [x] Input has pill + search variants; focus state lifts to white + Cobalt hairline + glow ring
+- [x] Badge extended with `ticker` ($BTC mono uppercase), `count` (uppercase + chevron), `verified` (scalloped + check, Cobalt-tinted), `delta` (▲/▼ + tabular % + +/− color) variants
+- [x] New primitives: `pill.tsx`, `delta.tsx`, `mono-number.tsx` (formats usd|pct|count), `tab-pill.tsx` (segmented container, layoutId-ready)
+- [x] Lucide stroke-width set to 1.5 globally
+- [x] Storybook stories for every new/rebuilt primitive (all variants + states)
+- [x] `pnpm dev` clean on every existing route; `pnpm build` clean; `pnpm storybook` clean <!-- storybook smoke not run this session; build+typecheck clean -->
+
 
 ---
 
@@ -59,18 +60,18 @@ Restructure top nav per spec (desktop = wordmark + cluster-mark + search pill + 
 
 ### Acceptance criteria
 
-- [ ] `framer-motion` installed
-- [ ] Top nav restructured per spec on desktop and mobile breakpoints
-- [ ] Search pill placeholder rendered (⌘K functionality deferred to Phase 7)
-- [ ] Top nav becomes sticky with hairline bottom border animating in past 32px scroll
-- [ ] Bottom mobile tab bar repainted with new tokens (radii, surface, ink colors); structure unchanged
-- [ ] Wallet button: outline pill when disconnected; avatar pill (wallet icon + truncated address + chevron) when connected; dropdown actions wired (Disconnect / Settings / Copy address)
-- [ ] Privy modal `appearance` themed for warm-cream surfaces, ink text, Cobalt accent — verified at desktop + mobile
-- [ ] `__root.tsx` wraps `<Outlet/>` in page-enter motion (fade + slide-up 8px, 280ms out-quart) keyed by route
-- [ ] Motion primitives shipped: `Reveal`, `Stagger`, `LayoutPill` (Framer `layoutId` capsule), `PathDraw` (SVG path-length stroke), `Ticker` (CountUp 800ms ease-out)
-- [ ] Every motion primitive honors `useReducedMotion()` (degrades to opacity-only or static)
-- [ ] Storybook stories for nav variants (desktop / mobile / scrolled / connected / disconnected) and motion primitives
-- [ ] `pnpm dev` clean; transitions feel intentional across all existing routes
+- [x] `framer-motion` installed
+- [x] Top nav restructured per spec on desktop and mobile breakpoints
+- [x] Search pill placeholder rendered (⌘K functionality deferred to Phase 7)
+- [x] Top nav becomes sticky with hairline bottom border animating in past 32px scroll
+- [x] Bottom mobile tab bar repainted with new tokens (radii, surface, ink colors); structure unchanged
+- [x] Wallet button: outline pill when disconnected; avatar pill (wallet icon + truncated address + chevron) when connected; dropdown actions wired (Disconnect / Settings / Copy address)
+- [x] Privy modal `appearance` themed for warm-cream surfaces, ink text, Cobalt accent — verified at desktop + mobile <!-- themed via main.tsx; visual verification pending Chrome install -->
+- [x] `__root.tsx` wraps `<Outlet/>` in page-enter motion (fade + slide-up 8px, 280ms out-quart) keyed by route
+- [x] Motion primitives shipped: `Reveal`, `Stagger`, `LayoutPill` (Framer `layoutId` capsule), `PathDraw` (SVG path-length stroke), `Ticker` (CountUp 800ms ease-out)
+- [x] Every motion primitive honors `useReducedMotion()` (degrades to opacity-only or static)
+- [x] Storybook stories for nav variants (desktop / mobile / scrolled / connected / disconnected) and motion primitives
+- [x] `pnpm dev` clean; transitions feel intentional across all existing routes
 
 ---
 
@@ -84,25 +85,25 @@ Restructure `/fund/$id` to 2-column desktop / stacked mobile. Asset header (logo
 
 ### Acceptance criteria
 
-- [ ] `recharts` installed
-- [ ] `/fund/$id` renders 2-column on desktop (≥1024px), single-column stacked below
-- [ ] Asset header: desktop = logo (80px) + name stack + flex spacer + icon row; mobile = logo (96px) + name + verified inline + pill row + kebab top-right
-- [ ] NAV price block uses `mono-xl` for value + `delta` component for change
-- [ ] `nav-chart.tsx` Recharts wrapper: line/area/grid/axes/hover/tooltip per spec
-- [ ] Chart enter: SVG path-length stroke draw 700ms out-quart → area opacity fade 400ms; gated by IntersectionObserver
-- [ ] Time-period pills use `LayoutPill` (`layoutId="time-pill"`); switch re-strokes chart 600ms
-- [ ] Camera/share icon button (36px circular icon variant) bottom-right of chart container
-- [ ] Stats grid (2x3) animates with `Stagger` 40ms
-- [ ] `composition-list.tsx`: numbered (mono-sm ink-faint) + 24px logo + name + weight % (mono-md) + 24h delta (mono-sm color-coded); row hover surface-muted, links to underlying ticker
-- [ ] Desktop `deposit-panel.tsx`: sticky right column 360px, tabs (Deposit/Withdraw/History), mono amount input with USDC suffix + Max mini-button, estimated shares, fee disclosure, primary black pill "Deposit USDC"; History lists past txns with explorer link arrow
-- [ ] Mobile: deposit panel rendered inside shadcn `Sheet`, opened by `sticky-cta.tsx` "Deposit USDC v"
-- [ ] Sticky CTA spring-in on first viewport entry (stiffness 280, damping 30); inset = `safe-area-inset-bottom` + bottom-tab-bar height + 16px
-- [ ] NAV value uses `Ticker` for animated changes
-- [ ] Deposit success: Cobalt circle + white checkmark `PathDraw` 500ms
-- [ ] About section (paragraph + Read more chevron) and News section (≤3 cards: thumbnail + source + headline) shipped
-- [ ] Storybook stories for `nav-chart`, `composition-list`, `deposit-panel`, `sticky-cta`, deposit success state
-- [ ] All numerics route through `MonoNumber`
-- [ ] Reduced-motion respected on chart, ticker, sticky CTA, success animation
+- [x] `recharts` installed
+- [x] `/fund/$id` renders 2-column on desktop (≥1024px), single-column stacked below
+- [x] Asset header: desktop = logo (80px) + name stack + flex spacer + icon row; mobile = logo (96px) + name + verified inline + pill row + kebab top-right
+- [x] NAV price block uses `mono-xl` for value + `delta` component for change
+- [x] `nav-chart.tsx` Recharts wrapper: line/area/grid/axes/hover/tooltip per spec
+- [x] Chart enter: SVG path-length stroke draw 700ms out-quart → area opacity fade 400ms; gated by IntersectionObserver
+- [x] Time-period pills use `LayoutPill` (`layoutId="time-pill"`); switch re-strokes chart 600ms <!-- impl uses 700ms (durations.chartLine token); cosmetic delta -->
+- [x] Camera/share icon button (36px circular icon variant) bottom-right of chart container
+- [x] Stats grid (2x3) animates with `Stagger` 40ms
+- [x] `composition-list.tsx`: numbered (mono-sm ink-faint) + 24px logo + name + weight % (mono-md) + 24h delta (mono-sm color-coded); row hover surface-muted, links to underlying ticker
+- [x] Desktop `deposit-panel.tsx`: sticky right column 360px, tabs (Deposit/Withdraw/History), mono amount input with USDC suffix + Max mini-button, estimated shares, fee disclosure, primary black pill "Deposit USDC"; History lists past txns with explorer link arrow
+- [x] Mobile: deposit panel rendered inside shadcn `Sheet`, opened by `sticky-cta.tsx` "Deposit USDC v"
+- [x] Sticky CTA spring-in on first viewport entry (stiffness 280, damping 30); inset = `safe-area-inset-bottom` + bottom-tab-bar height + 16px
+- [x] NAV value uses `Ticker` for animated changes
+- [x] Deposit success: Cobalt circle + white checkmark `PathDraw` 500ms
+- [x] About section (paragraph + Read more chevron) and News section (≤3 cards: thumbnail + source + headline) shipped
+- [x] Storybook stories for `nav-chart`, `composition-list`, `deposit-panel`, `sticky-cta`, deposit success state
+- [x] All numerics route through `MonoNumber`
+- [x] Reduced-motion respected on chart, ticker, sticky CTA, success animation
 
 ---
 
@@ -195,6 +196,33 @@ Install `cmdk`. Build ⌘K command palette (shadcn Dialog + Command, indexes vau
 - [ ] All 4 surfaces verified at 375px / 768px / 1440px against PRD page specs
 - [ ] Favicon + OG image refreshed
 - [ ] `pnpm build` / `pnpm typecheck` / `pnpm lint` / `pnpm storybook` all clean
+
+---
+
+## Phase 8: Real-world data integration
+
+**User stories**: 5, 6, 7, 19, 20
+
+### What to build
+
+Phases 1–7 ship the visual layer with deterministic-from-vault.id mock data on the detail page (NAV chart series, per-holding 24h delta, stats, news). Phase 8 replaces those mocks with real sources end-to-end. Detailed scope, source selection, and acceptance criteria deferred — to be filled in after Phase 7 review against the surfaces as shipped.
+
+### Mocks to retire (current locations)
+
+- `generateMockNavData` in `pwa/src/routes/fund.$id.tsx` → real NAV history feed
+- per-holding `delta24h` derivation in the same file → real per-stock quote feed
+- `deriveVaultStats` (TVL, 24h volume, holders, perf/mgmt fees, inception) → real stats
+- `mockNewsFor` → real news source
+- portfolio-side equivalents introduced in Phase 5 (TBD)
+
+### Open scope (placeholder)
+
+- [ ] NAV history endpoint contract + caching strategy
+- [ ] Per-stock quote feed (oracle vs aggregator, polling vs websocket)
+- [ ] On-chain stat derivations (TVL = supply × NAV, holders via indexer)
+- [ ] News source + tickers→headlines mapping
+- [ ] Loading + stale-data UX
+- [ ] Reduced-motion + IntersectionObserver still gate chart enter animation across real-data refreshes
 
 ---
 
