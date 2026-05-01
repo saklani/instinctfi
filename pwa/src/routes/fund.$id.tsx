@@ -84,23 +84,21 @@ function FundDetailPage() {
             <CardDescription>Current vault composition.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Column className="gap-3">
-              {vault.compositions?.toSorted((a, b) => b.weightBps - a.weightBps).map((c, i, arr) => (
-                <Column key={c.stock.id} className="gap-3">
-                  <Row className="items-center justify-between">
-                    <Row className="items-center">
-                      <img src={c.stock.imageUrl} alt={c.stock.ticker} className="size-6 rounded-full" />
-                      <span className="text-sm font-medium">{c.stock.name}</span>
-                      <Badge variant="secondary">{c.stock.ticker}</Badge>
-                    </Row>
-                    <span className="text-sm font-semibold">
-                      {formatPercent(c.weightBps)}
-                    </span>
+            {(vault.compositions ?? []).sort((a, b) => b.weightBps - a.weightBps).map((c, i, arr) => (
+              <Column key={c.stock.id}>
+                <Row className="items-center justify-between">
+                  <Row className="items-center">
+                    <img src={c.stock.imageUrl} alt={c.stock.ticker} className="size-6 rounded-full" />
+                    <span className="text-sm font-medium">{c.stock.name}</span>
+                    <Badge variant="secondary">{c.stock.ticker}</Badge>
                   </Row>
-                  {i < arr.length - 1 && <Separator />}
-                </Column>
-              ))}
-            </Column>
+                  <span className="text-sm font-semibold">
+                    {formatPercent(c.weightBps)}
+                  </span>
+                </Row>
+                {i < arr.length - 1 && <Separator />}
+              </Column>
+            ))}
           </CardContent>
         </Card>
 
