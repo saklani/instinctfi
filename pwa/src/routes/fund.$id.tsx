@@ -10,7 +10,7 @@ import { usePendingOrders } from "@/hooks/use-orders"
 import { usePositions } from "@/hooks/use-positions"
 import { useWallet } from "@/hooks/use-wallet"
 import { useServerWallet } from "@/components/api-provider"
-import { createDeposit, createWithdrawal } from "@/lib/api"
+import { createDeposit } from "@/lib/api"
 import { getUsdcBalance } from "@/lib/transfer"
 import { formatUsd, formatUsdcRaw, formatShares, formatPercent } from "@/lib/format"
 import {
@@ -25,7 +25,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Sheet,
   SheetContent,
@@ -122,7 +121,9 @@ function FundDetailPage() {
                           {formatUsdcRaw(order.amount)}
                         </span>
                       </Column>
-                      <Badge variant="secondary">Processing</Badge>
+                      <Badge variant="secondary">
+                        {order.status === "funded" ? "Queued" : "Processing"}
+                      </Badge>
                     </Row>
                   ))}
                 </Column>
@@ -197,23 +198,10 @@ function FundDetailPage() {
           <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-muted-foreground/20" />
           <SheetHeader>
             <SheetTitle>{vault.name}</SheetTitle>
-            <SheetDescription>Deposit or withdraw USDC</SheetDescription>
+            <SheetDescription>Deposit USDC</SheetDescription>
           </SheetHeader>
 
-          <Tabs defaultValue="deposit" className="py-4">
-            <TabsList className="w-full">
-              <TabsTrigger value="deposit" className="flex-1">Deposit</TabsTrigger>
-              <TabsTrigger value="withdraw" className="flex-1">Withdraw</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="deposit">
-              <DepositTab vaultId={vault.id} onDone={() => setSheetOpen(false)} />
-            </TabsContent>
-
-            <TabsContent value="withdraw">
-              <WithdrawTab vaultId={vault.id} onDone={() => setSheetOpen(false)} />
-            </TabsContent>
-          </Tabs>
+          <DepositTab vaultId={vault.id} onDone={() => setSheetOpen(false)} />
         </SheetContent>
       </Sheet>
     </>
@@ -278,8 +266,8 @@ function DepositTab({ vaultId, onDone }: { vaultId: string; onDone: () => void }
 
       await createDeposit({
         vaultId,
-        amount: rawAmount.toString(),
         signature: sigString,
+        address: walletAddress!,
       })
 
       await queryClient.invalidateQueries({ queryKey: ["orders"] })
@@ -358,98 +346,3 @@ function DepositTab({ vaultId, onDone }: { vaultId: string; onDone: () => void }
   )
 }
 
-const withdrawSchema = z.object({
-  amount: z.string().min(1, "Amount is required").refine(
-    (v) => parseFloat(v) > 0,
-    "Amount must be greater than 0",
-  ),
-})
-
-type WithdrawFormData = z.infer<typeof withdrawSchema>
-
-function WithdrawTab({ vaultId, onDone }: { vaultId: string; onDone: () => void }) {
-  const queryClient = useQueryClient()
-  const { positions } = usePositions()
-  const [isPending, setIsPending] = useState(false)
-
-  const position = positions.find((p) => p.vaultId === vaultId)
-  const balanceUsdc = position ? Number(position.amount) / 1e6 : 0
-
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-    reset,
-  } = useForm<WithdrawFormData>({
-    resolver: zodResolver(withdrawSchema),
-  })
-
-  const onSubmit = async (data: WithdrawFormData) => {
-    setIsPending(true)
-
-    try {
-      const rawAmount = String(Math.floor(parseFloat(data.amount) * 1e6))
-
-      await createWithdrawal({
-        vaultId,
-        amount: rawAmount,
-      })
-
-      await queryClient.invalidateQueries({ queryKey: ["orders"] })
-      await queryClient.invalidateQueries({ queryKey: ["positions"] })
-
-      toast.success("Your order is placed.")
-      reset()
-      onDone()
-    } catch (e: any) {
-      toast.error("Withdrawal failed", { description: e.message })
-    } finally {
-      setIsPending(false)
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <Column className="gap-4 pt-4">
-        <Column>
-          <Row className="items-center justify-between">
-            <Label htmlFor="withdraw-amount">Amount (USDC)</Label>
-            {balanceUsdc > 0 && (
-              <Button
-                type="button"
-                variant="link"
-                size="xs"
-                className="text-muted-foreground"
-                onClick={() => setValue("amount", String(balanceUsdc), { shouldValidate: true })}
-              >
-                Balance: {formatUsd(balanceUsdc)}
-              </Button>
-            )}
-          </Row>
-          <Input
-            id="withdraw-amount"
-            type="number"
-            step="any"
-            placeholder="0.00"
-            className="h-12 text-lg"
-            disabled={isPending}
-            aria-invalid={!!errors.amount}
-            {...register("amount")}
-          />
-          {errors.amount && <FormError message={errors.amount.message} />}
-        </Column>
-
-        <LoadingButton
-          type="submit"
-          size="lg"
-          variant="destructive"
-          className="w-full text-base font-semibold"
-          isLoading={isPending}
-        >
-          Withdraw
-        </LoadingButton>
-      </Column>
-    </form>
-  )
-}

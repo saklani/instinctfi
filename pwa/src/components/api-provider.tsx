@@ -11,14 +11,14 @@ export function useServerWallet() {
 
 export function ApiProvider({ children }: { children: ReactNode }) {
   const { getAccessToken } = usePrivy()
-  const { walletAddress } = useAuth()
+  const { treasuryWalletAddress } = useAuth()
 
   useEffect(() => {
     setAccessTokenGetter(getAccessToken)
   }, [getAccessToken])
 
   return (
-    <WalletContext.Provider value={walletAddress}>
+    <WalletContext.Provider value={treasuryWalletAddress}>
       {children}
     </WalletContext.Provider>
   )

@@ -2,7 +2,7 @@ import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { serve } from "inngest/hono"
 import { inngest } from "./inngest/client.js"
-import { processOrder } from "./inngest/functions.js"
+import { processOrderQueue } from "./inngest/functions.js"
 import authRoute from "./routes/auth.js"
 import ordersRoute from "./routes/orders.js"
 import positionsRoute from "./routes/positions.js"
@@ -24,7 +24,7 @@ app.route("/api/stocks", stocksRoute)
 app.on(
   ["GET", "PUT", "POST"],
   "/api/inngest",
-  serve({ client: inngest, functions: [processOrder] }),
+  serve({ client: inngest, functions: [processOrderQueue] }),
 )
 
 export default app

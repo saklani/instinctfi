@@ -12,5 +12,8 @@ export function useAuth() {
     staleTime: Infinity,
   })
 
-  return { walletAddress: data?.walletAddress ?? null }
+  return {
+    walletAddress: data?.walletAddress ?? null,
+    treasuryWalletAddress: data?.treasuryWalletAddress ?? null,
+  }
 }

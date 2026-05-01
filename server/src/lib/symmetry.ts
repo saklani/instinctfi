@@ -19,14 +19,21 @@ export function getSDK() {
   return sdk
 }
 
-function extractTransactions(payload: any): Buffer[] {
-  const txs: Buffer[] = []
+function extractTransactions(payload: any): string[] {
+  const txs: string[] = []
   for (const batch of payload.batches) {
     for (const tx of batch.transactions) {
-      txs.push(Buffer.from(tx.tx_b64, "base64"))
+      txs.push(tx.tx_b64)
     }
   }
   return txs
+}
+
+async function signAndSend(walletId: string, txBase64: string): Promise<string> {
+  const { signed_transaction } = await signTransaction(walletId, txBase64)
+  const sig = await connection.sendRawTransaction(Buffer.from(signed_transaction, "base64"))
+  await connection.confirmTransaction(sig, "confirmed")
+  return sig
 }
 
 /**
@@ -37,6 +44,15 @@ export async function fetchVault(vaultAddress: string) {
   let vault = await sdk.fetchVault(vaultAddress)
   vault = await sdk.loadVaultPrice(vault)
   return vault
+}
+
+/**
+ * Check if a vault has an active rebalance intent.
+ */
+export async function hasActiveIntent(vaultAddress: string): Promise<boolean> {
+  const sdk = getSDK()
+  const intents = await sdk.fetchVaultRebalanceIntents(vaultAddress)
+  return intents.length > 0
 }
 
 /**
@@ -63,15 +79,8 @@ export async function executeDeposit(params: {
   const buyTxs = extractTransactions(buyPayload)
   const buySignatures: string[] = []
 
-  for (const txBuf of buyTxs) {
-    const { signed_transaction } = await signTransaction(
-      params.walletId,
-      txBuf.toString("base64"),
-    )
-    const sig = await connection.sendRawTransaction(
-      Buffer.from(signed_transaction, "base64"),
-    )
-    await connection.confirmTransaction(sig, "confirmed")
+  for (const tx of buyTxs) {
+    const sig = await signAndSend(params.walletId, tx)
     buySignatures.push(sig)
   }
 
@@ -83,15 +92,8 @@ export async function executeDeposit(params: {
   const lockTxs = extractTransactions(lockPayload)
   const lockSignatures: string[] = []
 
-  for (const txBuf of lockTxs) {
-    const { signed_transaction } = await signTransaction(
-      params.walletId,
-      txBuf.toString("base64"),
-    )
-    const sig = await connection.sendRawTransaction(
-      Buffer.from(signed_transaction, "base64"),
-    )
-    await connection.confirmTransaction(sig, "confirmed")
+  for (const tx of lockTxs) {
+    const sig = await signAndSend(params.walletId, tx)
     lockSignatures.push(sig)
   }
 
@@ -121,15 +123,8 @@ export async function executeWithdraw(params: {
   const sellTxs = extractTransactions(sellPayload)
   const signatures: string[] = []
 
-  for (const txBuf of sellTxs) {
-    const { signed_transaction } = await signTransaction(
-      params.walletId,
-      txBuf.toString("base64"),
-    )
-    const sig = await connection.sendRawTransaction(
-      Buffer.from(signed_transaction, "base64"),
-    )
-    await connection.confirmTransaction(sig, "confirmed")
+  for (const tx of sellTxs) {
+    const sig = await signAndSend(params.walletId, tx)
     signatures.push(sig)
   }
 

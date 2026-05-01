@@ -1,8 +1,9 @@
 import { inngest } from "./client.js"
 import { db } from "../db/index.js"
-import { orders, positions, wallets, vaults } from "../db/schema.js"
-import { eq, and } from "drizzle-orm"
-import { executeDeposit, executeWithdraw } from "../lib/symmetry.js"
+import { orders, positions, vaults } from "../db/schema.js"
+import { eq, and, asc } from "drizzle-orm"
+import { executeDeposit, executeWithdraw, hasActiveIntent } from "../lib/symmetry.js"
+import { getTreasuryWallet } from "../lib/privy.js"
 
 function isMarketOpen(): boolean {
   const now = new Date()
@@ -20,55 +21,33 @@ function isMarketOpen(): boolean {
   return isWeekday && isMarketHours
 }
 
-function secondsUntilMarketOpen(): number {
-  const now = new Date()
-  const est = new Date(
-    now.toLocaleString("en-US", { timeZone: "America/New_York" }),
-  )
-  const day = est.getDay()
-  const hours = est.getHours()
-  const minutes = est.getMinutes()
-  const timeInMinutes = hours * 60 + minutes
-
-  if (day >= 1 && day <= 5 && timeInMinutes < 570) {
-    return (570 - timeInMinutes) * 60
-  }
-
-  let daysUntilOpen = 0
-  if (day === 5 && timeInMinutes >= 1050) daysUntilOpen = 3
-  else if (day === 6) daysUntilOpen = 2
-  else if (day === 0) daysUntilOpen = 1
-  else daysUntilOpen = 1
-
-  const nextOpen = new Date(est)
-  nextOpen.setDate(nextOpen.getDate() + daysUntilOpen)
-  nextOpen.setHours(9, 30, 0, 0)
-
-  return Math.max(60, Math.floor((nextOpen.getTime() - est.getTime()) / 1000))
-}
-
-export const processOrder = inngest.createFunction(
+export const processOrderQueue = inngest.createFunction(
   {
-    id: "process-order",
-    retries: 2,
-    triggers: [{ event: "order/funded" }],
+    id: "process-order-queue",
+    retries: 0,
   },
-  async ({ event, step }) => {
-    const orderId = event.data.orderId as string
-
+  { cron: "* * * * *" }, // every minute
+  async ({ step }) => {
+    // Skip if market is closed
     if (!isMarketOpen()) {
-      const waitSeconds = secondsUntilMarketOpen()
-      await step.sleep("wait-for-market-open", `${waitSeconds}s`)
+      return { skipped: true, reason: "Market closed" }
     }
 
-    const [order] = await step.run("fetch-order", async () => {
-      return db.select().from(orders).where(eq(orders.id, orderId)).limit(1)
+    // Get the oldest funded order
+    const [order] = await step.run("fetch-next-order", async () => {
+      return db
+        .select()
+        .from(orders)
+        .where(eq(orders.status, "funded"))
+        .orderBy(asc(orders.createdAt))
+        .limit(1)
     })
 
-    if (!order || order.status !== "funded") {
-      return { skipped: true, reason: "Order not found or not funded" }
+    if (!order) {
+      return { skipped: true, reason: "No funded orders" }
     }
 
+    // Get vault info
     const [vault] = await step.run("fetch-vault", async () => {
       return db.select().from(vaults).where(eq(vaults.id, order.vaultId)).limit(1)
     })
@@ -77,17 +56,17 @@ export const processOrder = inngest.createFunction(
       return { skipped: true, reason: "Vault not found" }
     }
 
-    const [wallet] = await step.run("fetch-wallet", async () => {
-      return db
-        .select()
-        .from(wallets)
-        .where(eq(wallets.userId, order.userId))
-        .limit(1)
+    // Check if vault has an active intent — if so, wait
+    const intentActive = await step.run("check-intent", async () => {
+      return hasActiveIntent(vault.vaultAddress)
     })
 
-    if (!wallet) {
-      return { skipped: true, reason: "No server wallet found" }
+    if (intentActive) {
+      return { skipped: true, reason: "Active intent exists, will retry next cycle" }
     }
+
+    // Process the order
+    const treasury = getTreasuryWallet()
 
     return await step.run("execute", async () => {
       try {
@@ -98,8 +77,8 @@ export const processOrder = inngest.createFunction(
 
         if (order.type === "deposit") {
           const result = await executeDeposit({
-            walletId: wallet.walletId,
-            walletAddress: wallet.address,
+            walletId: treasury.walletId,
+            walletAddress: treasury.address,
             vaultMint: vault.vaultMint,
             amountLamports: Number(order.amount),
           })
@@ -144,8 +123,8 @@ export const processOrder = inngest.createFunction(
           return { orderId: order.id, status: "completed", ...result }
         } else {
           const result = await executeWithdraw({
-            walletId: wallet.walletId,
-            walletAddress: wallet.address,
+            walletId: treasury.walletId,
+            walletAddress: treasury.address,
             vaultMint: vault.vaultMint,
             amount: Number(order.amount),
           })

@@ -110,7 +110,11 @@ function PortfolioPage() {
                     </span>
                   </Column>
                   <Badge variant="secondary">
-                    {order.status === "pending" ? "Awaiting USDC" : "Processing"}
+                    {order.status === "pending"
+                      ? "Awaiting USDC"
+                      : order.status === "funded"
+                        ? "Queued"
+                        : "Processing"}
                   </Badge>
                 </Row>
               ))}

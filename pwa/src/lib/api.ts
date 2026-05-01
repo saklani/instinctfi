@@ -34,6 +34,7 @@ async function request<T>(
 export interface AuthResponse {
   userId: string
   walletAddress: string
+  treasuryWalletAddress: string
 }
 
 export function authenticate(): Promise<AuthResponse> {
@@ -101,20 +102,10 @@ export function fetchOrders(): Promise<Order[]> {
 
 export function createDeposit(params: {
   vaultId: string
-  amount: string
   signature: string
+  address: string
 }): Promise<Order> {
   return request("/api/orders/deposit", {
-    method: "POST",
-    body: JSON.stringify(params),
-  })
-}
-
-export function createWithdrawal(params: {
-  vaultId: string
-  amount: string
-}): Promise<Order> {
-  return request("/api/orders/withdraw", {
     method: "POST",
     body: JSON.stringify(params),
   })

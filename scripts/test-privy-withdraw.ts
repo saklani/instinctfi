@@ -1,11 +1,10 @@
 /**
- * Deposit USDC into vault via Privy server wallet.
+ * Withdraw vault tokens back to USDC via Privy server wallet.
  *
  * Usage:
- *   bun run scripts/test-privy-deposit.ts [amount_usdc]
+ *   bun run scripts/test-privy-withdraw.ts [amount]
  *
- * Example:
- *   bun run scripts/test-privy-deposit.ts 1
+ * If no amount specified, withdraws all vault tokens.
  */
 
 import { Connection, PublicKey } from "@solana/web3.js"
@@ -16,9 +15,6 @@ const RPC_URL = process.env.RPC_URL!
 const VAULT_MINT = "FXcxe5f3AwkJZRaoYFuGME7rEXS4NmBxZPYKVh3Q4bnD"
 const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 const WALLET_ID = "m0vnd6lzap3uj691921zs0nx"
-
-const amountUsdc = parseFloat(process.argv[2] ?? "1")
-const AMOUNT = Math.floor(amountUsdc * 1e6)
 
 const privy = new PrivyClient({
   appId: process.env.PRIVY_APP_ID!,
@@ -40,55 +36,53 @@ async function main() {
   console.log("Fetching wallet info...")
   const wallet = await privy.wallets().get(WALLET_ID)
   const walletAddress = wallet.address
+  const walletPk = new PublicKey(walletAddress)
   console.log("Wallet:", walletAddress)
 
-  // Check USDC balance
-  const { value: usdcAccounts } = await connection.getParsedTokenAccountsByOwner(
-    new PublicKey(walletAddress), { mint: new PublicKey(USDC_MINT) },
+  // Check vault token balance
+  const { value: vaultAccounts } = await connection.getParsedTokenAccountsByOwner(
+    walletPk, { mint: new PublicKey(VAULT_MINT) },
   )
-  const usdcBalance = usdcAccounts[0]?.account.data.parsed.info.tokenAmount.uiAmount ?? 0
-  console.log("USDC balance:", usdcBalance)
-  console.log("Depositing:", amountUsdc, "USDC")
+  const vaultTokenBalance = vaultAccounts[0]?.account.data.parsed.info.tokenAmount.uiAmount ?? 0
+  console.log("Vault token balance:", vaultTokenBalance)
 
-  if (usdcBalance < amountUsdc) {
-    console.error("Insufficient USDC")
+  if (vaultTokenBalance <= 0) {
+    console.error("No vault tokens to withdraw")
     return
   }
 
+  // Check USDC before
+  const { value: usdcAccounts } = await connection.getParsedTokenAccountsByOwner(
+    walletPk, { mint: new PublicKey(USDC_MINT) },
+  )
+  const usdcBefore = usdcAccounts[0]?.account.data.parsed.info.tokenAmount.uiAmount ?? 0
+  console.log("USDC before:", usdcBefore)
+
+  const withdrawAmount = parseFloat(process.argv[2] ?? String(vaultTokenBalance))
+  const rawAmount = Math.floor(withdrawAmount * 1e6)
+  console.log("Withdrawing:", withdrawAmount, "vault tokens")
+
+  // Sell
+  console.log("\n=== Sell ===")
   const sdk = new SymmetryCore({ connection, network: "mainnet", priorityFee: 100_000 })
 
-  // Buy
-  console.log("\n=== Buy ===")
-  const buyPayload = await sdk.buyVaultTx({
-    buyer: walletAddress,
+  const sellPayload = await sdk.sellVaultTx({
+    seller: walletAddress,
     vault_mint: VAULT_MINT,
-    contributions: [{ mint: USDC_MINT, amount: AMOUNT }],
+    withdraw_amount: rawAmount,
+    keep_tokens: [USDC_MINT],
     rebalance_slippage_bps: 500,
     per_trade_rebalance_slippage_bps: 500,
   })
 
-  for (const batch of buyPayload.batches) {
+  for (const batch of sellPayload.batches) {
     for (const tx of batch.transactions) {
       const sig = await signAndSend(connection, tx.tx_b64)
       console.log(`  ${sig.slice(0, 20)}...`)
     }
   }
 
-  // Lock
-  console.log("\n=== Lock ===")
-  const lockPayload = await sdk.lockDepositsTx({
-    buyer: walletAddress,
-    vault_mint: VAULT_MINT,
-  })
-
-  for (const batch of lockPayload.batches) {
-    for (const tx of batch.transactions) {
-      const sig = await signAndSend(connection, tx.tx_b64)
-      console.log(`  ${sig.slice(0, 20)}...`)
-    }
-  }
-
-  console.log("\nDeposit done. Run keeper to process.")
+  console.log("\nWithdraw submitted. Run keeper to process, then check USDC balance.")
 }
 
 main().catch(console.error)

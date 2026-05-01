@@ -2,11 +2,11 @@ import { Hono } from "hono"
 import { Connection } from "@solana/web3.js"
 import { z } from "zod"
 import { db } from "../db/index.js"
-import { orders, wallets, positions } from "../db/schema.js"
-import { eq, and, desc } from "drizzle-orm"
+import { orders } from "../db/schema.js"
+import { eq, desc } from "drizzle-orm"
 import { authMiddleware } from "../middleware/auth.js"
-import { inngest } from "../inngest/client.js"
 import { verifyUsdcTransfer } from "../lib/verify-transfer.js"
+import { getTreasuryWallet } from "../lib/privy.js"
 
 type AuthEnv = { Variables: { userId: string } }
 
@@ -19,8 +19,8 @@ app.use("*", authMiddleware)
 
 const depositSchema = z.object({
   vaultId: z.string().uuid(),
-  amount: z.string().regex(/^\d+$/, "Amount must be an integer string"),
   signature: z.string().min(1),
+  address: z.string().min(1),
 })
 
 app.post("/deposit", async (c) => {
@@ -31,85 +31,44 @@ app.post("/deposit", async (c) => {
     return c.json({ error: parsed.error.issues[0].message }, 400)
   }
 
-  const { vaultId, amount, signature } = parsed.data
+  const { vaultId, signature, address } = parsed.data
+  const treasury = getTreasuryWallet()
 
-  const [wallet] = await db
-    .select()
-    .from(wallets)
-    .where(eq(wallets.userId, userId))
-    .limit(1)
-
-  if (!wallet) {
-    return c.json({ error: "No wallet found. Call POST /api/auth first." }, 400)
-  }
-
-  const { valid, error } = await verifyUsdcTransfer(
+  const result = await verifyUsdcTransfer(
     connection,
     signature,
-    wallet.address,
-    BigInt(amount),
+    treasury.address,
+    address,
   )
 
-  if (!valid) {
-    return c.json({ error: error ?? "Transfer verification failed" }, 400)
+  if (!result.valid || !result.details) {
+    return c.json({ error: result.error ?? "Transfer verification failed" }, 400)
   }
 
-  const [order] = await db
-    .insert(orders)
-    .values({ userId, vaultId, type: "deposit", amount, signature, status: "funded" })
-    .returning()
-
-  await inngest.send({ name: "order/funded", data: { orderId: order.id } })
-
-  return c.json(order, 201)
-})
-
-// ── Withdraw ────────────────────────────────────────────
-
-const withdrawSchema = z.object({
-  vaultId: z.string().uuid(),
-  amount: z.string().regex(/^\d+$/, "Amount must be an integer string"),
-})
-
-app.post("/withdraw", async (c) => {
-  const userId = c.get("userId")
-  const parsed = withdrawSchema.safeParse(await c.req.json())
-
-  if (!parsed.success) {
-    return c.json({ error: parsed.error.issues[0].message }, 400)
+  if (result.details.amount <= 0n) {
+    return c.json({ error: "Deposit amount must be greater than zero." }, 400)
   }
 
-  const { vaultId, amount } = parsed.data
+  try {
+    const [order] = await db
+      .insert(orders)
+      .values({
+        userId,
+        vaultId,
+        type: "deposit",
+        amount: result.details.amount.toString(),
+        signature,
+        status: "funded",
+      })
+      .returning()
 
-  const [wallet] = await db
-    .select()
-    .from(wallets)
-    .where(eq(wallets.userId, userId))
-    .limit(1)
-
-  if (!wallet) {
-    return c.json({ error: "No wallet found. Call POST /api/auth first." }, 400)
+    return c.json(order, 201)
+  } catch (e: any) {
+    if (e.message?.includes("unique") || e.code === "23505") {
+      return c.json({ error: "This transaction has already been used." }, 409)
+    }
+    throw e
   }
-
-  // Verify user has enough shares
-  const [position] = await db
-    .select()
-    .from(positions)
-    .where(and(eq(positions.userId, userId), eq(positions.vaultId, vaultId)))
-    .limit(1)
-
-  if (!position || BigInt(position.shares ?? "0") < BigInt(amount)) {
-    return c.json({ error: "Insufficient shares" }, 400)
-  }
-
-  const [order] = await db
-    .insert(orders)
-    .values({ userId, vaultId, type: "withdraw", amount, status: "funded" })
-    .returning()
-
-  await inngest.send({ name: "order/funded", data: { orderId: order.id } })
-
-  return c.json(order, 201)
 })
 
 // ── List ────────────────────────────────────────────────

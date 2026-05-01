@@ -10,6 +10,23 @@ export const privy = new PrivyClient({
 
 const SOLANA_MAINNET_CAIP2 = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
 
+function requireEnv(name: string): string {
+  const value = process.env[name]
+
+  if (!value) {
+    throw new Error(`Missing required env var: ${name}`)
+  }
+
+  return value
+}
+
+export function getTreasuryWallet() {
+  return {
+    walletId: requireEnv("TREASURY_WALLET_ID"),
+    address: requireEnv("TREASURY_WALLET_ADDRESS"),
+  }
+}
+
 export async function getOrCreateUserWallet(userId: string) {
   const [existing] = await db
     .select()

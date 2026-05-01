@@ -13,6 +13,7 @@
     "@privy-io/node": "^0.16.0",
     "@pythnetwork/hermes-client": "^3.1.0",
     "@pythnetwork/pyth-solana-receiver": "^0.14.0",
+    "@solana/spl-token": "^0.4.14",
     "@solana/web3.js": "^1.98.4",
     "@symmetry-hq/sdk": "^1.0.20",
     "bs58": "^6.0.0",
