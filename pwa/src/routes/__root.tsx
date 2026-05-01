@@ -15,7 +15,7 @@ function RootLayout() {
       <div className="min-h-screen bg-background text-foreground">
         <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
           <div className="mx-auto flex h-14 max-w-4xl items-center px-4">
-            <img src="/logo-black.png" alt="Instinct" className="h-6" />
+            <Link to="/"><img src="/logo-black.png" alt="Instinct" className="h-6" /></Link>
             <nav className="ml-auto hidden items-center gap-1 md:flex">
               <Link to="/" className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground [&.active]:text-foreground [&.active]:font-medium">Discover</Link>
               <Link to="/portfolio" className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground [&.active]:text-foreground [&.active]:font-medium">Portfolio</Link>
