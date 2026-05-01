@@ -1,4 +1,6 @@
 export * from "./api"
 export { useVaults, useVault, useVaultById } from "./hooks/use-vault"
 export { VaultCard } from "./components/vault-card"
-export { DepositTab } from "./components/deposit-tab"
+export { DepositForm } from "./components/deposit-form"
+export { MobileDepositButton } from "./components/mobile-deposit-button"
+export { DesktopDepositButton } from "./components/desktop-deposit-button"

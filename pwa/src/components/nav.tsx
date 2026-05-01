@@ -19,7 +19,6 @@ export function Nav() {
           >
             <Icon size={20} strokeWidth={1.8} />
             <span className="text-[10px] font-medium">{label}</span>
-            <span className="size-1 rounded-full bg-foreground opacity-0 transition-opacity [.active_&]:opacity-100" />
           </Link>
         ))}
       </div>

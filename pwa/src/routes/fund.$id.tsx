@@ -1,10 +1,9 @@
-import { useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
-import { useVault, DepositTab } from "@/features/vaults"
+import { useVault, MobileDepositButton, DesktopDepositButton } from "@/features/vaults"
 import { usePendingOrders, OrderCard } from "@/features/orders"
-import { usePositions } from "@/features/positions"
+import { PositionCard } from "@/features/positions"
 import { useWallet } from "@/hooks/use-wallet"
-import { formatRaw, formatShares, formatPercent } from "@/lib/format"
+import { formatPercent } from "@/lib/format"
 import {
   Card,
   CardContent,
@@ -13,15 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Row } from "@/components/ui/row"
 import { Column } from "@/components/ui/column"
@@ -33,22 +24,10 @@ export const Route = createFileRoute("/fund/$id")({
 function FundDetailPage() {
   const { id } = Route.useParams()
   const { vault, loading, error } = useVault(id)
-  const { ready, authenticated, login } = useWallet()
+  const { authenticated } = useWallet()
   const { orders: pendingOrders } = usePendingOrders()
-  const { positions } = usePositions()
-  const [sheetOpen, setSheetOpen] = useState(false)
 
-  const position = positions.find((p) => p.vaultId === id)
   const myPendingOrders = pendingOrders.filter((o) => o.vaultId === id)
-
-  const handleButtonClick = () => {
-    if (!ready) return
-    if (!authenticated) {
-      login()
-      return
-    }
-    setSheetOpen(true)
-  }
 
   if (loading) {
     return (
@@ -88,15 +67,20 @@ function FundDetailPage() {
   return (
     <>
       <Column className="gap-6">
-        <Column>
-          <h1>{vault.name}</h1>
-          <p>{vault.description}</p>
-        </Column>
+        <Row className="items-start justify-between">
+          <Column>
+            <h1>{vault.name}</h1>
+            <p>{vault.description}</p>
+          </Column>
+          <DesktopDepositButton vaultId={vault.id} vaultName={vault.name} />
+        </Row>
+
+        <PositionCard vaultId={id} />
 
         {/* Holdings */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Holdings</CardTitle>
+            <CardTitle>Holdings</CardTitle>
             <CardDescription>Current vault composition.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -120,32 +104,6 @@ function FundDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Position */}
-        {authenticated && position && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Your Position</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Column className="gap-3">
-                <Row className="items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Invested</span>
-                  <span className="text-sm font-semibold">
-                    {formatRaw(position.amount)}
-                  </span>
-                </Row>
-                <Separator />
-                <Row className="items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Shares</span>
-                  <span className="text-sm font-semibold">
-                    {formatShares(position.shares)}
-                  </span>
-                </Row>
-              </Column>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Open Orders */}
         {authenticated && myPendingOrders.length > 0 && (
           <Column className="gap-3">
@@ -154,36 +112,9 @@ function FundDetailPage() {
             ))}
           </Column>
         )}
-
-        <Button
-          size="lg"
-          className="w-full text-base font-semibold"
-          onClick={handleButtonClick}
-        >
-          {!ready ? "Loading..." : !authenticated ? "Connect Wallet" : "Manage Position"}
-        </Button>
       </Column>
 
-      {/* Mobile: bottom sheet, Desktop: right side sheet */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="bottom" className="rounded-t-2xl px-6 md:hidden">
-          <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-muted-foreground/20" />
-          <SheetHeader>
-            <SheetTitle>{vault.name}</SheetTitle>
-            <SheetDescription>Deposit USDC</SheetDescription>
-          </SheetHeader>
-          <DepositTab vaultId={vault.id} onDone={() => setSheetOpen(false)} />
-        </SheetContent>
-        <SheetContent side="right" showOverlay={false} className="hidden px-4 md:flex md:flex-col">
-          <SheetHeader>
-            <SheetTitle>{vault.name}</SheetTitle>
-            <SheetDescription>Deposit USDC</SheetDescription>
-          </SheetHeader>
-          <DepositTab vaultId={vault.id} onDone={() => setSheetOpen(false)} />
-        </SheetContent>
-      </Sheet>
+      <MobileDepositButton vaultId={vault.id} vaultName={vault.name} />
     </>
   )
 }
-
-

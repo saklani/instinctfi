@@ -37,7 +37,7 @@ function DiscoverPage() {
                 <Skeleton className="h-3 w-20" />
                 <Row className="flex-wrap">
                   {Array.from({ length: 4 }).map((_, j) => (
-                    <Skeleton key={j} className="h-5 w-16 rounded-4xl" />
+                    <Skeleton key={j} className="h-5 w-16" />
                   ))}
                 </Row>
               </Column>

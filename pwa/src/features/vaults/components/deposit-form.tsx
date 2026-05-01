@@ -26,7 +26,7 @@ const depositSchema = z.object({
 
 type DepositFormData = z.infer<typeof depositSchema>
 
-export function DepositTab({ vaultId, onDone }: { vaultId: string; onDone: () => void }) {
+export function DepositForm({ vaultId, onDone }: { vaultId: string; onDone: () => void }) {
   const queryClient = useQueryClient()
   const serverWallet = useServerWallet()
   const { wallet, walletAddress, signAndSendTransaction } = useWallet()

@@ -41,6 +41,15 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src")
     }
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          privy: ["@privy-io/react-auth"],
+        }
+      }
+    }
+  },
   test: {
     projects: [{
       extends: true,
