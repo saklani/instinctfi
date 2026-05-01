@@ -31,7 +31,7 @@ export function MobileDepositButton({ vaultId, vaultName }: { vaultId: string; v
       </Button>
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="bottom" className="px-4 pb-16">
+        <SheetContent side="bottom" className="px-4 pb-16" onOpenAutoFocus={(e) => e.preventDefault()}>
           <div className="mx-auto mt-3 h-1 w-10 bg-muted-foreground/20" />
           <SheetHeader className="px-0">
             <SheetTitle>Deposit USDC in {vaultName}</SheetTitle>
