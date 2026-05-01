@@ -24,7 +24,8 @@ export function MobileDepositButton({ vaultId, vaultName }: { vaultId: string; v
     <>
       <Button
         size="lg"
-        className="fixed bottom-20 left-4 right-4 z-40 shadow-lg md:hidden"
+        className="fixed left-4 right-4 z-50 shadow-cta md:hidden"
+        style={{ bottom: "calc(4rem + env(safe-area-inset-bottom, 0px) + 1rem)" }}
         onClick={handleClick}
       >
         {!ready ? "Loading..." : !authenticated ? "Connect Wallet" : "Deposit"}
