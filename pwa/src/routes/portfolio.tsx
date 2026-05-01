@@ -112,7 +112,7 @@ function HoldingsSection() {
 }
 
 function OrdersSection() {
-  const { orders: pendingOrders, loading } = usePendingOrders()
+  const { orders, loading } = useOrders()
 
   if (loading) {
     return (
@@ -123,11 +123,11 @@ function OrdersSection() {
     )
   }
 
-  if (pendingOrders.length === 0) {
+  if (orders.length === 0) {
     return (
       <Column>
         <h2>Orders</h2>
-        <p>No open orders.</p>
+        <p>No orders yet.</p>
       </Column>
     )
   }
@@ -136,7 +136,7 @@ function OrdersSection() {
     <Column>
       <h2>Orders</h2>
       <Column className="gap-2">
-        {pendingOrders.map((order) => (
+        {orders.map((order) => (
           <OrderCard key={order.id} order={order} />
         ))}
       </Column>
@@ -145,6 +145,6 @@ function OrdersSection() {
 }
 
 // Imports used by section components
-import { OrderCard, usePendingOrders } from "@/features/orders"
+import { OrderCard, useOrders, usePendingOrders } from "@/features/orders"
 import { usePositions } from "@/features/positions"
 import { formatUsd } from "@/lib/format"

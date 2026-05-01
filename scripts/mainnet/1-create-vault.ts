@@ -41,12 +41,12 @@ async function main() {
 
   const sdk = new SymmetryCore({ connection, network: "mainnet", priorityFee: 100_000 })
 
-  console.log("\nCreating vault: Pelosi Tracker (PELO)...")
+  console.log("\nCreating vault: Anti Finance Finance Club (AFFC)...")
   const vaultResult = await sdk.createVaultTx({
     creator: wallet.publicKey.toBase58(),
     start_price: "1.0",
-    name: "Pelosi Tracker",
-    symbol: "PELO",
+    name: "Anti Finance Finance Club",
+    symbol: "AFFC",
     metadata_uri: "https://arweave.net/placeholder",
     host_platform_params: {
       host_pubkey: wallet.publicKey.toBase58(),

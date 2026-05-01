@@ -17,14 +17,11 @@ if (!vaultAddress) {
 }
 
 const WEIGHTS = [
-  { mint: "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh", weight_bps: 2200 }, // NVDAx
-  { mint: "XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN", weight_bps: 1700 }, // GOOGLx
-  { mint: "Xs3eBt7uRfJX8QUs4suhyU8p2M6DoUDrJyWBa8LLZsg", weight_bps: 1300 }, // AMZNx
-  { mint: "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp", weight_bps: 1000 }, // AAPLx
-  { mint: "Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu", weight_bps: 1000 }, // METAx
-  { mint: "XsoBhf2ufR8fTyNSjqfU71DYGaE6Z3SUGAidpzriAA4", weight_bps: 1000 }, // PLTRx
-  { mint: "XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX", weight_bps: 1000 }, // MSFTx
-  { mint: "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB", weight_bps: 800 },  // TSLAx
+  { mint: "XsvNBAYkrDRNhA7wPHQfX3ZUXZyZLdnCQDfHZ56bzpg", weight_bps: 2600 }, // HOODx
+  { mint: "Xs7ZdzSHLU9ftNJsii5fCeJhoRWSC32SQGzGQtePxNu", weight_bps: 2600 }, // COINx
+  { mint: "XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1", weight_bps: 2100 }, // CRCLx
+  { mint: "XsP7xzNPvEHS1m6qfanPUGjNmdnmsLKEoNAnHjdxxyZ", weight_bps: 2100 }, // MSTRx
+  { mint: "Xs78JED6PFZxWc2wCEPspZW9kL3Se5J7L5TChKgsidH", weight_bps: 600 },  // STRCx
 ]
 
 function loadKeypair(): Keypair {
