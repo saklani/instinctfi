@@ -2,6 +2,7 @@ import * as React from "react"
 import { createFileRoute } from "@tanstack/react-router"
 import { useVaults } from "@/features/vaults"
 import type { Vault } from "@/features/vaults/api"
+import { useJupiterPrices, type PriceMap } from "@/hooks/use-jupiter-prices"
 import {
   FeaturedCard,
   FeaturedCardSkeleton,
@@ -32,9 +33,20 @@ function DiscoverPage() {
     dir: "desc",
   })
 
+  // Collect every unique mint across all vaults for a single Jupiter call
+  const allMints = React.useMemo(() => {
+    const set = new Set<string>()
+    for (const v of vaults) {
+      for (const c of v.compositions) set.add(c.stock.address)
+    }
+    return [...set]
+  }, [vaults])
+
+  const { prices, loading: pricesLoading } = useJupiterPrices(allMints)
+
   const enriched = React.useMemo<EnrichedRow[]>(
-    () => vaults.map((v) => buildRowData(v)),
-    [vaults],
+    () => vaults.map((v) => buildRowData(v, prices)),
+    [vaults, prices],
   )
 
   const featured = React.useMemo(() => pickFeatured(enriched), [enriched])
@@ -52,6 +64,8 @@ function DiscoverPage() {
     )
   }
 
+  const isLoading = loading || pricesLoading
+
   return (
     <div className="flex flex-col gap-12 lg:gap-16">
       <Reveal>
@@ -59,7 +73,7 @@ function DiscoverPage() {
       </Reveal>
 
       <FeaturedSection
-        loading={loading}
+        loading={isLoading}
         items={featured}
       />
 
@@ -78,10 +92,10 @@ function DiscoverPage() {
         >
           <VaultTableHeader sort={sort} onSortChange={handleSort} />
           <div role="rowgroup" className="flex flex-col divide-y divide-hairline">
-            {loading && <VaultTableSkeleton />}
+            {isLoading && <VaultTableSkeleton />}
             {error && <TableError message={error} />}
-            {!loading && !error && sorted.length === 0 && <TableEmpty />}
-            {!loading && !error && sorted.length > 0 && (
+            {!isLoading && !error && sorted.length === 0 && <TableEmpty />}
+            {!isLoading && !error && sorted.length > 0 && (
               <Stagger gap={0.03} offset={6}>
                 {sorted.map((row) => (
                   <Stagger.Item key={row.vault.id}>
@@ -183,50 +197,46 @@ function Footer() {
   )
 }
 
-// ---------- mock-data helpers (Phase 8 will replace) ----------
-
-function seedFromString(input: string) {
-  let hash = 0
-  for (let i = 0; i < input.length; i++) {
-    hash = (hash * 31 + input.charCodeAt(i)) >>> 0
-  }
-  return hash
-}
-
-function buildSparkValues(seed: number, count = 28) {
-  const out: number[] = []
-  let value = 100 + (seed % 30)
-  for (let i = 0; i < count; i++) {
-    const wave = Math.sin((i + (seed % 11)) * 0.45) * 1.4
-    const noise = (((seed * (i + 3)) % 17) - 8) * 0.18
-    value += wave + noise
-    out.push(Number(value.toFixed(2)))
-  }
-  return out
-}
+// ---------- data helpers (Jupiter-powered) ----------
 
 type EnrichedRow = VaultRowData & { spark: number[] }
 
-function buildRowData(vault: Vault): EnrichedRow {
-  const seed = seedFromString(vault.id)
-  const spark = buildSparkValues(seed)
-  const nav = spark[spark.length - 1]
-  const navStart = spark[0]
-  const delta24h = ((seed % 47) - 22) / 1000
-  const delta7d = navStart > 0 ? (nav - navStart) / navStart : 0
-  const tvl = 320_000 + (seed % 96) * 28_000
-  const holders = 60 + (seed % 320)
-  const inceptionDate = new Date()
-  inceptionDate.setDate(inceptionDate.getDate() - 30 - (seed % 540))
+function computeVaultNav(vault: Vault, prices: PriceMap) {
+  let nav = 0
+  let weightedDelta = 0
+  let totalWeight = 0
+
+  for (const c of vault.compositions) {
+    const p = prices[c.stock.address]
+    if (!p) continue
+    const w = c.weightBps / 10_000
+    nav += w * p.usdPrice
+    weightedDelta += w * p.priceChange24h
+    totalWeight += w
+  }
+
+  if (totalWeight > 0 && totalWeight < 0.99) {
+    nav /= totalWeight
+    weightedDelta /= totalWeight
+  }
+
+  return { nav, delta24h: weightedDelta, hasPrices: totalWeight > 0 }
+}
+
+function buildRowData(vault: Vault, prices: PriceMap): EnrichedRow {
+  const { nav, delta24h } = computeVaultNav(vault, prices)
+
+  // Build a flat spark array from current nav (placeholder until OHLCV lands)
+  const spark = Array.from({ length: 28 }, () => nav || 100)
 
   return {
     vault,
     nav,
     delta24h,
-    delta7d,
-    tvl,
-    holders,
-    inception: inceptionDate.toISOString().slice(0, 10),
+    delta7d: 0,
+    tvl: 0,
+    holders: 0,
+    inception: "",
     spark,
   }
 }

@@ -2,7 +2,6 @@ import * as React from "react"
 import { Link, createFileRoute } from "@tanstack/react-router"
 import {
   Bookmark,
-  Camera,
   ChevronRight,
   MessageCircle,
   MoreHorizontal,
@@ -22,6 +21,7 @@ import {
 import type { Vault } from "@/features/vaults/api"
 import { usePendingOrders, OrderCard } from "@/features/orders"
 import { useWallet } from "@/hooks/use-wallet"
+import { useJupiterPrices } from "@/hooks/use-jupiter-prices"
 import { cn } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
@@ -29,8 +29,6 @@ import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Ticker as TickerPill, Count, Verified } from "@/components/ui/pill"
 import { Delta } from "@/components/ui/delta"
-import { MonoNumber } from "@/components/ui/mono-number"
-import { TabPill, TabPillItem } from "@/components/ui/tab-pill"
 import {
   Sheet,
   SheetContent,
@@ -39,93 +37,86 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet"
 import { Reveal } from "@/components/motion/reveal"
-import { Stagger } from "@/components/motion/stagger"
 import { Ticker } from "@/components/motion/ticker"
-import {
-  NavChart,
-  NavChartSkeleton,
-  type ChartPoint,
-} from "@/components/chart/nav-chart"
 import { StickyCta } from "@/components/sticky-cta"
 
 export const Route = createFileRoute("/fund/$id")({
   component: FundDetailPage,
 })
 
-const PERIODS = [
-  { id: "1W", days: 7 },
-  { id: "1M", days: 30 },
-  { id: "3M", days: 90 },
-  { id: "1Y", days: 365 },
-  { id: "ALL", days: 730 },
-] as const
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                           */
+/* ------------------------------------------------------------------ */
 
-type PeriodId = (typeof PERIODS)[number]["id"]
+function useVaultPrices(vault: Vault | null) {
+  const mints = React.useMemo(
+    () => vault?.compositions.map((c) => c.stock.address) ?? [],
+    [vault],
+  )
+  const { prices, loading, error } = useJupiterPrices(mints)
 
-function seedFromString(input: string) {
-  let hash = 0
-  for (let i = 0; i < input.length; i++) {
-    hash = (hash * 31 + input.charCodeAt(i)) >>> 0
-  }
-  return hash
+  return React.useMemo(() => {
+    if (!vault || !Object.keys(prices).length) {
+      return { navValue: null, navDelta: null, prices, loading, error }
+    }
+
+    let nav = 0
+    let weightedDelta = 0
+    let totalWeight = 0
+
+    for (const c of vault.compositions) {
+      const p = prices[c.stock.address]
+      if (!p) continue
+      const w = c.weightBps / 10_000
+      nav += w * p.usdPrice
+      weightedDelta += w * p.priceChange24h
+      totalWeight += w
+    }
+
+    // Re-normalise when some mints are missing from Jupiter
+    if (totalWeight > 0 && totalWeight < 0.99) {
+      nav /= totalWeight
+      weightedDelta /= totalWeight
+    }
+
+    return {
+      navValue: totalWeight > 0 ? nav : null,
+      navDelta: totalWeight > 0 ? weightedDelta : null,
+      prices,
+      loading,
+      error,
+    }
+  }, [vault, prices, loading, error])
 }
 
-function generateMockNavData(periodDays: number, seed: number): ChartPoint[] {
-  const points: ChartPoint[] = []
-  const today = new Date()
-  const stepDays = periodDays > 365 ? 7 : periodDays > 90 ? 2 : 1
-  const baseline = 100 + (seed % 50)
-  let drift = 0
-  for (let i = periodDays; i >= 0; i -= stepDays) {
-    const d = new Date(today)
-    d.setDate(d.getDate() - i)
-    const phase = ((periodDays - i) / Math.max(stepDays, 1)) * 0.18
-    drift +=
-      Math.sin(phase + (seed % 7)) * 0.6 +
-      Math.cos(phase * 1.7 + (seed % 11)) * 0.35
-    const noise = (((seed * (i + 1)) % 13) - 6) * 0.1
-    const value = baseline + drift * 1.4 + noise + (periodDays - i) * 0.02
-    points.push({
-      date: d.toISOString().slice(0, 10),
-      value: Number(Math.max(20, value).toFixed(2)),
-    })
-  }
-  return points
-}
-
-function deriveVaultStats(vault: Vault) {
-  const seed = seedFromString(vault.id)
-  return {
-    tvl: 1_250_000 + (seed % 80) * 25_000,
-    volume24h: 18_000 + (seed % 60) * 800,
-    holders: 84 + (seed % 240),
-    performanceFeeBps: 1000,
-    managementFeeBps: 75,
-    inception: "2024-08-12",
-  }
-}
+/* ------------------------------------------------------------------ */
+/*  Page                                                              */
+/* ------------------------------------------------------------------ */
 
 function FundDetailPage() {
   const { id } = Route.useParams()
   const { vault, loading, error } = useVault(id)
   const { authenticated, login, ready } = useWallet()
   const { orders: pendingOrders } = usePendingOrders()
-  const [period, setPeriod] = React.useState<PeriodId>("3M")
   const [sheetOpen, setSheetOpen] = React.useState(false)
+
+  const { navValue, navDelta, prices, loading: pricesLoading } = useVaultPrices(vault)
 
   const myPendingOrders = pendingOrders.filter((o) => o.vaultId === id)
 
-  const seed = React.useMemo(() => (vault ? seedFromString(vault.id) : 0), [vault])
-  const periodDays =
-    PERIODS.find((p) => p.id === period)?.days ?? 90
-  const chartData = React.useMemo(
-    () => (vault ? generateMockNavData(periodDays, seed) : []),
-    [vault, periodDays, seed],
-  )
+  const compositionItems = React.useMemo(() => {
+    if (!vault) return []
+    return vault.compositions.map((c) => ({
+      id: c.stock.id,
+      ticker: c.stock.ticker,
+      name: c.stock.name,
+      logoUrl: c.stock.imageUrl,
+      weightBps: c.weightBps,
+      delta24h: prices[c.stock.address]?.priceChange24h ?? null,
+    }))
+  }, [vault, prices])
 
-  if (loading) {
-    return <DetailSkeleton />
-  }
+  if (loading) return <DetailSkeleton />
 
   if (error || !vault) {
     return (
@@ -139,19 +130,6 @@ function FundDetailPage() {
       </div>
     )
   }
-
-  const stats = deriveVaultStats(vault)
-  const navValue = chartData[chartData.length - 1]?.value ?? 100
-  const navStart = chartData[0]?.value ?? navValue
-  const navDelta = navStart > 0 ? (navValue - navStart) / navStart : 0
-  const compositionItems = vault.compositions.map((c) => ({
-    id: c.stock.id,
-    ticker: c.stock.ticker,
-    name: c.stock.name,
-    logoUrl: c.stock.imageUrl,
-    weightBps: c.weightBps,
-    delta24h: ((seedFromString(c.stock.id) % 41) - 20) / 1000,
-  }))
 
   const handleStickyCta = () => {
     if (!ready) return
@@ -172,45 +150,12 @@ function FundDetailPage() {
           <div className="flex min-w-0 flex-col gap-8">
             <AssetHeader vault={vault} />
             <hr className="border-hairline" />
-            <NavPriceBlock value={navValue} delta={navDelta} period={period} />
-            <NavChart
-              data={chartData}
-              periodKey={period}
-              periodSelector={
-                <TabPill
-                  value={period}
-                  onValueChange={(v) => setPeriod(v as PeriodId)}
-                  layoutId="time-pill"
-                  className="bg-canvas"
-                >
-                  {PERIODS.map((p) => (
-                    <TabPillItem key={p.id} value={p.id}>
-                      {p.id}
-                    </TabPillItem>
-                  ))}
-                </TabPill>
-              }
-              toolbar={
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="icon"
-                    size="icon-sm"
-                    aria-label="Save chart snapshot"
-                  >
-                    <Camera />
-                  </Button>
-                  <Button
-                    variant="icon"
-                    size="icon-sm"
-                    aria-label="Share chart"
-                  >
-                    <Share2 />
-                  </Button>
-                </div>
-              }
-            />
 
-            <StatsSection stats={stats} vault={vault} />
+            <NavPriceBlock
+              value={navValue}
+              delta={navDelta}
+              loading={pricesLoading}
+            />
 
             <CompositionSection items={compositionItems} />
 
@@ -223,10 +168,9 @@ function FundDetailPage() {
               </section>
             )}
 
-            {/* Mobile-only About + News (rendered in right column on desktop) */}
+            {/* Mobile-only About */}
             <div className="flex flex-col gap-6 lg:hidden">
               <AboutCard description={vault.description} />
-              <NewsList vault={vault} />
             </div>
           </div>
 
@@ -238,7 +182,6 @@ function FundDetailPage() {
               </Card>
             </div>
             <AboutCard description={vault.description} />
-            <NewsList vault={vault} />
           </aside>
         </div>
       </Reveal>
@@ -272,6 +215,10 @@ function FundDetailPage() {
     </>
   )
 }
+
+/* ------------------------------------------------------------------ */
+/*  Sub-components                                                    */
+/* ------------------------------------------------------------------ */
 
 function Breadcrumb({ name }: { name: string }) {
   return (
@@ -328,7 +275,6 @@ function VaultLogo({ vault }: { vault: Vault }) {
       />
     )
   }
-  // Stack first 3 holding logos in a circular cluster as fallback.
   const stocks = vault.compositions?.slice(0, 3) ?? []
   return (
     <div
@@ -396,11 +342,11 @@ function tickerSymbolFor(vault: Vault): string | null {
 function NavPriceBlock({
   value,
   delta,
-  period,
+  loading,
 }: {
-  value: number
-  delta: number
-  period: PeriodId
+  value: number | null
+  delta: number | null
+  loading: boolean
 }) {
   const today = new Date().toLocaleDateString("en-US", {
     month: "short",
@@ -411,97 +357,22 @@ function NavPriceBlock({
     <div className="flex flex-col gap-2">
       <span className="text-body-sm text-ink-muted">NAV per share</span>
       <div className="flex flex-wrap items-baseline gap-3">
-        <Ticker
-          value={value}
-          decimals={2}
-          prefix="$"
-          className="text-mono-xl font-medium text-ink"
-        />
-        <Delta value={delta} size="lg" suffix={period} />
+        {loading || value == null ? (
+          <Skeleton className="h-10 w-32 rounded-tag" />
+        ) : (
+          <Ticker
+            value={value}
+            decimals={2}
+            prefix="$"
+            className="text-mono-xl font-medium text-ink"
+          />
+        )}
+        <Delta value={delta} size="lg" suffix="24h" />
       </div>
       <span className="font-mono text-mono-sm tabular text-ink-faint">
         {today}
       </span>
     </div>
-  )
-}
-
-const STAT_LABEL_CLASS = "text-body-sm uppercase tracking-[0.06em] text-ink-faint"
-const STAT_VALUE_CLASS = "font-mono text-mono-md tabular text-ink"
-
-function StatsSection({
-  stats,
-  vault,
-}: {
-  stats: ReturnType<typeof deriveVaultStats>
-  vault: Vault
-}) {
-  const items: Array<{ label: string; node: React.ReactNode }> = [
-    {
-      label: "TVL",
-      node: (
-        <MonoNumber value={stats.tvl} format="usd" compact size="md" />
-      ),
-    },
-    {
-      label: "24h Volume",
-      node: (
-        <MonoNumber value={stats.volume24h} format="usd" compact size="md" />
-      ),
-    },
-    {
-      label: "Holders",
-      node: <MonoNumber value={stats.holders} format="count" size="md" />,
-    },
-    {
-      label: "Performance Fee",
-      node: (
-        <MonoNumber
-          value={stats.performanceFeeBps / 100}
-          format="pct"
-          precision={1}
-          size="md"
-        />
-      ),
-    },
-    {
-      label: "Mgmt + Deposit Fee",
-      node: (
-        <MonoNumber
-          value={vault.depositFeeBps / 100}
-          format="pct"
-          precision={2}
-          size="md"
-        />
-      ),
-    },
-    {
-      label: "Inception",
-      node: (
-        <span className={STAT_VALUE_CLASS}>
-          {new Date(stats.inception).toLocaleDateString("en-US", {
-            month: "short",
-            year: "numeric",
-          })}
-        </span>
-      ),
-    },
-  ]
-
-  return (
-    <section className="flex flex-col gap-4">
-      <h2 className="text-heading text-ink">Stats</h2>
-      <Stagger className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
-        {items.map((s) => (
-          <Stagger.Item key={s.label}>
-            <div className="flex flex-col gap-1.5">
-              <span className={STAT_LABEL_CLASS}>{s.label}</span>
-              <span className={STAT_VALUE_CLASS}>{s.node}</span>
-            </div>
-          </Stagger.Item>
-        ))}
-      </Stagger>
-    </section>
   )
 }
 
@@ -564,52 +435,9 @@ function AboutCard({ description }: { description: string | null }) {
   )
 }
 
-function NewsList({ vault }: { vault: Vault }) {
-  const items = React.useMemo(
-    () => mockNewsFor(vault),
-    [vault],
-  )
-  return (
-    <section className="flex flex-col gap-3">
-      <h2 className="text-heading text-ink">News</h2>
-      <ul className="flex flex-col gap-3">
-        {items.map((n) => (
-          <li key={n.id}>
-            <Card size="sm" interactive className="flex-row gap-4">
-              <div
-                aria-hidden
-                className="size-14 shrink-0 rounded-tag bg-linear-to-br from-accent/15 to-hairline"
-              />
-              <div className="flex min-w-0 flex-col justify-center gap-1">
-                <span className="text-body-sm uppercase tracking-[0.06em] text-ink-faint">
-                  {n.source}
-                </span>
-                <span className="line-clamp-2 text-body font-medium text-ink">
-                  {n.headline}
-                </span>
-              </div>
-            </Card>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
-}
-
-function mockNewsFor(vault: Vault) {
-  const seed = seedFromString(vault.id)
-  const headlines = [
-    `${vault.name} rebalance prints +${((seed % 50) / 10).toFixed(1)}% drift`,
-    `Why investors are watching tokenized ${vault.name.toLowerCase()} baskets`,
-    `Quarterly review: fees, flows, and the case for ${vault.name}`,
-  ]
-  const sources = ["The Block", "Solana Compass", "Coindesk"]
-  return headlines.map((headline, i) => ({
-    id: `${vault.id}-${i}`,
-    headline,
-    source: sources[i % sources.length],
-  }))
-}
+/* ------------------------------------------------------------------ */
+/*  Skeleton                                                          */
+/* ------------------------------------------------------------------ */
 
 function DetailSkeleton() {
   return (
@@ -624,14 +452,9 @@ function DetailSkeleton() {
               <Skeleton className="h-6 w-1/3 rounded-tag" />
             </div>
           </div>
-          <NavChartSkeleton height={320} />
-          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex flex-col gap-2">
-                <Skeleton className="h-3 w-16 rounded-tag" />
-                <Skeleton className="h-5 w-20 rounded-tag" />
-              </div>
-            ))}
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-3 w-24 rounded-tag" />
+            <Skeleton className="h-10 w-40 rounded-tag" />
           </div>
           <CompositionListSkeleton rows={5} />
         </div>
