@@ -11,23 +11,14 @@ export type VaultRowData = {
   vault: Vault
   nav: number
   delta24h: number
-  delta7d: number
-  tvl: number
-  holders: number
-  inception: string
 }
 
 const ROW_GRID_CLASS = cn(
   "grid items-center gap-4",
-  // Mobile: name | NAV | 24h
   "grid-cols-[minmax(0,1fr)_auto_auto]",
-  // Tablet+: introduce TVL
-  "md:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(96px,1fr))]",
-  // Desktop: full row — name | NAV | 24h | 7d | TVL | Holders | Inception
-  "lg:grid-cols-[minmax(0,1.6fr)_repeat(6,minmax(96px,1fr))]",
 )
 
-export type VaultSortKey = "name" | "nav" | "delta24h" | "delta7d" | "tvl" | "holders" | "inception"
+export type VaultSortKey = "name" | "nav" | "delta24h"
 
 export type VaultSortState = {
   key: VaultSortKey
@@ -43,22 +34,11 @@ const COLUMNS: Array<{
   key: VaultSortKey
   label: string
   align: "left" | "right"
-  show: "always" | "md" | "lg"
 }> = [
-  { key: "name", label: "Vault", align: "left", show: "always" },
-  { key: "nav", label: "NAV", align: "right", show: "always" },
-  { key: "delta24h", label: "24h", align: "right", show: "always" },
-  { key: "delta7d", label: "7d", align: "right", show: "lg" },
-  { key: "tvl", label: "TVL", align: "right", show: "md" },
-  { key: "holders", label: "Holders", align: "right", show: "lg" },
-  { key: "inception", label: "Inception", align: "right", show: "lg" },
+  { key: "name", label: "Vault", align: "left" },
+  { key: "nav", label: "NAV", align: "right" },
+  { key: "delta24h", label: "24h", align: "right" },
 ]
-
-function showClass(show: "always" | "md" | "lg") {
-  if (show === "always") return ""
-  if (show === "md") return "hidden md:flex"
-  return "hidden lg:flex"
-}
 
 export function VaultTableHeader({ sort, onSortChange }: VaultTableHeaderProps) {
   return (
@@ -85,7 +65,6 @@ export function VaultTableHeader({ sort, onSortChange }: VaultTableHeaderProps) 
             onClick={() => onSortChange?.(col.key)}
             className={cn(
               "group/col flex items-center gap-1 rounded-tag px-1.5 py-1 outline-none",
-              showClass(col.show),
               col.align === "right" && "justify-end",
               interactive
                 ? "cursor-pointer hover:text-ink focus-visible:text-ink focus-visible:ring-[3px] focus-visible:ring-accent/30"
@@ -113,7 +92,7 @@ export function VaultTableHeader({ sort, onSortChange }: VaultTableHeaderProps) 
 }
 
 export function VaultRow({ row }: { row: VaultRowData }) {
-  const { vault, nav, delta24h, delta7d, tvl, holders, inception } = row
+  const { vault, nav, delta24h } = row
   return (
     <Link
       to="/fund/$id"
@@ -144,36 +123,6 @@ export function VaultRow({ row }: { row: VaultRowData }) {
 
       <div className="flex justify-end">
         <Delta value={delta24h} hideArrow size="md" />
-      </div>
-
-      <div className={cn("hidden justify-end lg:flex")}>
-        <Delta value={delta7d} hideArrow size="md" />
-      </div>
-
-      <div className={cn("hidden justify-end md:flex")}>
-        <MonoNumber
-          value={tvl}
-          format="usd"
-          compact
-          precision={1}
-          size="md"
-          className="text-ink"
-        />
-      </div>
-
-      <div className={cn("hidden justify-end lg:flex")}>
-        <MonoNumber
-          value={holders}
-          format="count"
-          size="md"
-          className="text-ink"
-        />
-      </div>
-
-      <div className={cn("hidden justify-end lg:flex")}>
-        <span className="font-mono text-mono-sm tabular text-ink-muted">
-          {formatInception(inception)}
-        </span>
       </div>
     </Link>
   )
@@ -237,18 +186,6 @@ export function VaultRowSkeleton() {
       <div className="flex justify-end">
         <Skeleton className="h-4 w-12 rounded-tag" />
       </div>
-      <div className="hidden justify-end lg:flex">
-        <Skeleton className="h-4 w-12 rounded-tag" />
-      </div>
-      <div className="hidden justify-end md:flex">
-        <Skeleton className="h-4 w-16 rounded-tag" />
-      </div>
-      <div className="hidden justify-end lg:flex">
-        <Skeleton className="h-4 w-12 rounded-tag" />
-      </div>
-      <div className="hidden justify-end lg:flex">
-        <Skeleton className="h-4 w-16 rounded-tag" />
-      </div>
     </div>
   )
 }
@@ -264,10 +201,4 @@ export function VaultTableSkeleton({ rows = 5 }: { rows?: number }) {
       ))}
     </div>
   )
-}
-
-function formatInception(date: string) {
-  const d = new Date(date)
-  if (Number.isNaN(d.getTime())) return date
-  return d.toLocaleDateString("en-US", { month: "short", year: "numeric" })
 }

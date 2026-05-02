@@ -12,8 +12,6 @@ export type HoldingRowData = {
   vault: Vault | null
   /** Symbol shown in the ticker pill (e.g. "MAG7"). */
   ticker?: string | null
-  /** Share balance (UI units, not base units). */
-  units: number
   /** Current value in USD. */
   value: number
   /** 24h delta as fraction (0.0124 = +1.24%). */
@@ -24,12 +22,12 @@ const ROW_GRID_CLASS = cn(
   "grid items-center gap-4",
   // Mobile: name | value | manage
   "grid-cols-[minmax(0,1fr)_auto_auto]",
-  // Tablet+: name | units | value | 24h | manage
-  "md:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(96px,1fr))_auto]",
+  // Tablet+: name | value | 24h | manage
+  "md:grid-cols-[minmax(0,1.4fr)_repeat(2,minmax(96px,1fr))_auto]",
 )
 
 export function HoldingRow({ row }: { row: HoldingRowData }) {
-  const { vault, vaultId, ticker, units, value, delta24h } = row
+  const { vault, vaultId, ticker, value, delta24h } = row
   const name = vault?.name ?? "Unknown vault"
 
   return (
@@ -58,16 +56,6 @@ export function HoldingRow({ row }: { row: HoldingRowData }) {
           {ticker && <TickerPill symbol={ticker} className="hidden sm:inline-flex" />}
         </span>
       </Link>
-
-      <div className="hidden justify-end md:flex">
-        <MonoNumber
-          value={units}
-          format="raw"
-          precision={2}
-          size="md"
-          className="text-ink-muted"
-        />
-      </div>
 
       <div className="flex justify-end">
         <MonoNumber
@@ -111,9 +99,6 @@ export function HoldingTableHeader({ className }: HoldingTableHeaderProps) {
     >
       <span role="columnheader" className="flex">
         Vault
-      </span>
-      <span role="columnheader" className="hidden justify-end md:flex">
-        Units
       </span>
       <span role="columnheader" className="flex justify-end">
         Value

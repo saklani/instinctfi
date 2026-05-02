@@ -3,6 +3,8 @@ import { Link } from "@tanstack/react-router"
 import { motion, useReducedMotion } from "framer-motion"
 
 import { InstallButton } from "@/components/install-button"
+import { Button } from "@/components/ui/button"
+import { useWallet } from "@/hooks/use-wallet"
 import { cn } from "@/lib/utils"
 
 const desktopLinks = [
@@ -30,6 +32,7 @@ type TopNavProps = {
 }
 
 export function TopNav({ forceScrolled, rightSlot }: TopNavProps) {
+  const { authenticated, login, ready } = useWallet()
   const [liveScrolled, setLiveScrolled] = React.useState(
     () => typeof window !== "undefined" && window.scrollY > 32
   )
@@ -70,9 +73,18 @@ export function TopNav({ forceScrolled, rightSlot }: TopNavProps) {
           </nav>
         </div>
 
-        {/* Right: install button */}
+        {/* Right: install + sign in */}
         <div className="ml-auto flex items-center gap-2">
-          {rightSlot ?? <InstallButton />}
+          {rightSlot ?? (
+            <>
+              <InstallButton />
+              {ready && !authenticated && (
+                <Button variant="primary" size="sm" onClick={login}>
+                  Sign in
+                </Button>
+              )}
+            </>
+          )}
         </div>
 
         {/* Hairline border that fades in past 32px scroll */}

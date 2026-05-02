@@ -13,25 +13,18 @@ import type { Vault } from "../api"
 
 export type FeaturedKind = "trending" | "top-24h" | "newest"
 
-const KIND_LABEL: Record<FeaturedKind, string> = {
-  trending: "Trending",
-  "top-24h": "Top performer · 24h",
-  newest: "Newest",
-}
-
 type FeaturedCardProps = {
   vault: Vault
-  kind: FeaturedKind
   nav: number
   delta: number
   /** 16+ values, ascending in time. Cobalt stroke renders proportional. */
   spark: number[]
+  kind?: FeaturedKind
   className?: string
 }
 
 export function FeaturedCard({
   vault,
-  kind,
   nav,
   delta,
   spark,
@@ -51,8 +44,6 @@ export function FeaturedCard({
         interactive
         className="relative h-full justify-between gap-5 p-6"
       >
-        <FeaturedHeader kind={kind} />
-
         <div className="flex flex-col gap-3">
           <h3 className="line-clamp-2 text-display-md font-semibold leading-[1.05] tracking-tight text-ink">
             {vault.name}
@@ -105,23 +96,6 @@ function HoldingStack({ vault, count }: { vault: Vault; count: number }) {
       <span className="text-body-sm text-ink-faint">
         {count} holdings
       </span>
-    </div>
-  )
-}
-
-function FeaturedHeader({ kind }: { kind: FeaturedKind }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span
-        aria-hidden
-        className={cn(
-          "size-1.5 rounded-full",
-          kind === "trending" && "bg-accent",
-          kind === "top-24h" && "bg-positive",
-          kind === "newest" && "bg-ink",
-        )}
-      />
-      <span className="text-pill text-ink-muted">{KIND_LABEL[kind]}</span>
     </div>
   )
 }
@@ -197,10 +171,6 @@ export function FeaturedCardSkeleton({ className }: { className?: string }) {
       data-slot="featured-card-skeleton"
       className={cn("relative h-full justify-between gap-5 p-6", className)}
     >
-      <Row className="items-center gap-2">
-        <Skeleton className="size-1.5 rounded-full" />
-        <Skeleton className="h-3 w-20 rounded-tag" />
-      </Row>
       <div className="flex flex-col gap-3">
         <Skeleton className="h-7 w-3/4 rounded-tag" />
         <Skeleton className="h-5 w-1/2 rounded-tag" />

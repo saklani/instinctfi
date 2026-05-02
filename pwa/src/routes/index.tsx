@@ -3,10 +3,10 @@ import { createFileRoute } from "@tanstack/react-router"
 import { useVaults } from "@/features/vaults"
 import type { Vault } from "@/features/vaults/api"
 import { useJupiterPrices, type PriceMap } from "@/hooks/use-jupiter-prices"
+import { getNavSeries } from "@/lib/nav-data"
 import {
   FeaturedCard,
   FeaturedCardSkeleton,
-  type FeaturedKind,
 } from "@/features/vaults/components/featured-card"
 import {
   VaultRow,
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/")({
 function DiscoverPage() {
   const { vaults, loading, error } = useVaults()
   const [sort, setSort] = React.useState<VaultSortState>({
-    key: "tvl",
+    key: "nav",
     dir: "desc",
   })
 
@@ -49,8 +49,6 @@ function DiscoverPage() {
     [vaults, prices],
   )
 
-  const featured = React.useMemo(() => pickFeatured(enriched), [enriched])
-
   const sorted = React.useMemo(
     () => sortRows(enriched, sort),
     [enriched, sort],
@@ -60,7 +58,7 @@ function DiscoverPage() {
     setSort((prev) =>
       prev.key === key
         ? { key, dir: prev.dir === "asc" ? "desc" : "asc" }
-        : { key, dir: defaultDirFor(key) },
+        : { key, dir: key === "name" ? "asc" : "desc" },
     )
   }
 
@@ -72,10 +70,7 @@ function DiscoverPage() {
         <DiscoverHero />
       </Reveal>
 
-      <FeaturedSection
-        loading={isLoading}
-        items={featured}
-      />
+      <FeaturedSection loading={isLoading} rows={enriched} />
 
       <section id="vaults" className="flex flex-col gap-4">
         <header className="flex items-baseline justify-between px-4">
@@ -115,10 +110,10 @@ function DiscoverPage() {
 
 function FeaturedSection({
   loading,
-  items,
+  rows,
 }: {
   loading: boolean
-  items: Array<{ kind: FeaturedKind; row: EnrichedRow }>
+  rows: EnrichedRow[]
 }) {
   if (loading) {
     return (
@@ -130,7 +125,7 @@ function FeaturedSection({
     )
   }
 
-  if (!items.length) return null
+  if (!rows.length) return null
 
   return (
     <Stagger
@@ -138,10 +133,9 @@ function FeaturedSection({
       childDuration={durations.reveal}
       className="grid grid-cols-1 gap-4 px-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6"
     >
-      {items.map(({ kind, row }) => (
-        <Stagger.Item key={`${kind}-${row.vault.id}`} className="h-full">
+      {rows.map((row) => (
+        <Stagger.Item key={row.vault.id} className="h-full">
           <FeaturedCard
-            kind={kind}
             vault={row.vault}
             nav={row.nav}
             delta={row.delta24h}
@@ -197,7 +191,7 @@ function Footer() {
   )
 }
 
-// ---------- data helpers (Jupiter-powered) ----------
+// ---------- data helpers ----------
 
 type EnrichedRow = VaultRowData & { spark: number[] }
 
@@ -220,60 +214,17 @@ function computeVaultNav(vault: Vault, prices: PriceMap) {
     weightedDelta /= totalWeight
   }
 
-  return { nav, delta24h: weightedDelta, hasPrices: totalWeight > 0 }
+  return { nav, delta24h: weightedDelta }
 }
 
 function buildRowData(vault: Vault, prices: PriceMap): EnrichedRow {
   const { nav, delta24h } = computeVaultNav(vault, prices)
 
-  // Build a flat spark array from current nav (placeholder until OHLCV lands)
-  const spark = Array.from({ length: 28 }, () => nav || 100)
+  // Real sparkline from Pyth historical data (last 30 days)
+  const series = getNavSeries(vault.name, 30)
+  const spark = series.length > 0 ? series.map((p) => p.value) : [nav || 100]
 
-  return {
-    vault,
-    nav,
-    delta24h,
-    delta7d: 0,
-    tvl: 0,
-    holders: 0,
-    inception: "",
-    spark,
-  }
-}
-
-function pickFeatured(rows: EnrichedRow[]) {
-  if (!rows.length) return []
-  const trending = rows[0]
-  const topByDelta = [...rows].sort((a, b) => b.delta24h - a.delta24h)[0]
-  const newest = [...rows].sort(
-    (a, b) =>
-      new Date(b.inception).getTime() - new Date(a.inception).getTime(),
-  )[0]
-
-  const used = new Set<string>()
-  const result: Array<{ kind: FeaturedKind; row: EnrichedRow }> = []
-
-  function pushIfNew(kind: FeaturedKind, row?: EnrichedRow) {
-    if (!row) return
-    if (used.has(row.vault.id)) {
-      const fallback = rows.find((r) => !used.has(r.vault.id))
-      if (!fallback) return
-      used.add(fallback.vault.id)
-      result.push({ kind, row: fallback })
-      return
-    }
-    used.add(row.vault.id)
-    result.push({ kind, row })
-  }
-
-  pushIfNew("trending", trending)
-  pushIfNew("top-24h", topByDelta)
-  pushIfNew("newest", newest)
-  return result
-}
-
-function defaultDirFor(key: VaultSortKey): "asc" | "desc" {
-  return key === "name" || key === "inception" ? "asc" : "desc"
+  return { vault, nav, delta24h, spark }
 }
 
 function sortRows(rows: EnrichedRow[], sort: VaultSortState): EnrichedRow[] {
@@ -287,17 +238,6 @@ function sortRows(rows: EnrichedRow[], sort: VaultSortState): EnrichedRow[] {
         return (a.nav - b.nav) * factor
       case "delta24h":
         return (a.delta24h - b.delta24h) * factor
-      case "delta7d":
-        return (a.delta7d - b.delta7d) * factor
-      case "tvl":
-        return (a.tvl - b.tvl) * factor
-      case "holders":
-        return (a.holders - b.holders) * factor
-      case "inception":
-        return (
-          (new Date(a.inception).getTime() - new Date(b.inception).getTime()) *
-          factor
-        )
       default:
         return 0
     }

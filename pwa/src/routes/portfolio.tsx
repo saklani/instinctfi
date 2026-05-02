@@ -24,26 +24,12 @@ import { TabPill, TabPillItem } from "@/components/ui/tab-pill"
 import { Reveal } from "@/components/motion/reveal"
 import { Stagger } from "@/components/motion/stagger"
 import { Ticker } from "@/components/motion/ticker"
-import {
-  NavChart,
-  NavChartSkeleton,
-  type ChartPoint,
-} from "@/components/chart/nav-chart"
 import { PortfolioEmpty } from "@/components/portfolio-empty"
 
 export const Route = createFileRoute("/portfolio")({
   component: PortfolioPage,
 })
 
-const PERIODS = [
-  { id: "1W", days: 7 },
-  { id: "1M", days: 30 },
-  { id: "3M", days: 90 },
-  { id: "1Y", days: 365 },
-  { id: "ALL", days: 730 },
-] as const
-
-type PeriodId = (typeof PERIODS)[number]["id"]
 type DeltaWindow = "24h" | "all"
 type PortfolioTab = "holdings" | "activity"
 
@@ -53,7 +39,6 @@ function PortfolioPage() {
   const { orders, loading: ordersLoading } = useOrders()
   const { vaults, loading: vaultsLoading } = useVaults()
 
-  const [period, setPeriod] = React.useState<PeriodId>("1Y")
   const [deltaWindow, setDeltaWindow] = React.useState<DeltaWindow>("24h")
   const [tab, setTab] = React.useState<PortfolioTab>("holdings")
 
@@ -68,10 +53,6 @@ function PortfolioPage() {
   const loading = positionsLoading || vaultsLoading
   const holdings = buildHoldings(positions, vaults)
   const totals = computeTotals(holdings)
-  const chartData = buildPortfolioSeries(
-    holdings,
-    PERIODS.find((p) => p.id === period)?.days ?? 365,
-  )
   const sortedActivity: ActivityRowData[] = orders
     .slice()
     .sort(
@@ -102,13 +83,6 @@ function PortfolioPage() {
         deltaAllTime={totals.deltaAllTime}
         deltaWindow={deltaWindow}
         onDeltaWindowChange={setDeltaWindow}
-        loading={loading}
-      />
-
-      <PortfolioChart
-        data={chartData}
-        period={period}
-        onPeriodChange={setPeriod}
         loading={loading}
       />
 
@@ -205,55 +179,6 @@ function PortfolioHero({
         <TabPillItem value="all">All time</TabPillItem>
       </TabPill>
     </section>
-  )
-}
-
-// ---------- CHART ----------
-
-type PortfolioChartProps = {
-  data: ChartPoint[]
-  period: PeriodId
-  onPeriodChange: (next: PeriodId) => void
-  loading: boolean
-}
-
-function PortfolioChart({
-  data,
-  period,
-  onPeriodChange,
-  loading,
-}: PortfolioChartProps) {
-  if (loading) {
-    return (
-      <div className="px-4">
-        <NavChartSkeleton height={280} className="md:[&>div:first-child]:h-[320px]" />
-      </div>
-    )
-  }
-  if (data.length === 0) {
-    return null
-  }
-  return (
-    <div className="px-4">
-      <NavChart
-        data={data}
-        periodKey={period}
-        periodSelector={
-          <TabPill
-            value={period}
-            onValueChange={(v) => onPeriodChange(v as PeriodId)}
-            layoutId="portfolio-chart-period"
-            className="bg-canvas"
-          >
-            {PERIODS.map((p) => (
-              <TabPillItem key={p.id} value={p.id}>
-                {p.id}
-              </TabPillItem>
-            ))}
-          </TabPill>
-        }
-      />
-    </div>
   )
 }
 
@@ -366,9 +291,6 @@ function PortfolioSkeleton() {
         <Skeleton className="h-8 w-48 rounded-pill" />
       </div>
       <div className="px-4">
-        <NavChartSkeleton height={280} />
-      </div>
-      <div className="px-4">
         <RowsSkeleton />
       </div>
     </div>
@@ -421,7 +343,6 @@ function deriveDelta24h(seed: number) {
 }
 
 function deriveAllTimeGrowth(seed: number) {
-  // Inception-to-now drift, range roughly -10% to +30%.
   return ((seed % 41) - 10) / 100
 }
 
@@ -436,14 +357,10 @@ function buildHoldings(
       const invested = Number(p.amount) / 1e6
       const growth = deriveAllTimeGrowth(seed)
       const value = invested * (1 + growth)
-      // Treat shares as already in UI units (divide by 1e6 if base units).
-      const sharesNum = Number(p.shares)
-      const units = sharesNum > 1e6 ? sharesNum / 1e6 : sharesNum
       return {
         vaultId: p.vaultId,
         vault,
         ticker: tickerSymbolFor(vault),
-        units,
         value,
         delta24h: deriveDelta24h(seed),
       }
@@ -471,36 +388,3 @@ function computeTotals(holdings: HoldingRowData[]) {
   return { totalValue, delta24h, deltaAllTime }
 }
 
-function buildPortfolioSeries(
-  holdings: HoldingRowData[],
-  periodDays: number,
-): ChartPoint[] {
-  if (!holdings.length) return []
-  const points: ChartPoint[] = []
-  const today = new Date()
-  const stepDays = periodDays > 365 ? 7 : periodDays > 90 ? 2 : 1
-  const seedSum = holdings.reduce(
-    (acc, h) => acc + seedFromString(h.vaultId),
-    1,
-  )
-  const totalValue = holdings.reduce((s, h) => s + h.value, 0) || 1
-  const baseline = Math.max(20, totalValue * 0.86)
-  let drift = 0
-  for (let i = periodDays; i >= 0; i -= stepDays) {
-    const d = new Date(today)
-    d.setDate(d.getDate() - i)
-    const phase = ((periodDays - i) / Math.max(stepDays, 1)) * 0.18
-    drift +=
-      Math.sin(phase + (seedSum % 7)) * 0.6 +
-      Math.cos(phase * 1.7 + (seedSum % 11)) * 0.35
-    const noise = (((seedSum * (i + 1)) % 13) - 6) * 0.1
-    const progress = (periodDays - i) / Math.max(periodDays, 1)
-    const ramp = baseline + (totalValue - baseline) * progress
-    const value = ramp + drift * (totalValue * 0.012) + noise
-    points.push({
-      date: d.toISOString().slice(0, 10),
-      value: Number(Math.max(0, value).toFixed(2)),
-    })
-  }
-  return points
-}

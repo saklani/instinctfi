@@ -98,11 +98,10 @@ export function InstallButton({
         variant="outline"
         size="sm"
         onClick={handleClick}
-        className={cn("gap-1.5", className)}
+        className={cn("gap-1.5 md:hidden", className)}
         aria-label="Install app"
       >
         <Download className="size-4" aria-hidden />
-        <span className="hidden md:inline">Install</span>
       </Button>
 
       <Sheet open={iosOpen} onOpenChange={setIosOpen}>

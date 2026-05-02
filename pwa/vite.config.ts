@@ -40,11 +40,15 @@ export default defineConfig({
   })],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src")
+      "@": path.resolve(__dirname, "./src"),
+      "@assets": path.resolve(__dirname, "../assets"),
     }
   },
   server: {
-    allowedHosts: [".ngrok-free.app", ".ngrok.app", ".ngrok.io"]
+    fs: {
+      allow: [path.resolve(__dirname, "..")],
+    },
+    allowedHosts: [".ngrok-free.app", ".ngrok.app", ".ngrok.io"],
   },
   build: {
     rollupOptions: {

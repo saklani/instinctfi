@@ -29,6 +29,7 @@ import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Ticker as TickerPill, Count, Verified } from "@/components/ui/pill"
 import { Delta } from "@/components/ui/delta"
+import { TabPill, TabPillItem } from "@/components/ui/tab-pill"
 import {
   Sheet,
   SheetContent,
@@ -38,11 +39,24 @@ import {
 } from "@/components/ui/sheet"
 import { Reveal } from "@/components/motion/reveal"
 import { Ticker } from "@/components/motion/ticker"
+import {
+  NavChart,
+  NavChartSkeleton,
+} from "@/components/chart/nav-chart"
 import { StickyCta } from "@/components/sticky-cta"
+import { getNavSeries } from "@/lib/nav-data"
 
 export const Route = createFileRoute("/fund/$id")({
   component: FundDetailPage,
 })
+
+const PERIODS = [
+  { id: "1W", days: 7 },
+  { id: "1M", days: 30 },
+  { id: "3M", days: 90 },
+] as const
+
+type PeriodId = (typeof PERIODS)[number]["id"]
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                           */
@@ -99,8 +113,15 @@ function FundDetailPage() {
   const { authenticated, login, ready } = useWallet()
   const { orders: pendingOrders } = usePendingOrders()
   const [sheetOpen, setSheetOpen] = React.useState(false)
+  const [period, setPeriod] = React.useState<PeriodId>("1M")
 
   const { navValue, navDelta, prices, loading: pricesLoading } = useVaultPrices(vault)
+
+  const periodDays = PERIODS.find((p) => p.id === period)?.days ?? 30
+  const chartData = React.useMemo(
+    () => (vault ? getNavSeries(vault.name, periodDays) : []),
+    [vault, periodDays],
+  )
 
   const myPendingOrders = pendingOrders.filter((o) => o.vaultId === id)
 
@@ -156,6 +177,27 @@ function FundDetailPage() {
               delta={navDelta}
               loading={pricesLoading}
             />
+
+            {chartData.length > 0 && (
+              <NavChart
+                data={chartData}
+                periodKey={period}
+                periodSelector={
+                  <TabPill
+                    value={period}
+                    onValueChange={(v) => setPeriod(v as PeriodId)}
+                    layoutId="time-pill"
+                    className="bg-canvas"
+                  >
+                    {PERIODS.map((p) => (
+                      <TabPillItem key={p.id} value={p.id}>
+                        {p.id}
+                      </TabPillItem>
+                    ))}
+                  </TabPill>
+                }
+              />
+            )}
 
             <CompositionSection items={compositionItems} />
 
@@ -456,6 +498,7 @@ function DetailSkeleton() {
             <Skeleton className="h-3 w-24 rounded-tag" />
             <Skeleton className="h-10 w-40 rounded-tag" />
           </div>
+          <NavChartSkeleton height={320} />
           <CompositionListSkeleton rows={5} />
         </div>
         <Card className="hidden lg:block">
