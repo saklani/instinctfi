@@ -30,14 +30,11 @@ const STOCKS = [
 ]
 
 const PELOSI_WEIGHTS: Record<string, number> = {
-  NVDAx: 2200,
-  GOOGLx: 1700,
-  AMZNx: 1300,
+  NVDAx: 3400,
+  GOOGLx: 2600,
+  AMZNx: 2000,
   AAPLx: 1000,
-  METAx: 1000,
-  PLTRx: 1000,
   MSFTx: 1000,
-  TSLAx: 800,
 }
 
 const AFFC_WEIGHTS: Record<string, number> = {

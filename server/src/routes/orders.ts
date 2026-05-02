@@ -18,7 +18,7 @@ app.use("*", authMiddleware)
 // ── Deposit ─────────────────────────────────────────────
 
 const depositSchema = z.object({
-  vaultId: z.string().uuid(),
+  vaultId: z.uuid(),
   signature: z.string().min(1),
   address: z.string().min(1),
 })
