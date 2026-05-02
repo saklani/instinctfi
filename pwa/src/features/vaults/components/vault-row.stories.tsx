@@ -54,37 +54,21 @@ const sample: VaultRowData[] = [
     vault: vault("v1", "Magnificent Seven"),
     nav: 128.42,
     delta24h: 0.0184,
-    delta7d: 0.0412,
-    tvl: 4_280_000,
-    holders: 312,
-    inception: "2024-08-12",
   },
   {
     vault: vault("v2", "AI Infrastructure"),
     nav: 42.18,
     delta24h: 0.0421,
-    delta7d: 0.0689,
-    tvl: 1_120_000,
-    holders: 184,
-    inception: "2024-11-04",
   },
   {
     vault: vault("v3", "Solana Treasury Plays"),
     nav: 97.61,
     delta24h: -0.0072,
-    delta7d: 0.0153,
-    tvl: 824_000,
-    holders: 92,
-    inception: "2025-02-21",
   },
   {
     vault: vault("v4", "Defensive Income"),
     nav: 18.04,
     delta24h: 0.0021,
-    delta7d: -0.0084,
-    tvl: 612_000,
-    holders: 71,
-    inception: "2024-06-09",
   },
 ]
 
@@ -112,7 +96,7 @@ export const SingleRow: Story = {
 
 export const Table: Story = {
   render: () => {
-    const [sort, setSort] = useState<VaultSortState>({ key: "tvl", dir: "desc" })
+    const [sort, setSort] = useState<VaultSortState>({ key: "nav", dir: "desc" })
     const onSort = (key: VaultSortKey) =>
       setSort((p) =>
         p.key === key
