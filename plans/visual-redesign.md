@@ -144,15 +144,20 @@ Restructure `/portfolio` to: NAV summary hero (Total Value mono-xl + delta + "al
 
 ### Acceptance criteria
 
-- [ ] NAV summary hero: Total Value `mono-xl` + delta + "all time" toggle
-- [ ] Portfolio chart reuses `nav-chart.tsx`, full-width, defaults to 1Y range
-- [ ] Tab capsule via `LayoutPill` (`layoutId="portfolio-tabs"`): Holdings | Activity
-- [ ] Holdings rows: 28px logo + name + ticker pill + units (mono) + value (mono) + 24h delta + Manage ghost button → `/fund/$id`
-- [ ] Activity rows: date + action chip + vault + amount + tx-hash explorer link arrow, chronological
-- [ ] Empty state: editorial illustration placeholder + display-md headline + primary-accent "Discover vaults" CTA → `/`
-- [ ] `usePositions` and pending orders hooks unchanged
-- [ ] Page-enter motion + stagger applied; reduced-motion respected
-- [ ] Storybook stories for empty state, holdings row, activity row
+- [x] NAV summary hero: Total Value `mono-xl` + delta + "all time" toggle <!-- toggle = TabPill 24h | All time, layoutId="portfolio-period-toggle" -->
+- [x] Portfolio chart reuses `nav-chart.tsx`, full-width, defaults to 1Y range
+- [x] Tab capsule via `LayoutPill` (`layoutId="portfolio-tabs"`): Holdings | Activity
+- [x] Holdings rows: 28px logo + name + ticker pill + units (mono) + value (mono) + 24h delta + Manage ghost button → `/fund/$id`
+- [x] Activity rows: date + action chip + vault + amount + tx-hash explorer link arrow, chronological
+- [x] Empty state: editorial illustration placeholder + display-md headline + primary-accent "Discover vaults" CTA → `/`
+- [x] `usePositions` and pending orders hooks unchanged <!-- usePositions/useOrders/usePendingOrders all unchanged; route uses useOrders for full activity history -->
+- [x] Page-enter motion + stagger applied; reduced-motion respected <!-- Reveal wraps page; Stagger on holdings + activity rows; Ticker on Total Value; PathDraw on empty-state illustration — all honor useReducedMotion -->
+- [x] Storybook stories for empty state, holdings row, activity row
+<!-- Visual browser verification skipped — Chrome not installed for playwright (PRD unresolved Q6); typecheck + build clean -->
+<!-- pnpm lint reports react-refresh/only-export-components on routes/portfolio.tsx — pre-existing pattern matching fund.$id.tsx, index.tsx, settings.tsx; deferred to Phase 7 -->
+<!-- Mock data: holdings value/24h-delta/all-time-growth derived from vault.id seed (matches Discover/fund detail). Phase 8 (real data) will replace -->
+<!-- Activity hook: useOrders (full set, chronological); usePendingOrders left intact for fund detail's "Open orders" section -->
+
 
 ---
 
