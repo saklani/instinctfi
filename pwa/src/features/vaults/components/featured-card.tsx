@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card"
 import { Delta } from "@/components/ui/delta"
 import { MonoNumber } from "@/components/ui/mono-number"
 import { Row } from "@/components/ui/row"
+import { Skeleton } from "@/components/ui/skeleton"
 import { durations, outQuart } from "@/components/motion/easings"
 import type { Vault } from "../api"
 
@@ -41,7 +42,10 @@ export function FeaturedCard({
     <Link
       to="/fund/$id"
       params={{ id: vault.id }}
-      className={cn("block h-full", className)}
+      className={cn(
+        "block h-full rounded-card outline-none focus-visible:ring-[4px] focus-visible:ring-accent/30",
+        className,
+      )}
     >
       <Card
         interactive
@@ -184,6 +188,43 @@ function Sparkline({
         }}
       />
     </svg>
+  )
+}
+
+export function FeaturedCardSkeleton({ className }: { className?: string }) {
+  return (
+    <Card
+      data-slot="featured-card-skeleton"
+      className={cn("relative h-full justify-between gap-5 p-6", className)}
+    >
+      <Row className="items-center gap-2">
+        <Skeleton className="size-1.5 rounded-full" />
+        <Skeleton className="h-3 w-20 rounded-tag" />
+      </Row>
+      <div className="flex flex-col gap-3">
+        <Skeleton className="h-7 w-3/4 rounded-tag" />
+        <Skeleton className="h-5 w-1/2 rounded-tag" />
+        <Row className="items-center gap-2">
+          <Row className="gap-0 -space-x-1.5">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton
+                key={i}
+                className="size-6 rounded-full ring-2 ring-surface"
+              />
+            ))}
+          </Row>
+          <Skeleton className="h-3 w-20 rounded-tag" />
+        </Row>
+      </div>
+      <Skeleton className="h-16 w-full rounded-tag" />
+      <div className="flex items-end justify-between gap-4">
+        <div className="flex flex-col gap-1.5">
+          <Skeleton className="h-3 w-8 rounded-tag" />
+          <Skeleton className="h-5 w-20 rounded-tag" />
+        </div>
+        <Skeleton className="h-6 w-16 rounded-pill" />
+      </div>
+    </Card>
   )
 }
 

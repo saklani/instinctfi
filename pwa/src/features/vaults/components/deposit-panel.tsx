@@ -23,6 +23,7 @@ import { MonoNumber } from "@/components/ui/mono-number"
 import { Badge } from "@/components/ui/badge"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { FormError } from "@/components/ui/form-error"
+import { Skeleton } from "@/components/ui/skeleton"
 import { PathDraw } from "@/components/motion/path-draw"
 import { durations, outQuart } from "@/components/motion/easings"
 import type { Vault } from "@/features/vaults/api"
@@ -216,7 +217,7 @@ function DepositTab({
                   <button
                     type="button"
                     onClick={handleMax}
-                    className="text-body-sm text-ink-muted hover:text-ink"
+                    className="rounded-tag px-1.5 py-0.5 text-body-sm text-ink-muted hover:text-ink outline-none focus-visible:text-ink focus-visible:ring-[3px] focus-visible:ring-accent/30"
                   >
                     Balance{" "}
                     <MonoNumber
@@ -342,11 +343,7 @@ function HistoryTab({
     return (
       <div className="flex flex-col gap-3">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-12 animate-pulse rounded-tag bg-secondary/60"
-            style={{ animationDuration: "2s" }}
-          />
+          <Skeleton key={i} className="h-12 rounded-tag" />
         ))}
       </div>
     )
@@ -408,7 +405,7 @@ function HistoryRow({ order }: { order: Order }) {
         href={`https://solscan.io/tx/${order.signature}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="block rounded-tag px-2 transition-colors duration-150 hover:bg-secondary"
+        className="block rounded-tag px-2 transition-colors duration-150 hover:bg-secondary outline-none focus-visible:bg-secondary focus-visible:ring-[3px] focus-visible:ring-accent/30"
       >
         {inner}
       </a>
@@ -435,6 +432,39 @@ function SummaryRow({
 export { WithdrawTab as DepositPanelWithdrawView }
 export { HistoryTab as DepositPanelHistoryView }
 export { SuccessState as DepositSuccessState }
+
+export function DepositPanelSkeleton({ className }: { className?: string }) {
+  return (
+    <div
+      data-slot="deposit-panel-skeleton"
+      className={cn("flex flex-col gap-5", className)}
+    >
+      <div className="flex items-center gap-1 self-start rounded-pill bg-secondary p-1">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-8 w-20 rounded-pill" />
+        ))}
+      </div>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-3 w-12 rounded-tag" />
+          <Skeleton className="h-3 w-20 rounded-tag" />
+        </div>
+        <Skeleton className="h-14 w-full rounded-input" />
+      </div>
+      <div className="flex flex-col gap-2 rounded-tag bg-secondary/60 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-3 w-24 rounded-tag" />
+          <Skeleton className="h-4 w-16 rounded-tag" />
+        </div>
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-3 w-28 rounded-tag" />
+          <Skeleton className="h-3 w-12 rounded-tag" />
+        </div>
+      </div>
+      <Skeleton className="h-12 w-full rounded-pill" />
+    </div>
+  )
+}
 
 function SuccessState({ amount }: { amount: number }) {
   const reduce = useReducedMotion()

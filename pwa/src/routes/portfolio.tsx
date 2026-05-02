@@ -24,7 +24,11 @@ import { TabPill, TabPillItem } from "@/components/ui/tab-pill"
 import { Reveal } from "@/components/motion/reveal"
 import { Stagger } from "@/components/motion/stagger"
 import { Ticker } from "@/components/motion/ticker"
-import { NavChart, type ChartPoint } from "@/components/chart/nav-chart"
+import {
+  NavChart,
+  NavChartSkeleton,
+  type ChartPoint,
+} from "@/components/chart/nav-chart"
 import { PortfolioEmpty } from "@/components/portfolio-empty"
 
 export const Route = createFileRoute("/portfolio")({
@@ -222,7 +226,7 @@ function PortfolioChart({
   if (loading) {
     return (
       <div className="px-4">
-        <Skeleton className="h-[280px] w-full rounded-tag md:h-[320px]" />
+        <NavChartSkeleton height={280} className="md:[&>div:first-child]:h-[320px]" />
       </div>
     )
   }
@@ -269,7 +273,10 @@ function HoldingsView({
     return (
       <div className="px-4 py-12 text-center text-body-sm text-ink-muted">
         No holdings yet.{" "}
-        <Link to="/" className="text-ink underline-offset-4 hover:underline">
+        <Link
+          to="/"
+          className="rounded-tag px-1 text-ink underline-offset-4 hover:underline outline-none focus-visible:underline focus-visible:ring-[3px] focus-visible:ring-accent/30"
+        >
           Browse vaults →
         </Link>
       </div>
@@ -354,12 +361,12 @@ function PortfolioSkeleton() {
   return (
     <div className="flex flex-col gap-10 lg:gap-12">
       <div className="flex flex-col gap-4 px-4 pt-2 lg:pt-6">
-        <Skeleton className="h-3 w-20" />
-        <Skeleton className="h-12 w-56" />
-        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-3 w-20 rounded-tag" />
+        <Skeleton className="h-12 w-56 rounded-tag" />
+        <Skeleton className="h-8 w-48 rounded-pill" />
       </div>
       <div className="px-4">
-        <Skeleton className="h-[280px] w-full rounded-tag md:h-[320px]" />
+        <NavChartSkeleton height={280} />
       </div>
       <div className="px-4">
         <RowsSkeleton />
@@ -374,9 +381,9 @@ function RowsSkeleton() {
       {Array.from({ length: 4 }).map((_, i) => (
         <div key={i} className="flex items-center gap-4 px-4 py-4">
           <Skeleton className="size-7 rounded-full" />
-          <Skeleton className="h-4 flex-1 max-w-[280px]" />
-          <Skeleton className="h-4 w-16" />
-          <Skeleton className="hidden h-4 w-16 md:block" />
+          <Skeleton className="h-4 flex-1 max-w-[280px] rounded-tag" />
+          <Skeleton className="h-4 w-16 rounded-tag" />
+          <Skeleton className="hidden h-4 w-16 rounded-tag md:block" />
         </div>
       ))}
     </div>

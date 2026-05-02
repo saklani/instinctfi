@@ -77,7 +77,7 @@ export function OrderCard({ order }: { order: Order }) {
             href={`https://solscan.io/tx/${order.signature}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            className="inline-flex items-center gap-1 rounded-tag px-1 text-body-sm text-ink-muted hover:text-ink transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30"
           >
             View on Solscan <ExternalLink className="size-3" />
           </a>

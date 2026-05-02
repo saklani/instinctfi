@@ -4,6 +4,7 @@ import { ChevronUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Delta } from "@/components/ui/delta"
 import { MonoNumber } from "@/components/ui/mono-number"
+import { Skeleton } from "@/components/ui/skeleton"
 import type { Vault } from "../api"
 
 export type VaultRowData = {
@@ -83,11 +84,11 @@ export function VaultTableHeader({ sort, onSortChange }: VaultTableHeaderProps) 
             disabled={!interactive}
             onClick={() => onSortChange?.(col.key)}
             className={cn(
-              "group/col flex items-center gap-1 outline-none",
+              "group/col flex items-center gap-1 rounded-tag px-1.5 py-1 outline-none",
               showClass(col.show),
               col.align === "right" && "justify-end",
               interactive
-                ? "cursor-pointer hover:text-ink focus-visible:text-ink"
+                ? "cursor-pointer hover:text-ink focus-visible:text-ink focus-visible:ring-[3px] focus-visible:ring-accent/30"
                 : "cursor-default",
               active && "text-ink",
             )}
@@ -123,7 +124,7 @@ export function VaultRow({ row }: { row: VaultRowData }) {
         ROW_GRID_CLASS,
         "rounded-tag px-4 py-4 text-body",
         "transition-colors duration-150 outline-none",
-        "hover:bg-secondary focus-visible:bg-secondary",
+        "hover:bg-secondary focus-visible:bg-secondary focus-visible:ring-[3px] focus-visible:ring-accent/30",
       )}
     >
       <div className="flex min-w-0 items-center gap-3">
@@ -215,6 +216,52 @@ function VaultRowLogo({ vault }: { vault: Vault }) {
           {vault.name.slice(0, 2).toUpperCase()}
         </span>
       )}
+    </div>
+  )
+}
+
+export function VaultRowSkeleton() {
+  return (
+    <div
+      data-slot="vault-row-skeleton"
+      role="row"
+      className={cn(ROW_GRID_CLASS, "px-4 py-4")}
+    >
+      <div className="flex min-w-0 items-center gap-3">
+        <Skeleton className="size-7 shrink-0 rounded-full" />
+        <Skeleton className="h-4 w-full max-w-[220px] rounded-tag" />
+      </div>
+      <div className="flex justify-end">
+        <Skeleton className="h-4 w-16 rounded-tag" />
+      </div>
+      <div className="flex justify-end">
+        <Skeleton className="h-4 w-12 rounded-tag" />
+      </div>
+      <div className="hidden justify-end lg:flex">
+        <Skeleton className="h-4 w-12 rounded-tag" />
+      </div>
+      <div className="hidden justify-end md:flex">
+        <Skeleton className="h-4 w-16 rounded-tag" />
+      </div>
+      <div className="hidden justify-end lg:flex">
+        <Skeleton className="h-4 w-12 rounded-tag" />
+      </div>
+      <div className="hidden justify-end lg:flex">
+        <Skeleton className="h-4 w-16 rounded-tag" />
+      </div>
+    </div>
+  )
+}
+
+export function VaultTableSkeleton({ rows = 5 }: { rows?: number }) {
+  return (
+    <div
+      data-slot="vault-table-skeleton"
+      className="flex flex-col divide-y divide-hairline"
+    >
+      {Array.from({ length: rows }).map((_, i) => (
+        <VaultRowSkeleton key={i} />
+      ))}
     </div>
   )
 }

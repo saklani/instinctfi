@@ -12,6 +12,7 @@ import {
 import { useReducedMotion } from "framer-motion"
 
 import { cn } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
 import { durations } from "@/components/motion/easings"
 
 export type ChartPoint = {
@@ -133,15 +134,13 @@ export function NavChart({
 }: NavChartProps) {
   const reduce = useReducedMotion()
   const containerRef = React.useRef<HTMLDivElement>(null)
-  const [inView, setInView] = React.useState(false)
+  const [inView, setInView] = React.useState(
+    () => typeof IntersectionObserver === "undefined",
+  )
 
   React.useEffect(() => {
     const node = containerRef.current
-    if (!node) return
-    if (typeof IntersectionObserver === "undefined") {
-      setInView(true)
-      return
-    }
+    if (!node || typeof IntersectionObserver === "undefined") return
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0]
@@ -271,6 +270,48 @@ export function NavChart({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center">{periodSelector}</div>
           <div className="ml-auto flex items-center">{toolbar}</div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function NavChartSkeleton({
+  height,
+  className,
+  withControls = true,
+}: {
+  height?: number
+  className?: string
+  withControls?: boolean
+}) {
+  return (
+    <div
+      data-slot="nav-chart-skeleton"
+      className={cn("flex w-full flex-col gap-4", className)}
+    >
+      <div className="relative w-full" style={{ height: height ?? 320 }}>
+        <Skeleton className="size-full rounded-tag" />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 flex flex-col justify-between py-3 pr-4"
+        >
+          {Array.from({ length: 4 }).map((_, i) => (
+            <span
+              key={i}
+              className="block h-px w-full bg-hairline/60"
+            />
+          ))}
+        </div>
+      </div>
+      {withControls && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-1">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-7 w-10 rounded-pill" />
+            ))}
+          </div>
+          <Skeleton className="size-8 rounded-full" />
         </div>
       )}
     </div>

@@ -11,8 +11,14 @@ import {
 } from "lucide-react"
 
 import { useVault } from "@/features/vaults"
-import { CompositionList } from "@/features/vaults/components/composition-list"
-import { DepositPanel } from "@/features/vaults/components/deposit-panel"
+import {
+  CompositionList,
+  CompositionListSkeleton,
+} from "@/features/vaults/components/composition-list"
+import {
+  DepositPanel,
+  DepositPanelSkeleton,
+} from "@/features/vaults/components/deposit-panel"
 import type { Vault } from "@/features/vaults/api"
 import { usePendingOrders, OrderCard } from "@/features/orders"
 import { useWallet } from "@/hooks/use-wallet"
@@ -35,7 +41,11 @@ import {
 import { Reveal } from "@/components/motion/reveal"
 import { Stagger } from "@/components/motion/stagger"
 import { Ticker } from "@/components/motion/ticker"
-import { NavChart, type ChartPoint } from "@/components/chart/nav-chart"
+import {
+  NavChart,
+  NavChartSkeleton,
+  type ChartPoint,
+} from "@/components/chart/nav-chart"
 import { StickyCta } from "@/components/sticky-cta"
 
 export const Route = createFileRoute("/fund/$id")({
@@ -269,7 +279,10 @@ function Breadcrumb({ name }: { name: string }) {
       aria-label="Breadcrumb"
       className="flex items-center gap-2 text-body-sm text-ink-muted"
     >
-      <Link to="/" className="hover:text-ink">
+      <Link
+        to="/"
+        className="rounded-tag px-1 hover:text-ink outline-none focus-visible:text-ink focus-visible:ring-[3px] focus-visible:ring-accent/30"
+      >
         Discover
       </Link>
       <ChevronRight className="size-3.5 text-ink-faint" aria-hidden />
@@ -536,7 +549,7 @@ function AboutCard({ description }: { description: string | null }) {
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="inline-flex w-fit items-center gap-1 text-body-sm text-ink hover:text-accent"
+        className="inline-flex w-fit items-center gap-1 rounded-tag px-1.5 py-0.5 text-body-sm text-ink hover:text-accent outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30"
       >
         {expanded ? "Show less" : "Read more"}
         <ChevronRight
@@ -565,10 +578,7 @@ function NewsList({ vault }: { vault: Vault }) {
             <Card size="sm" interactive className="flex-row gap-4">
               <div
                 aria-hidden
-                className="size-14 shrink-0 rounded-tag bg-secondary"
-                style={{
-                  backgroundImage: `linear-gradient(135deg, oklch(0.45 0.205 263 / 0.18), oklch(0.92 0.003 80))`,
-                }}
+                className="size-14 shrink-0 rounded-tag bg-linear-to-br from-accent/15 to-hairline"
               />
               <div className="flex min-w-0 flex-col justify-center gap-1">
                 <span className="text-body-sm uppercase tracking-[0.06em] text-ink-faint">
@@ -604,29 +614,30 @@ function mockNewsFor(vault: Vault) {
 function DetailSkeleton() {
   return (
     <div className="flex flex-col gap-8">
-      <Skeleton className="h-4 w-40" />
+      <Skeleton className="h-4 w-40 rounded-tag" />
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="flex flex-col gap-6">
           <div className="flex items-start gap-4">
             <Skeleton className="size-20 rounded-full" />
             <div className="flex flex-1 flex-col gap-3">
-              <Skeleton className="h-9 w-2/3" />
-              <Skeleton className="h-6 w-1/3" />
+              <Skeleton className="h-9 w-2/3 rounded-tag" />
+              <Skeleton className="h-6 w-1/3 rounded-tag" />
             </div>
           </div>
-          <Skeleton className="h-[280px] w-full rounded-tag md:h-[360px]" />
+          <NavChartSkeleton height={320} />
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
+              <div key={i} className="flex flex-col gap-2">
+                <Skeleton className="h-3 w-16 rounded-tag" />
+                <Skeleton className="h-5 w-20 rounded-tag" />
+              </div>
             ))}
           </div>
-          <div className="flex flex-col gap-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-10 w-full" />
-            ))}
-          </div>
+          <CompositionListSkeleton rows={5} />
         </div>
-        <Skeleton className="hidden h-[420px] w-full rounded-card lg:block" />
+        <Card className="hidden lg:block">
+          <DepositPanelSkeleton />
+        </Card>
       </div>
     </div>
   )

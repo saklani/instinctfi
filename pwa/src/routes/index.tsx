@@ -4,17 +4,18 @@ import { useVaults } from "@/features/vaults"
 import type { Vault } from "@/features/vaults/api"
 import {
   FeaturedCard,
+  FeaturedCardSkeleton,
   type FeaturedKind,
 } from "@/features/vaults/components/featured-card"
 import {
   VaultRow,
   VaultTableHeader,
+  VaultTableSkeleton,
   type VaultRowData,
   type VaultSortKey,
   type VaultSortState,
 } from "@/features/vaults/components/vault-row"
 
-import { Skeleton } from "@/components/ui/skeleton"
 import { DiscoverHero } from "@/components/discover-hero"
 import { Reveal } from "@/components/motion/reveal"
 import { Stagger } from "@/components/motion/stagger"
@@ -77,7 +78,7 @@ function DiscoverPage() {
         >
           <VaultTableHeader sort={sort} onSortChange={handleSort} />
           <div role="rowgroup" className="flex flex-col divide-y divide-hairline">
-            {loading && <TableSkeleton />}
+            {loading && <VaultTableSkeleton />}
             {error && <TableError message={error} />}
             {!loading && !error && sorted.length === 0 && <TableEmpty />}
             {!loading && !error && sorted.length > 0 && (
@@ -109,7 +110,7 @@ function FeaturedSection({
     return (
       <div className="grid grid-cols-1 gap-4 px-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
         {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-[280px] w-full rounded-card" />
+          <FeaturedCardSkeleton key={i} />
         ))}
       </div>
     )
@@ -135,22 +136,6 @@ function FeaturedSection({
         </Stagger.Item>
       ))}
     </Stagger>
-  )
-}
-
-function TableSkeleton() {
-  return (
-    <div className="flex flex-col divide-y divide-hairline">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-4 px-4 py-4">
-          <Skeleton className="size-7 rounded-full" />
-          <Skeleton className="h-4 flex-1 max-w-[280px]" />
-          <Skeleton className="h-4 w-16" />
-          <Skeleton className="hidden h-4 w-12 md:block" />
-          <Skeleton className="hidden h-4 w-16 lg:block" />
-        </div>
-      ))}
-    </div>
   )
 }
 
@@ -181,7 +166,7 @@ function Footer() {
           href="https://github.com/"
           target="_blank"
           rel="noreferrer"
-          className="hover:text-ink"
+          className="rounded-tag px-1 hover:text-ink outline-none focus-visible:text-ink focus-visible:ring-[3px] focus-visible:ring-accent/30"
         >
           Github
         </a>
@@ -189,7 +174,7 @@ function Footer() {
           href="https://x.com/"
           target="_blank"
           rel="noreferrer"
-          className="hover:text-ink"
+          className="rounded-tag px-1 hover:text-ink outline-none focus-visible:text-ink focus-visible:ring-[3px] focus-visible:ring-accent/30"
         >
           X
         </a>

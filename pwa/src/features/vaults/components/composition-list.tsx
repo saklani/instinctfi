@@ -3,6 +3,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Delta } from "@/components/ui/delta"
 import { MonoNumber } from "@/components/ui/mono-number"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Stagger } from "@/components/motion/stagger"
 
 export type CompositionItem = {
@@ -28,7 +29,8 @@ function rowClassName(href: string | undefined) {
   return cn(
     "group/row grid grid-cols-[28px_24px_1fr_auto] items-center gap-3 rounded-tag px-2 py-3",
     "transition-colors duration-150",
-    href && "cursor-pointer hover:bg-secondary",
+    href &&
+      "cursor-pointer hover:bg-secondary outline-none focus-visible:bg-secondary focus-visible:ring-[3px] focus-visible:ring-accent/30",
   )
 }
 
@@ -147,5 +149,32 @@ export function CompositionList({
         </Stagger.Item>
       ))}
     </Stagger>
+  )
+}
+
+export function CompositionListSkeleton({ rows = 5 }: { rows?: number }) {
+  return (
+    <div
+      data-slot="composition-list-skeleton"
+      className="flex flex-col divide-y divide-hairline"
+    >
+      {Array.from({ length: rows }).map((_, i) => (
+        <div
+          key={i}
+          className="grid grid-cols-[28px_24px_1fr_auto] items-center gap-3 px-2 py-3"
+        >
+          <Skeleton className="h-3 w-5 rounded-tag" />
+          <Skeleton className="size-6 rounded-full" />
+          <div className="flex min-w-0 items-center gap-2">
+            <Skeleton className="h-4 w-32 rounded-tag" />
+            <Skeleton className="hidden h-3 w-12 rounded-tag sm:block" />
+          </div>
+          <div className="flex items-baseline gap-3">
+            <Skeleton className="h-4 w-12 rounded-tag" />
+            <Skeleton className="h-3 w-10 rounded-tag" />
+          </div>
+        </div>
+      ))}
+    </div>
   )
 }
