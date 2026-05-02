@@ -1,11 +1,8 @@
 import * as React from "react"
 import { Link } from "@tanstack/react-router"
 import { motion, useReducedMotion } from "framer-motion"
-import { Search } from "lucide-react"
 
-import { SearchInput } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { WalletButton } from "@/components/wallet-button"
+import { InstallButton } from "@/components/install-button"
 import { cn } from "@/lib/utils"
 
 const desktopLinks = [
@@ -28,11 +25,11 @@ function Wordmark() {
 type TopNavProps = {
   /** Force scrolled state — used by Storybook to demo the hairline border. */
   forceScrolled?: boolean
-  /** Override the wallet slot — used by Storybook to render disconnected/connected states without Privy. */
-  walletSlot?: React.ReactNode
+  /** Override the right slot — used by Storybook to render install button states. */
+  rightSlot?: React.ReactNode
 }
 
-export function TopNav({ forceScrolled, walletSlot }: TopNavProps) {
+export function TopNav({ forceScrolled, rightSlot }: TopNavProps) {
   const [liveScrolled, setLiveScrolled] = React.useState(
     () => typeof window !== "undefined" && window.scrollY > 32
   )
@@ -73,28 +70,9 @@ export function TopNav({ forceScrolled, walletSlot }: TopNavProps) {
           </nav>
         </div>
 
-        {/* Center: search (desktop) */}
-        <div className="hidden flex-1 justify-center md:flex">
-          <SearchInput
-            disabled
-            placeholder="Search vaults"
-            shortcut={<span className="text-mono-sm">⌘K</span>}
-            aria-label="Search vaults (coming soon)"
-          />
-        </div>
-
-        {/* Right cluster */}
-        <div className="ml-auto flex items-center gap-2 md:ml-0">
-          <Button
-            variant="icon"
-            size="icon-sm"
-            aria-label="Search vaults"
-            className="md:hidden"
-            disabled
-          >
-            <Search />
-          </Button>
-          {walletSlot ?? <WalletButton />}
+        {/* Right: install button */}
+        <div className="ml-auto flex items-center gap-2">
+          {rightSlot ?? <InstallButton />}
         </div>
 
         {/* Hairline border that fades in past 32px scroll */}
