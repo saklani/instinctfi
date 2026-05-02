@@ -86,9 +86,10 @@ export function DepositForm({ vaultId, onDone }: { vaultId: string; onDone: () =
       toast.success("Your order is placed.")
       reset()
       onDone()
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Deposit error:", e)
-      toast.error("Deposit failed", { description: e.message })
+      const description = e instanceof Error ? e.message : "Unknown error"
+      toast.error("Deposit failed", { description })
     } finally {
       setIsPending(false)
     }
