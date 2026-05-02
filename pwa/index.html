@@ -15,10 +15,57 @@
     <meta name="twitter:title" content="Instinct — Your cheatcode to Internet Capital Markets" />
     <meta name="twitter:description" content="Curated tokenized stock baskets on Solana" />
     <meta name="twitter:image" content="https://app.instinctfi.com/og-image.png" />
-    <meta name="theme-color" content="#FFFFFF" />
+    <meta name="theme-color" content="#FCFAF6" />
+    <style>
+      html,
+      body {
+        background-color: #fcfaf6;
+      }
+      body {
+        margin: 0;
+      }
+      .cold-load {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #fcfaf6;
+        opacity: 0;
+        animation: cold-load-fade 600ms cubic-bezier(0.22, 1, 0.36, 1) 180ms
+          forwards;
+        pointer-events: none;
+      }
+      .cold-load img {
+        height: 28px;
+        width: auto;
+      }
+      @keyframes cold-load-fade {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .cold-load {
+          animation: none;
+          opacity: 1;
+          transform: none;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="cold-load" aria-hidden="true">
+        <img src="/logo-black.png" alt="" />
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
