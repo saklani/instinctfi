@@ -1,0 +1,18 @@
+---
+import Layout from "@/layouts/main.astro"
+import Hero from "@/components/hero.astro"
+import Features from "@/components/features.astro"
+import HowItWorks from "@/components/how-it-works.astro"
+import FAQ from "@/components/faq.astro"
+import Image from "astro/components/Image.astro"
+---
+
+<Layout>
+  <header class="flex w-full justify-center h-20">
+    <Image src="/logo.gif" alt="Instinct" width={800} height={266} class="w-auto mix-blend-multiply" />
+  </header>
+  <Hero/>
+  <Features />
+  <HowItWorks />
+  <FAQ />
+</Layout>
