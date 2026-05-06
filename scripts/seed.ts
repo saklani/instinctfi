@@ -1,5 +1,5 @@
 /**
- * Seed the database with stocks, vault, and compositions.
+ * Seed the database with stocks, vaults, and compositions.
  *
  * Usage:
  *   bun run scripts/seed.ts
@@ -7,13 +7,13 @@
 
 import { neon } from "@neondatabase/serverless"
 import { drizzle } from "drizzle-orm/neon-http"
-import { eq } from "drizzle-orm"
 import { stocks, vaults, compositions } from "../server/src/db/schema"
 
 const sql = neon(process.env.DATABASE_URL!)
 const db = drizzle(sql)
 
 const STOCKS = [
+  // xStocks (Symmetry)
   { name: "Nvidia", ticker: "NVDAx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/NVDAx.png", description: "Leading GPU and AI chip manufacturer", address: "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh", decimals: 8 },
   { name: "Alphabet", ticker: "GOOGLx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/GOOGLx.png", description: "Parent company of Google", address: "XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN", decimals: 8 },
   { name: "Amazon", ticker: "AMZNx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/AMZNx.png", description: "E-commerce and cloud computing giant", address: "Xs3eBt7uRfJX8QUs4suhyU8p2M6DoUDrJyWBa8LLZsg", decimals: 8 },
@@ -22,28 +22,87 @@ const STOCKS = [
   { name: "Palantir", ticker: "PLTRx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/PLTRx.png", description: "Data analytics and AI software", address: "XsoBhf2ufR8fTyNSjqfU71DYGaE6Z3SUGAidpzriAA4", decimals: 8 },
   { name: "Microsoft", ticker: "MSFTx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/MSFTx.png", description: "Enterprise software and cloud computing", address: "XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX", decimals: 8 },
   { name: "Tesla", ticker: "TSLAx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/TSLAx.png", description: "Electric vehicles and clean energy", address: "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB", decimals: 8 },
+  // AFFC tokens
   { name: "Robinhood", ticker: "HOODx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/HOODx.png", description: "Commission-free trading platform", address: "XsvNBAYkrDRNhA7wPHQfX3ZUXZyZLdnCQDfHZ56bzpg", decimals: 8 },
-  { name: "Coinbase", ticker: "COINx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/COINx.png", description: "Cryptocurrency exchange platform", address: "Xs7ZdzSHLU9ftNJsii5fCeJhoRWSC32SQGzGQtePxNu", decimals: 8 },
-  { name: "Circle", ticker: "CRCLx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/CRCLx.png", description: "Digital financial technology and USDC issuer", address: "XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1", decimals: 8 },
-  { name: "Strategy", ticker: "MSTRx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/MSTRx.png", description: "Bitcoin treasury and enterprise analytics", address: "XsP7xzNPvEHS1m6qfanPUGjNmdnmsLKEoNAnHjdxxyZ", decimals: 8 },
-  { name: "Strategy Prf Shs", ticker: "STRCx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/STRCx.png", description: "Strategy Variable Rate Perpetual Stretch Preferred Shares Series A", address: "Xs78JED6PFZxWc2wCEPspZW9kL3Se5J7L5TChKgsidH", decimals: 8 },
+  { name: "Coinbase", ticker: "COINx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/COINx.png", description: "Cryptocurrency exchange", address: "Xs7ZdzSHLU9ftNJsii5fCeJhoRWSC32SQGzGQtePxNu", decimals: 8 },
+  { name: "Circle", ticker: "CRCLx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/CRCLx.png", description: "USDC issuer and crypto finance", address: "XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1", decimals: 8 },
+  { name: "Strategy", ticker: "MSTRx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/MSTRx.png", description: "Bitcoin treasury company", address: "XsP7xzNPvEHS1m6qfanPUGjNmdnmsLKEoNAnHjdxxyZ", decimals: 8 },
+  { name: "Strategy Prf Series A", ticker: "STRCx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/STRCx.png", description: "Strategy preferred stock", address: "Xs78JED6PFZxWc2wCEPspZW9kL3Se5J7L5TChKgsidH", decimals: 8 },
+  // BJB tokens
+  { name: "Solana", ticker: "SOL", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/SOL.png", description: "High-performance L1 blockchain", address: "So11111111111111111111111111111111111111112", decimals: 9 },
+  { name: "USDC", ticker: "USDC", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/USDC.png", description: "USD stablecoin by Circle", address: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", decimals: 6 },
 ]
 
-const PELOSI_WEIGHTS: Record<string, number> = {
-  NVDAx: 3400,
-  GOOGLx: 2600,
-  AMZNx: 2000,
-  AAPLx: 1000,
-  MSFTx: 1000,
+// ── Vault definitions ──────────────────────────────────────────────
+
+interface VaultDef {
+  name: string
+  description: string
+  vaultAddress: string
+  vaultMint: string
+  depositFeeBps: number
+  withdrawFeeBps: number
+  weights: Record<string, number>
 }
 
-const AFFC_WEIGHTS: Record<string, number> = {
-  HOODx: 2600,
-  COINx: 2600,
-  CRCLx: 2100,
-  MSTRx: 2100,
-  STRCx: 600,
-}
+const VAULTS: VaultDef[] = [
+  {
+    name: "Pelosi Tracker",
+    description: "Curated basket tracking Nancy Pelosi's disclosed stock holdings",
+    vaultAddress: "G54nsrBx9a59YVqiqk2Sg3yX9wQauRz5MEugdWDjvmsf",
+    vaultMint: "FXcxe5f3AwkJZRaoYFuGME7rEXS4NmBxZPYKVh3Q4bnD",
+    depositFeeBps: 0,
+    withdrawFeeBps: 50,
+    weights: {
+      NVDAx: 3400,
+      GOOGLx: 2600,
+      AMZNx: 2000,
+      AAPLx: 1000,
+      MSFTx: 1000,
+    },
+  },
+  {
+    name: "Anti Finance Finance Club",
+    description: "Crypto-native equities basket — exchanges, stablecoin issuers, and BTC treasury plays",
+    vaultAddress: "BT5UCXo1hhv2gndwByf4WQSJ43n6FZ1XhBA8QjGNQ9kE",
+    vaultMint: "C8nquiV3ZLwbh3d3hBgPyYaKM5tKvYyS15u2fLPmcfV9",
+    depositFeeBps: 0,
+    withdrawFeeBps: 50,
+    weights: {
+      HOODx: 2600,
+      COINx: 2600,
+      CRCLx: 2100,
+      MSTRx: 2100,
+      STRCx: 600,
+    },
+  },
+  {
+    name: "Bald Founder Index",
+    description: "Long conviction on founders who let their hairline go gracefully",
+    vaultAddress: "EPE5SRsPYUUgYefm7sSns4BYfi5HxMdPuNDfchoYzN9s",
+    vaultMint: "9TUeXbEgrS4ohSkEUjnRbRuSQv3zaryYMWs64M6cCeD",
+    depositFeeBps: 0,
+    withdrawFeeBps: 50,
+    weights: {
+      AMZNx: 5000,
+      COINx: 5000,
+    },
+  },
+  {
+    name: "Bryan Johnson Blueprint",
+    description: "SOL/USDC base allocation — to be configured",
+    vaultAddress: "79Ls18aStxgxYouEwrynr2u4xTtsLWmU8ogap6Nfjy7m",
+    vaultMint: "2BXw5F5oBTage2B5GZWWdftHKWGynza4AGtcBxBTqnk1",
+    depositFeeBps: 0,
+    withdrawFeeBps: 50,
+    weights: {
+      SOL: 5000,
+      USDC: 5000,
+    },
+  },
+]
+
+// ── Main ───────────────────────────────────────────────────────────
 
 async function main() {
   console.log("Seeding stocks...")
@@ -59,52 +118,34 @@ async function main() {
     console.log(`  ${stock.ticker}: ${row.id}`)
   }
 
-  console.log("\nSeeding Pelosi Tracker vault...")
-  const [pelosiVault] = await db
-    .insert(vaults)
-    .values({
-      name: "Pelosi Tracker",
-      description: "Curated basket tracking Nancy Pelosi's disclosed stock holdings",
-      vaultAddress: "G54nsrBx9a59YVqiqk2Sg3yX9wQauRz5MEugdWDjvmsf",
-      vaultMint: "FXcxe5f3AwkJZRaoYFuGME7rEXS4NmBxZPYKVh3Q4bnD",
-      depositFeeBps: 0,
-      withdrawFeeBps: 50,
-    })
-    .onConflictDoUpdate({ target: vaults.vaultAddress, set: { name: "Pelosi Tracker" } })
-    .returning()
-  console.log(`  Vault: ${pelosiVault.id}`)
+  for (const vault of VAULTS) {
+    console.log(`\nSeeding vault: ${vault.name}...`)
+    const [row] = await db
+      .insert(vaults)
+      .values({
+        name: vault.name,
+        description: vault.description,
+        vaultAddress: vault.vaultAddress,
+        vaultMint: vault.vaultMint,
+        depositFeeBps: vault.depositFeeBps,
+        withdrawFeeBps: vault.withdrawFeeBps,
+      })
+      .onConflictDoUpdate({ target: vaults.vaultAddress, set: { name: vault.name, description: vault.description } })
+      .returning()
+    console.log(`  Vault: ${row.id}`)
 
-  console.log("\nSeeding Pelosi compositions...")
-  await db.delete(compositions).where(eq(compositions.vaultId, pelosiVault.id))
-  for (const [ticker, weightBps] of Object.entries(PELOSI_WEIGHTS)) {
-    await db
-      .insert(compositions)
-      .values({ vaultId: pelosiVault.id, stockId: stockIds[ticker], weightBps })
-    console.log(`  ${ticker}: ${weightBps} bps`)
-  }
-
-  console.log("\nSeeding Anti Finance Finance Club vault...")
-  const [affcVault] = await db
-    .insert(vaults)
-    .values({
-      name: "Anti Finance Finance Club",
-      description: "Curated basket of crypto-native public equities",
-      vaultAddress: "BT5UCXo1hhv2gndwByf4WQSJ43n6FZ1XhBA8QjGNQ9kE",
-      vaultMint: "C8nquiV3ZLwbh3d3hBgPyYaKM5tKvYyS15u2fLPmcfV9",
-      depositFeeBps: 0,
-      withdrawFeeBps: 50,
-    })
-    .onConflictDoUpdate({ target: vaults.vaultAddress, set: { name: "Anti Finance Finance Club" } })
-    .returning()
-  console.log(`  Vault: ${affcVault.id}`)
-
-  console.log("\nSeeding AFFC compositions...")
-  await db.delete(compositions).where(eq(compositions.vaultId, affcVault.id))
-  for (const [ticker, weightBps] of Object.entries(AFFC_WEIGHTS)) {
-    await db
-      .insert(compositions)
-      .values({ vaultId: affcVault.id, stockId: stockIds[ticker], weightBps })
-    console.log(`  ${ticker}: ${weightBps} bps`)
+    console.log("  Compositions:")
+    for (const [ticker, weightBps] of Object.entries(vault.weights)) {
+      if (!stockIds[ticker]) {
+        console.log(`    ✗ ${ticker}: stock not found`)
+        continue
+      }
+      await db
+        .insert(compositions)
+        .values({ vaultId: row.id, stockId: stockIds[ticker], weightBps })
+        .onConflictDoNothing()
+      console.log(`    ${ticker}: ${weightBps} bps`)
+    }
   }
 
   console.log("\nDone!")
