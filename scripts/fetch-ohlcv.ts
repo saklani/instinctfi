@@ -30,6 +30,9 @@ const TOKENS: Token[] = [
   { ticker: "CRCLx",  pythSymbol: "Equity.US.CRCL/USD" },
   { ticker: "MSTRx",  pythSymbol: "Equity.US.MSTR/USD" },
   { ticker: "STRCx",  pythSymbol: "Equity.US.STRC/USD" },
+  // BJB
+  { ticker: "SOL",    pythSymbol: "Crypto.SOL/USD" },
+  { ticker: "USDC",   pythSymbol: "Crypto.USDC/USD" },
 ]
 
 // ── Vault compositions ─────────────────────────────────────────────
@@ -61,6 +64,22 @@ const VAULTS: Vault[] = [
       CRCLx: 2100,
       MSTRx: 2100,
       STRCx: 600,
+    },
+  },
+  {
+    name: "Bald Founder Index",
+    prefix: "BFI_NAV",
+    weights: {
+      AMZNx: 5000,
+      COINx: 5000,
+    },
+  },
+  {
+    name: "Bryan Johnson Blueprint",
+    prefix: "BJB_NAV",
+    weights: {
+      SOL: 5000,
+      USDC: 5000,
     },
   },
 ]

@@ -1,9 +1,11 @@
 import type { ChartPoint } from "@/components/chart/nav-chart"
 
 // Static NAV series baked in at build time (no network request).
-// Re-run `bun run scripts/fetch-ohlcv.ts` to refresh.
-import peloRaw from "@assets/data/PELO_NAV_2026-02-01_2026-05-02.csv?raw"
-import affcRaw from "@assets/data/AFFC_NAV_2026-02-01_2026-05-02.csv?raw"
+// Re-run `bun run scripts/fetch-ohlcv.ts 90 D` to refresh.
+import peloRaw from "@assets/data/PELO_NAV_2026-02-03_2026-05-04.csv?raw"
+import affcRaw from "@assets/data/AFFC_NAV_2026-02-03_2026-05-04.csv?raw"
+import bfiRaw from "@assets/data/BFI_NAV_2026-02-03_2026-05-04.csv?raw"
+import bjbRaw from "@assets/data/BJB_NAV_2026-02-03_2026-05-04.csv?raw"
 
 function parseCsv(raw: string): ChartPoint[] {
   return raw
@@ -19,6 +21,8 @@ function parseCsv(raw: string): ChartPoint[] {
 const NAV_SERIES: Record<string, ChartPoint[]> = {
   pelo: parseCsv(peloRaw),
   affc: parseCsv(affcRaw),
+  bfi: parseCsv(bfiRaw),
+  bjb: parseCsv(bjbRaw),
 }
 
 /** Look up static NAV series by vault name, filtered to the last `days` days. */
@@ -27,6 +31,8 @@ export function getNavSeries(vaultName: string, days?: number): ChartPoint[] {
   let series: ChartPoint[]
   if (key.includes("pelosi")) series = NAV_SERIES.pelo
   else if (key.includes("anti finance") || key.includes("affc")) series = NAV_SERIES.affc
+  else if (key.includes("bald founder") || key.includes("bfi")) series = NAV_SERIES.bfi
+  else if (key.includes("bryan johnson") || key.includes("blueprint")) series = NAV_SERIES.bjb
   else return []
 
   if (!days) return series

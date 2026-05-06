@@ -2,13 +2,22 @@
  * Step 1: Create the vault
  *
  * Usage:
- *   PRIVATE_KEY="$(cat ~/.config/solana/id.json)" bun run scripts/mainnet/1-create-vault.ts
+ *   PRIVATE_KEY="$(cat ~/.config/solana/id.json)" \
+ *     bun run scripts/mainnet/1-create-vault.ts "<Vault Name>" <SYMBOL>
  */
 
 import { Connection, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js"
 import { SymmetryCore } from "@symmetry-hq/sdk"
 
 const RPC_URL = "https://mainnet.helius-rpc.com/?api-key=7ab8b174-ab40-4c2a-aef7-93a19dbd364c"
+
+const vaultName = process.argv[2]
+const vaultSymbol = process.argv[3]
+
+if (!vaultName || !vaultSymbol) {
+  console.error('Usage: bun run scripts/mainnet/1-create-vault.ts "<Vault Name>" <SYMBOL>')
+  process.exit(1)
+}
 
 function loadKeypair(): Keypair {
   const pk = process.env.PRIVATE_KEY
@@ -41,12 +50,12 @@ async function main() {
 
   const sdk = new SymmetryCore({ connection, network: "mainnet", priorityFee: 100_000 })
 
-  console.log("\nCreating vault: Pelosi Tracker (PELO)...")
+  console.log(`\nCreating vault: ${vaultName} (${vaultSymbol})...`)
   const vaultResult = await sdk.createVaultTx({
     creator: wallet.publicKey.toBase58(),
     start_price: "1.0",
-    name: "Pelosi Tracker",
-    symbol: "PELO",
+    name: vaultName,
+    symbol: vaultSymbol,
     metadata_uri: "https://arweave.net/placeholder",
     host_platform_params: {
       host_pubkey: wallet.publicKey.toBase58(),
