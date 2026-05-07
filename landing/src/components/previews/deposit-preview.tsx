@@ -36,7 +36,7 @@ export function DepositPreview({ className }: { className?: string }) {
           className="size-10 rounded-full bg-secondary object-cover ring-1 ring-black/5"
         />
         <div className="flex min-w-0 flex-col">
-          <span className="truncate text-base font-semibold tracking-tight text-foreground">
+          <span className="truncate text-sm lg:text-base font-semibold tracking-tight text-foreground">
             {VAULT.name}
           </span>
           <span className="text-xs text-muted-foreground/70">
