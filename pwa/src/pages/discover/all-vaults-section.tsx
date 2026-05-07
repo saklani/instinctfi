@@ -4,7 +4,7 @@ import {
   VaultTableSkeleton,
 } from "@/features/vaults/components/vault-row"
 import { useDiscoverVaults } from "@/features/vaults/hooks/use-enriched-vaults"
-import { Section, SectionHeader } from "@/components/ui/section"
+import { Section } from "@/components/ui/section"
 import { Stagger } from "@/components/motion"
 
 export function AllVaultsSection() {
@@ -12,10 +12,6 @@ export function AllVaultsSection() {
 
   return (
     <Section>
-      <SectionHeader
-        title="All vaults"
-        meta={`${rows.length} ${rows.length === 1 ? "vault" : "vaults"}`}
-      />
       <div role="table" aria-label="All vaults" className="flex flex-col">
         <VaultTableHeader sort={sort} onSortChange={onSort} />
         <div role="rowgroup" className="flex flex-col divide-y divide-border">

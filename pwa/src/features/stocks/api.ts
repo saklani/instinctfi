@@ -1,5 +1,5 @@
 import { request } from "@/lib/api"
-import type { Stock } from "@/features/vaults/api"
+import type { Stock } from "@/db/schema"
 
 export type { Stock }
 

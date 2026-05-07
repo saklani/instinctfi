@@ -18,7 +18,7 @@ import {
   DepositPanel,
   DepositPanelSkeleton,
 } from "@/features/vaults/components/deposit-panel"
-import type { Vault } from "@/features/vaults/api"
+import type { VaultResponse as Vault } from "@/features/vaults"
 import { usePendingOrders, OrderCard } from "@/features/orders"
 import { useWallet } from "@/hooks/use-wallet"
 import { useJupiterPrices } from "@/hooks/use-jupiter-prices"
@@ -64,45 +64,12 @@ type PeriodId = (typeof PERIODS)[number]["id"]
 /*  Helpers                                                           */
 /* ------------------------------------------------------------------ */
 
-function useVaultPrices(vault: Vault | null) {
+function useCompositionPrices(vault: Vault | null) {
   const mints = React.useMemo(
     () => vault?.compositions.map((c) => c.stock.address) ?? [],
     [vault],
   )
-  const { prices, loading, error } = useJupiterPrices(mints)
-
-  return React.useMemo(() => {
-    if (!vault || !Object.keys(prices).length) {
-      return { navValue: null, navDelta: null, prices, loading, error }
-    }
-
-    let nav = 0
-    let weightedDelta = 0
-    let totalWeight = 0
-
-    for (const c of vault.compositions) {
-      const p = prices[c.stock.address]
-      if (!p) continue
-      const w = c.weightBps / 10_000
-      nav += w * p.usdPrice
-      weightedDelta += w * p.priceChange24h
-      totalWeight += w
-    }
-
-    // Re-normalise when some mints are missing from Jupiter
-    if (totalWeight > 0 && totalWeight < 0.99) {
-      nav /= totalWeight
-      weightedDelta /= totalWeight
-    }
-
-    return {
-      navValue: totalWeight > 0 ? nav : null,
-      navDelta: totalWeight > 0 ? weightedDelta : null,
-      prices,
-      loading,
-      error,
-    }
-  }, [vault, prices, loading, error])
+  return useJupiterPrices(mints)
 }
 
 /* ------------------------------------------------------------------ */
@@ -117,7 +84,9 @@ function FundDetailPage() {
   const [sheetOpen, setSheetOpen] = React.useState(false)
   const [period, setPeriod] = React.useState<PeriodId>("1M")
 
-  const { navValue, navDelta, prices, loading: pricesLoading } = useVaultPrices(vault)
+  const { prices, loading: pricesLoading } = useCompositionPrices(vault)
+  const navValue = vault?.nav ?? null
+  const navDelta = vault?.delta24h ?? null
 
   // Fetch the full 1y series once; slice locally per period.
   const { series: fullSeries } = useVaultNav(vault?.id, 365)

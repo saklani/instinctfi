@@ -45,10 +45,10 @@ export const stockPrices = pgTable(
       .notNull()
       .references(() => stocks.id, { onDelete: "cascade" }),
     date: text("date").notNull(), // YYYY-MM-DD
-    open: numeric("open").notNull(),
-    high: numeric("high").notNull(),
-    low: numeric("low").notNull(),
-    close: numeric("close").notNull(),
+    open: text("open").notNull(),
+    high: text("high").notNull(),
+    low: text("low").notNull(),
+    close: text("close").notNull(),
   },
   (t) => [uniqueIndex("uniq_stock_price_date").on(t.stockId, t.date)],
 )
@@ -76,6 +76,21 @@ export const compositions = pgTable("compositions", {
   stockId: uuid("stock_id").notNull().references(() => stocks.id),
   weightBps: integer("weight_bps").notNull(),
 })
+
+// ── Vault NAV (precomputed weighted-sum series) ─────────
+
+export const vaultNav = pgTable(
+  "vault_nav",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    vaultId: uuid("vault_id")
+      .notNull()
+      .references(() => vaults.id, { onDelete: "cascade" }),
+    date: text("date").notNull(), // YYYY-MM-DD
+    value: text("value").notNull(),
+  },
+  (t) => [uniqueIndex("uniq_vault_nav_date").on(t.vaultId, t.date)],
+)
 
 // ── Orders ──────────────────────────────────────────────
 

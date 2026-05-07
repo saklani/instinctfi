@@ -2,7 +2,7 @@ import * as React from "react"
 import { Link, createFileRoute } from "@tanstack/react-router"
 
 import { useVaults } from "@/features/vaults"
-import type { Vault } from "@/features/vaults/api"
+import type { VaultResponse as Vault } from "@/features/vaults"
 import { usePositions } from "@/features/positions"
 import { useOrders } from "@/features/orders"
 import {

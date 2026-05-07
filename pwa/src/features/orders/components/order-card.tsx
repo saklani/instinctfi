@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge"
 import { Row } from "@/components/ui/row"
 import { formatRaw } from "@/lib/format"
-import { useVaultById } from "@/features/vaults"
+import { useVault } from "@/features/vaults"
 import type { Order } from "../api"
 import { Column } from "@/components/ui/column"
 
@@ -35,7 +35,7 @@ function formatDate(iso: string) {
 }
 
 export function OrderCard({ order }: { order: Order }) {
-  const { vault } = useVaultById(order.vaultId)
+  const { vault } = useVault(order.vaultId)
   const vaultName = vault?.name
 
   return (

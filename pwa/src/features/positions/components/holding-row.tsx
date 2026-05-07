@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Delta } from "@/components/ui/delta"
 import { MonoNumber } from "@/components/ui/mono-number"
 import { Ticker as TickerPill } from "@/components/ui/pill"
-import type { Vault } from "@/features/vaults/api"
+import type { VaultResponse as Vault } from "@/features/vaults"
 import {  } from "@/components/motion"
 
 export type HoldingRowData = {

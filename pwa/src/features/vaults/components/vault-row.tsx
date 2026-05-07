@@ -6,7 +6,7 @@ import { Delta } from "@/components/ui/delta"
 import { MonoNumber } from "@/components/ui/mono-number"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toTitleCase } from "@/lib/format"
-import type { Vault } from "../api"
+import type { VaultResponse as Vault } from "../hooks/use-vaults"
 
 export type VaultRowData = {
   vault: Vault

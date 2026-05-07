@@ -18,21 +18,35 @@ interface Token {
 }
 
 const TOKENS: Token[] = [
-  // Pelosi
+  // xStocks
   { ticker: "NVDAx",  pythSymbol: "Equity.US.NVDA/USD" },
   { ticker: "GOOGLx", pythSymbol: "Equity.US.GOOGL/USD" },
   { ticker: "AMZNx",  pythSymbol: "Equity.US.AMZN/USD" },
   { ticker: "AAPLx",  pythSymbol: "Equity.US.AAPL/USD" },
   { ticker: "MSFTx",  pythSymbol: "Equity.US.MSFT/USD" },
-  // AFFC
   { ticker: "HOODx",  pythSymbol: "Equity.US.HOOD/USD" },
   { ticker: "COINx",  pythSymbol: "Equity.US.COIN/USD" },
   { ticker: "CRCLx",  pythSymbol: "Equity.US.CRCL/USD" },
   { ticker: "MSTRx",  pythSymbol: "Equity.US.MSTR/USD" },
   { ticker: "STRCx",  pythSymbol: "Equity.US.STRC/USD" },
-  // BJB
+  { ticker: "LLYx",   pythSymbol: "Equity.US.LLY/USD" },
+  { ticker: "NVOx",   pythSymbol: "Equity.US.NVO/USD" },
+  { ticker: "TMOx",   pythSymbol: "Equity.US.TMO/USD" },
+  { ticker: "DHRx",   pythSymbol: "Equity.US.DHR/USD" },
+  { ticker: "GLXYx",  pythSymbol: "Equity.US.GLXY/USD" },
+  // Ondo (use the same equity feed as the underlying)
+  { ticker: "AVGOon", pythSymbol: "Equity.US.AVGO/USD" },
+  { ticker: "METAon", pythSymbol: "Equity.US.META/USD" },
+  { ticker: "CRWDon", pythSymbol: "Equity.US.CRWD/USD" },
+  { ticker: "RKLBon", pythSymbol: "Equity.US.RKLB/USD" },
+  { ticker: "UNHon",  pythSymbol: "Equity.US.UNH/USD" },
+  { ticker: "HIMSon", pythSymbol: "Equity.US.HIMS/USD" },
+  { ticker: "VRTXon", pythSymbol: "Equity.US.VRTX/USD" },
+  { ticker: "VNQon",  pythSymbol: "Equity.US.VNQ/USD" },
+  // Crypto
   { ticker: "SOL",    pythSymbol: "Crypto.SOL/USD" },
   { ticker: "USDC",   pythSymbol: "Crypto.USDC/USD" },
+  { ticker: "BIO",    pythSymbol: "Crypto.BIO/USD" },
 ]
 
 // ── Vault compositions ─────────────────────────────────────────────
@@ -95,7 +109,10 @@ interface OHLCVRow {
   close: number
 }
 
-async function fetchOHLCV(
+// Pyth Benchmarks rejects ranges > 1y. Cap each window safely under that.
+const MAX_WINDOW_S = 364 * 86_400
+
+async function fetchSingleWindow(
   pythSymbol: string,
   from: number,
   to: number,
@@ -106,21 +123,52 @@ async function fetchOHLCV(
   if (!res.ok) throw new Error(`${pythSymbol}: HTTP ${res.status}`)
   const json = (await res.json()) as {
     s: string
-    t: number[]
-    o: number[]
-    h: number[]
-    l: number[]
-    c: number[]
+    errmsg?: string
+    t?: number[]
+    o?: number[]
+    h?: number[]
+    l?: number[]
+    c?: number[]
   }
-  if (json.s !== "ok" || !json.t?.length) return []
+  if (json.s === "no_data") return []
+  if (json.s !== "ok" || !json.t?.length) {
+    if (json.errmsg) throw new Error(`${pythSymbol}: ${json.errmsg}`)
+    return []
+  }
   return json.t.map((ts, i) => ({
     ts,
     date: new Date(ts * 1000).toISOString().slice(0, 10),
-    open: json.o[i],
-    high: json.h[i],
-    low: json.l[i],
-    close: json.c[i],
+    open: json.o![i],
+    high: json.h![i],
+    low: json.l![i],
+    close: json.c![i],
   }))
+}
+
+async function fetchOHLCV(
+  pythSymbol: string,
+  from: number,
+  to: number,
+  resolution: string,
+): Promise<OHLCVRow[]> {
+  // Chunk into ≤364-day windows for Pyth's 1-year cap; merge + de-dup by ts.
+  const chunks: { from: number; to: number }[] = []
+  let cursor = from
+  while (cursor < to) {
+    const next = Math.min(cursor + MAX_WINDOW_S, to)
+    chunks.push({ from: cursor, to: next })
+    cursor = next
+  }
+
+  const results = await Promise.all(
+    chunks.map((c) => fetchSingleWindow(pythSymbol, c.from, c.to, resolution)),
+  )
+
+  const byTs = new Map<number, OHLCVRow>()
+  for (const rows of results) {
+    for (const r of rows) byTs.set(r.ts, r)
+  }
+  return [...byTs.values()].sort((a, b) => a.ts - b.ts)
 }
 
 // ── CSV helpers ─────────────────────────────────────────────────────

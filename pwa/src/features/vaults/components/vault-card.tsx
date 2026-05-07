@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card"
 import { Row } from "@/components/ui/row"
 import { toTitleCase } from "@/lib/format"
-import type { Vault } from "../api"
+import type { VaultResponse as Vault } from "../hooks/use-vaults"
 
 export function VaultCard({ vault }: { vault: Vault }) {
   return (

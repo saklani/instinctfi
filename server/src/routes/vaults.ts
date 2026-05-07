@@ -1,116 +1,95 @@
 import { Hono } from "hono"
 import { db } from "../db/index.js"
-import { vaults, compositions, stocks, stockPrices } from "../db/schema.js"
-import { and, eq, gte } from "drizzle-orm"
-import { fetchVault as fetchSymmetryVault } from "../lib/symmetry.js"
+import { vaults, compositions, stocks, vaultNav } from "../db/schema.js"
+import { and, asc, desc, eq, gte, sql } from "drizzle-orm"
 
 const app = new Hono()
 
-// ── Helpers ─────────────────────────────────────────────
-
-interface NavSnapshot {
-  nav: number | null
-  delta24h: number | null
+type CompositionRow = {
+  weightBps: number
+  stock: typeof stocks.$inferSelect
 }
 
-/** Live NAV from Symmetry on-chain via Pyth oracles. 24h delta is best-effort
- *  from the most recent prior-day basket close in stock_prices (≥50% weight
- *  coverage); when history is missing, NAV still renders and delta is null. */
-async function computeNavSnapshot(
-  vaultId: string,
-  vaultAddress: string,
-): Promise<NavSnapshot> {
-  let nav: number | null = null
-  try {
-    const v = await fetchSymmetryVault(vaultAddress)
-    if (v.price != null) nav = Number(v.price.toString())
-  } catch {
-    // Surface as em-dash on the client; don't fail the whole list response.
-  }
-
-  if (nav == null) return { nav: null, delta24h: null }
-
-  const cutoff = new Date(Date.now() - 7 * 86_400_000).toISOString().slice(0, 10)
-  const today = new Date().toISOString().slice(0, 10)
-  const rows = await db
-    .select({
-      date: stockPrices.date,
-      weightBps: compositions.weightBps,
-      close: stockPrices.close,
-    })
-    .from(compositions)
-    .innerJoin(stockPrices, eq(stockPrices.stockId, compositions.stockId))
-    .where(
-      and(eq(compositions.vaultId, vaultId), gte(stockPrices.date, cutoff)),
-    )
-
-  const byDate = new Map<string, { sum: number; weight: number }>()
-  for (const r of rows) {
-    if (r.date >= today) continue
-    const slot = byDate.get(r.date) ?? { sum: 0, weight: 0 }
-    const w = r.weightBps / 10_000
-    slot.sum += Number(r.close) * w
-    slot.weight += w
-    byDate.set(r.date, slot)
-  }
-  const series = [...byDate.entries()]
-    .filter(([, v]) => v.weight >= 0.5)
-    .map(([date, v]) => ({ date, value: v.sum / v.weight }))
-    .sort((a, b) => a.date.localeCompare(b.date))
-
-  const prev = series.length > 0 ? series[series.length - 1].value : null
-  const delta = prev != null && prev !== 0 ? (nav - prev) / prev : null
-  return { nav, delta24h: delta }
-}
-
-async function loadCompositions(vaultId: string) {
-  return db
-    .select({
-      weightBps: compositions.weightBps,
-      stock: stocks,
-    })
-    .from(compositions)
-    .innerJoin(stocks, eq(compositions.stockId, stocks.id))
-    .where(eq(compositions.vaultId, vaultId))
+/** Latest two `vault_nav` rows → headline NAV + 24h delta. */
+function snapshotFromRows(rows: { value: string }[]) {
+  const nav = rows[0] ? Number(rows[0].value) : null
+  const prev = rows[1] ? Number(rows[1].value) : null
+  const delta24h =
+    nav != null && prev != null && prev !== 0 ? (nav - prev) / prev : null
+  return { nav, delta24h }
 }
 
 // ── Routes ──────────────────────────────────────────────
 
 app.get("/", async (c) => {
-  const allVaults = await db.select().from(vaults)
+  const [allVaults, compRows, navRows] = await Promise.all([
+    db.select().from(vaults),
+    db
+      .select({
+        vaultId: compositions.vaultId,
+        weightBps: compositions.weightBps,
+        stock: stocks,
+      })
+      .from(compositions)
+      .innerJoin(stocks, eq(compositions.stockId, stocks.id)),
+    // Latest two NAV rows per vault via window function
+    db.execute<{ vault_id: string; value: string }>(sql`
+      SELECT vault_id, value FROM (
+        SELECT vault_id, value, date,
+          ROW_NUMBER() OVER (PARTITION BY vault_id ORDER BY date DESC) AS rn
+        FROM vault_nav
+      ) t WHERE rn <= 2 ORDER BY vault_id, date DESC
+    `),
+  ])
 
-  const result = await Promise.all(
-    allVaults.map(async (vault) => {
-      const [comp, snapshot] = await Promise.all([
-        loadCompositions(vault.id),
-        computeNavSnapshot(vault.id),
-      ])
-      return { ...vault, compositions: comp, ...snapshot }
-    }),
+  const compsByVault = new Map<string, CompositionRow[]>()
+  for (const r of compRows) {
+    const arr = compsByVault.get(r.vaultId) ?? []
+    arr.push({ weightBps: r.weightBps, stock: r.stock })
+    compsByVault.set(r.vaultId, arr)
+  }
+
+  const navByVault = new Map<string, { value: string }[]>()
+  for (const r of navRows.rows) {
+    const arr = navByVault.get(r.vault_id) ?? []
+    arr.push({ value: r.value })
+    navByVault.set(r.vault_id, arr)
+  }
+
+  return c.json(
+    allVaults.map((v) => ({
+      ...v,
+      compositions: compsByVault.get(v.id) ?? [],
+      ...snapshotFromRows(navByVault.get(v.id) ?? []),
+    })),
   )
-
-  return c.json(result)
 })
 
 app.get("/:id", async (c) => {
   const id = c.req.param("id")
-  const [vault] = await db
-    .select()
-    .from(vaults)
-    .where(eq(vaults.id, id))
-    .limit(1)
+  const [vault] = await db.select().from(vaults).where(eq(vaults.id, id)).limit(1)
 
   if (!vault) return c.json({ error: "Vault not found" }, 404)
 
-  const [comp, snapshot] = await Promise.all([
-    loadCompositions(id),
-    computeNavSnapshot(id),
+  const [compRows, navRows] = await Promise.all([
+    db
+      .select({ weightBps: compositions.weightBps, stock: stocks })
+      .from(compositions)
+      .innerJoin(stocks, eq(compositions.stockId, stocks.id))
+      .where(eq(compositions.vaultId, id)),
+    db
+      .select({ value: vaultNav.value })
+      .from(vaultNav)
+      .where(eq(vaultNav.vaultId, id))
+      .orderBy(desc(vaultNav.date))
+      .limit(2),
   ])
 
-  return c.json({ ...vault, compositions: comp, ...snapshot })
+  return c.json({ ...vault, compositions: compRows, ...snapshotFromRows(navRows) })
 })
 
-// GET /api/vaults/:id/nav?days=N — weighted NAV time series
+// GET /api/vaults/:id/nav?days=N — precomputed weighted NAV time series.
+// Source: `vault_nav` table, populated by scripts/compute-vault-nav.ts.
 app.get("/:id/nav", async (c) => {
   const id = c.req.param("id")
   const daysParam = Number(c.req.query("days") ?? 365)
@@ -118,35 +97,12 @@ app.get("/:id/nav", async (c) => {
   const cutoff = new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10)
 
   const rows = await db
-    .select({
-      date: stockPrices.date,
-      weightBps: compositions.weightBps,
-      close: stockPrices.close,
-    })
-    .from(compositions)
-    .innerJoin(stockPrices, eq(stockPrices.stockId, compositions.stockId))
-    .where(and(eq(compositions.vaultId, id), gte(stockPrices.date, cutoff)))
+    .select({ date: vaultNav.date, value: vaultNav.value })
+    .from(vaultNav)
+    .where(and(eq(vaultNav.vaultId, id), gte(vaultNav.date, cutoff)))
+    .orderBy(asc(vaultNav.date))
 
-  const compRows = await db
-    .select({ stockId: compositions.stockId })
-    .from(compositions)
-    .where(eq(compositions.vaultId, id))
-  const expectedTokens = compRows.length
-  if (expectedTokens === 0) return c.json([])
-
-  const byDate = new Map<string, { sum: number; count: number }>()
-  for (const r of rows) {
-    const slot = byDate.get(r.date) ?? { sum: 0, count: 0 }
-    slot.sum += Number(r.close) * (r.weightBps / 10_000)
-    slot.count++
-    byDate.set(r.date, slot)
-  }
-  const series = [...byDate.entries()]
-    .filter(([, v]) => v.count === expectedTokens)
-    .map(([date, v]) => ({ date, value: Number(v.sum.toFixed(4)) }))
-    .sort((a, b) => a.date.localeCompare(b.date))
-
-  return c.json(series)
+  return c.json(rows.map((r) => ({ date: r.date, value: Number(r.value) })))
 })
 
 export default app

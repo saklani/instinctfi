@@ -1,35 +1,24 @@
 import * as React from "react"
 
-import { useJupiterPrices } from "@/hooks/use-jupiter-prices"
-import { useVaults } from "./use-vault"
+import { useVaults } from "./use-vaults"
 import { buildRowData, nextSortDir, sortRows, type EnrichedRow } from "../lib"
 import type {
   VaultSortKey,
   VaultSortState,
 } from "../components/vault-row"
 
-/** Base hook — vaults + Jupiter prices, mapped to enriched rows. */
+/** Base hook — vaults from API, mapped to enriched rows. NAV/delta are server-computed. */
 export function useEnrichedVaults() {
-  const { vaults, loading: vaultsLoading, error } = useVaults()
-
-  const allMints = React.useMemo(() => {
-    const set = new Set<string>()
-    for (const v of vaults) {
-      for (const c of v.compositions) set.add(c.stock.address)
-    }
-    return [...set]
-  }, [vaults])
-
-  const { prices, loading: pricesLoading } = useJupiterPrices(allMints)
+  const { vaults, loading, error } = useVaults()
 
   const rows = React.useMemo<EnrichedRow[]>(
-    () => vaults.map((v) => buildRowData(v, prices)),
-    [vaults, prices],
+    () => vaults.map((v) => buildRowData(v)),
+    [vaults],
   )
 
   return {
     rows,
-    loading: vaultsLoading || pricesLoading,
+    loading,
     error,
   }
 }

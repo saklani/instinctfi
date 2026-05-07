@@ -9,7 +9,7 @@ import { MonoNumber } from "@/components/ui/mono-number"
 import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toTitleCase } from "@/lib/format"
-import type { Vault } from "../api"
+import type { VaultResponse as Vault } from "../hooks/use-vaults"
 import { useVaultNav } from "../hooks/use-vault-nav"
 import { durations, outQuart } from "@/components/motion"
 

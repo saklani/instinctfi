@@ -1,5 +1,4 @@
-import type { Vault } from "./api"
-import type { PriceMap } from "@/hooks/use-jupiter-prices"
+import type { VaultResponse as Vault } from "./hooks/use-vaults"
 import type {
   VaultRowData,
   VaultSortKey,
@@ -8,31 +7,12 @@ import type {
 
 export type EnrichedRow = VaultRowData
 
-export function computeVaultNav(vault: Vault, prices: PriceMap) {
-  let nav = 0
-  let weightedDelta = 0
-  let totalWeight = 0
-
-  for (const c of vault.compositions) {
-    const p = prices[c.stock.address]
-    if (!p) continue
-    const w = c.weightBps / 10_000
-    nav += w * p.usdPrice
-    weightedDelta += w * p.priceChange24h
-    totalWeight += w
+export function buildRowData(vault: Vault): EnrichedRow {
+  return {
+    vault,
+    nav: vault.nav ?? 0,
+    delta24h: vault.delta24h ?? 0,
   }
-
-  if (totalWeight > 0 && totalWeight < 0.99) {
-    nav /= totalWeight
-    weightedDelta /= totalWeight
-  }
-
-  return { nav, delta24h: weightedDelta }
-}
-
-export function buildRowData(vault: Vault, prices: PriceMap): EnrichedRow {
-  const { nav, delta24h } = computeVaultNav(vault, prices)
-  return { vault, nav, delta24h }
 }
 
 export function sortRows(rows: EnrichedRow[], sort: VaultSortState): EnrichedRow[] {

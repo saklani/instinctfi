@@ -24,7 +24,7 @@ import { Badge } from "@/components/ui/badge"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { FormError } from "@/components/ui/form-error"
 import { Skeleton } from "@/components/ui/skeleton"
-import type { Vault } from "@/features/vaults/api"
+import type { Vault } from "@/db/schema"
 import type { Order } from "@/features/orders/api"
 import { PathDraw, durations, outQuart } from "@/components/motion"
 
