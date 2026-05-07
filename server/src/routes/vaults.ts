@@ -83,7 +83,7 @@ app.get("/", async (c) => {
     allVaults.map(async (vault) => {
       const [comp, snapshot] = await Promise.all([
         loadCompositions(vault.id),
-        computeNavSnapshot(vault.id, vault.vaultAddress),
+        computeNavSnapshot(vault.id),
       ])
       return { ...vault, compositions: comp, ...snapshot }
     }),
@@ -104,7 +104,7 @@ app.get("/:id", async (c) => {
 
   const [comp, snapshot] = await Promise.all([
     loadCompositions(id),
-    computeNavSnapshot(id, vault.vaultAddress),
+    computeNavSnapshot(id),
   ])
 
   return c.json({ ...vault, compositions: comp, ...snapshot })
