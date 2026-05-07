@@ -1,0 +1,96 @@
+---
+const YEAR = new Date().getFullYear()
+
+const LINKS = [
+  { label: "How it works", href: "#how-it-works" },
+  { label: "Why Instinct", href: "#why-instinct" },
+  { label: "FAQ", href: "#faq" },
+]
+
+const SOCIALS = [
+  {
+    label: "Telegram",
+    href: "https://t.me/+zYR_6cl-wa03N2M1",
+    icon: "telegram" as const,
+  },
+  {
+    label: "X",
+    href: "https://x.com/instinctfi",
+    icon: "x" as const,
+  },
+]
+---
+
+<footer class="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 pb-12 pt-16">
+  <div class="h-px w-full bg-gradient-to-r from-transparent via-black/10 to-transparent"></div>
+
+  <div class="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
+    <div class="flex flex-col gap-3 max-w-sm">
+      <span class="font-heading text-2xl tracking-tight text-foreground">Instinct</span>
+      <p class="text-sm">
+        Curated tokenized stock baskets on Solana. Track the smart money through themed equity baskets, on-chain.
+      </p>
+    </div>
+
+    <nav class="flex flex-col gap-3" aria-label="Footer">
+      <span class="eyebrow">Explore</span>
+      <ul class="flex flex-col gap-2">
+        {LINKS.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              class="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="flex flex-col gap-3">
+      <span class="eyebrow">Follow</span>
+      <ul class="flex items-center gap-2">
+        {SOCIALS.map((s) => (
+          <li>
+            <a
+              href={s.href}
+              target="_blank"
+              rel="noreferrer noopener"
+              aria-label={s.label}
+              class="inline-flex size-9 items-center justify-center rounded-full border border-black/5 bg-white text-foreground transition-all hover:border-black/10 hover:text-primary hover:shadow-[0_4px_16px_-8px_rgba(2,76,199,0.4)]"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                {s.icon === "telegram" && (
+                  <path d="m22 2-7 20-4-9-9-4Z" />
+                )}
+                {s.icon === "x" && (
+                  <>
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                  </>
+                )}
+              </svg>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+
+  <div class="flex flex-col items-start justify-between gap-3 border-t border-black/5 pt-6 text-xs text-muted-foreground md:flex-row md:items-center">
+    <span>© {YEAR} Instinct. All rights reserved.</span>
+    <span>Built on Solana.</span>
+  </div>
+</footer>

@@ -1,0 +1,44 @@
+---
+import { Button } from "@/components/ui/button"
+---
+
+<section class="mx-auto flex w-full max-w-5xl px-6 py-24">
+  <div
+    class="relative flex w-full flex-col items-center gap-6 overflow-hidden rounded-3xl border border-black/5 bg-foreground px-6 py-16 text-center text-white shadow-[0_24px_64px_-32px_rgba(2,76,199,0.5)] md:px-12 md:py-20"
+  >
+    <span
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(circle_at_50%_0%,rgba(2,76,199,0.45),transparent_60%)]"
+    ></span>
+    <span
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.08)_1px,transparent_0)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_70%_50%_at_50%_50%,black_40%,transparent_100%)]"
+    ></span>
+
+    <div class="relative z-10 flex flex-col items-center gap-4">
+      <span class="eyebrow text-white/50">Get in early</span>
+      <h2 class="text-white">
+        The next narrative is already moving.
+        <br class="hidden md:block" />
+        Be there before the crowd.
+      </h2>
+      <p class="max-w-xl text-white/65">
+        Join the private alpha and start riding tokenized themes in one click.
+      </p>
+    </div>
+
+    <div class="relative z-10 mt-2 flex flex-col items-center gap-3 sm:flex-row">
+      <Button size={"lg"} className="bg-white text-foreground hover:bg-white/90 px-8 text-base">
+        <a href={"https://t.me/+zYR_6cl-wa03N2M1"} target="_blank" rel="noreferrer noopener">
+          Join the Telegram →
+        </a>
+      </Button>
+      <a
+        href="#how-it-works"
+        class="text-sm text-white/60 underline-offset-4 transition-colors hover:text-white hover:underline"
+      >
+        See how it works
+      </a>
+    </div>
+  </div>
+</section>

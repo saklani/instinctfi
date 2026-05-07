@@ -3,7 +3,9 @@ import Layout from "@/layouts/main.astro"
 import Hero from "@/components/hero.astro"
 import Features from "@/components/features.astro"
 import HowItWorks from "@/components/how-it-works.astro"
+import CTA from "@/components/cta.astro"
 import FAQ from "@/components/faq.astro"
+import Footer from "@/components/footer.astro"
 import Image from "astro/components/Image.astro"
 ---
 
@@ -11,8 +13,22 @@ import Image from "astro/components/Image.astro"
   <header class="flex w-full justify-center h-20">
     <Image src="/logo.gif" alt="Instinct" width={800} height={266} class="w-auto mix-blend-multiply" />
   </header>
-  <Hero/>
+  <Hero />
+  <div class="mx-auto w-full max-w-5xl px-6">
+    <div class="h-px w-full bg-gradient-to-r from-transparent via-black/10 to-transparent"></div>
+  </div>
   <Features />
+  <div class="mx-auto w-full max-w-5xl px-6">
+    <div class="h-px w-full bg-gradient-to-r from-transparent via-black/10 to-transparent"></div>
+  </div>
   <HowItWorks />
+  <div class="mx-auto w-full max-w-5xl px-6">
+    <div class="h-px w-full bg-gradient-to-r from-transparent via-black/10 to-transparent"></div>
+  </div>
+  <CTA />
+  <div class="mx-auto w-full max-w-5xl px-6">
+    <div class="h-px w-full bg-gradient-to-r from-transparent via-black/10 to-transparent"></div>
+  </div>
   <FAQ />
+  <Footer />
 </Layout>
