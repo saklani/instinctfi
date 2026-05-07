@@ -6,6 +6,7 @@ import {
   integer,
   numeric,
   pgEnum,
+  uniqueIndex,
 } from "drizzle-orm/pg-core"
 
 // ── Enums ───────────────────────────────────────────────
@@ -33,6 +34,24 @@ export const stocks = pgTable("stocks", {
   decimals: integer("decimals").notNull().default(8),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 })
+
+// ── Stock Prices ────────────────────────────────────────
+
+export const stockPrices = pgTable(
+  "stock_prices",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    stockId: uuid("stock_id")
+      .notNull()
+      .references(() => stocks.id, { onDelete: "cascade" }),
+    date: text("date").notNull(), // YYYY-MM-DD
+    open: numeric("open").notNull(),
+    high: numeric("high").notNull(),
+    low: numeric("low").notNull(),
+    close: numeric("close").notNull(),
+  },
+  (t) => [uniqueIndex("uniq_stock_price_date").on(t.stockId, t.date)],
+)
 
 // ── Vaults ──────────────────────────────────────────────
 
