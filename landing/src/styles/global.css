@@ -104,6 +104,11 @@
   html {
     @apply font-sans;
   }
+
+
+  .responsive {
+    @apply text-center lg:text-left;
+  }
 }
 
 
@@ -136,7 +141,7 @@ h3 {
 
 p {
   font-family: var(--font-sans);
-  font-size: clamp(0.9rem, 1vw, 1rem);
+  font-size: clamp(0.9rem, 1vw, 1.2rem);
   line-height: 1.6;
   color: var(--color-muted-foreground);
 }
@@ -144,9 +149,9 @@ p {
 .eyebrow {
   font-family: var(--font-sans);
   font-weight: 500;
-  font-size: clamp(0.7rem, 0.9vw, 0.78rem);
+  font-size: clamp(0.7rem, 0.9vw, 1.1rem);
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.1em;
   color: var(--color-muted-foreground);
 }
 
@@ -173,3 +178,4 @@ p {
     transparent 100%
   );
 }
+
