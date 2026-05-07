@@ -10,20 +10,18 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
   integrations: [react()],
-  experimental: {
-    fonts: [
-      {
-        provider: fontProviders.fontsource(),
-        name: "Inter Variable",
-        cssVariable: "--font-instinct-sans",
-        subsets: ["latin"],
-      },
-      {
-        provider: fontProviders.fontsource(),
-        name: "Bricolage Grotesque Variable",
-        cssVariable: "--font-instinct-heading",
-        subsets: ["latin"],
-      },
-    ],
-  },
+  fonts: [
+    {
+      provider: fontProviders.fontsource(),
+      name: "Inter",
+      cssVariable: "--font-inter",
+      subsets: ["latin"],
+    },
+    {
+      provider: fontProviders.fontsource(),
+      name: "Bricolage Grotesque",
+      cssVariable: "--font-bricolage-grotesque",
+      subsets: ["latin"],
+    },
+  ],
 })
