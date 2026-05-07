@@ -37,7 +37,7 @@ app.get("/:id", async (c) => {
 app.get("/:id/prices", async (c) => {
   const id = c.req.param("id")
   const daysParam = Number(c.req.query("days") ?? 365)
-  const days = Math.min(Math.max(Number.isFinite(daysParam) ? daysParam : 365, 1), 730)
+  const days = Math.min(Math.max(Number.isFinite(daysParam) ? daysParam : 365, 1), 1825)
 
   const cutoff = new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10)
 
