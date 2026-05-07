@@ -3,53 +3,135 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
 
-const HOLDINGS = [
-  { ticker: "NVDAx", src: "https://ik.imagekit.io/8dj2mc8pj/NVDAx.png" },
-  { ticker: "MSTRx", src: "https://ik.imagekit.io/8dj2mc8pj/MSTRx.png" },
-  { ticker: "COINx", src: "https://ik.imagekit.io/8dj2mc8pj/COINx.png" },
-  { ticker: "PLTRx", src: "https://ik.imagekit.io/8dj2mc8pj/PLTRx.png" },
-  { ticker: "HOODx", src: "https://ik.imagekit.io/8dj2mc8pj/HOODx.png" },
-  { ticker: "GLXYx", src: "https://ik.imagekit.io/8dj2mc8pj/GLXYx.png" },
+type Vault = {
+  name: string
+  icon: string
+  holdings: { ticker: string; src: string }[]
+  spark: number[]
+  navUsd: number
+  delta24h: number
+}
+
+const VAULTS: Vault[] = [
+  {
+    name: "Bald Founder Index",
+    icon: "https://ik.imagekit.io/8dj2mc8pj/bald_founder_index.png",
+    holdings: [
+      { ticker: "AMZNx", src: "https://ik.imagekit.io/8dj2mc8pj/AMZNx.png" },
+      { ticker: "COINx", src: "https://ik.imagekit.io/8dj2mc8pj/COINx.png" },
+      { ticker: "MSFTx", src: "https://ik.imagekit.io/8dj2mc8pj/MSFTx.png" },
+      { ticker: "GLXYx", src: "https://ik.imagekit.io/8dj2mc8pj/GLXYx.png" },
+    ],
+    spark: [100, 102, 99, 104, 108, 106, 112, 115, 113, 119, 124, 122, 128, 132, 130, 138, 144, 141, 149, 156],
+    navUsd: 1.56,
+    delta24h: 4.21,
+  },
+  {
+    name: "Reverse Chamath",
+    icon: "https://ik.imagekit.io/8dj2mc8pj/reverse_chamath.png",
+    holdings: [],
+    spark: [],
+    navUsd: 0,
+    delta24h: 0,
+  },
+  {
+    name: "Bryan Johnson Blueprint",
+    icon: "https://ik.imagekit.io/8dj2mc8pj/bryan_johnson_blueprint.png",
+    holdings: [],
+    spark: [],
+    navUsd: 0,
+    delta24h: 0,
+  },
 ]
 
-const SPARK = [
-  100, 102, 99, 104, 108, 106, 112, 115, 113, 119, 124, 122, 128, 132, 130, 138, 144, 141, 149, 156,
-]
+const PEEK_HEIGHT = 68
+const PEEK_INSET = 14
 
-const NAV_USD = 1.56
+type VaultPreviewProps = {
+  className?: string
+  navUsd?: number
+  delta24h?: number
+  spark?: number[]
+}
 
-const DELTA_PCT = 4.21
-
-export function VaultPreview({ className }: { className?: string }) {
+export function VaultPreview({ className, navUsd, delta24h, spark }: VaultPreviewProps) {
+  const [defaultFront, ...behind] = VAULTS
+  const front: Vault = {
+    ...defaultFront,
+    navUsd: navUsd ?? defaultFront.navUsd,
+    delta24h: delta24h ?? defaultFront.delta24h,
+    spark: spark && spark.length > 0 ? spark : defaultFront.spark,
+  }
+  const wrapperPaddingTop = behind.length * PEEK_HEIGHT
   return (
-    <Card className={cn("relative justify-between gap-5 p-6", className)}>
-      <div className="flex flex-col gap-3">
-        <h3 className="line-clamp-2 text-2xl font-semibold leading-[1.05] tracking-tight text-foreground">
-          Totally not an AI bubble
-        </h3>
-        <HoldingStack />
-      </div>
+    <div
+      className={cn("relative", className)}
+      style={{ paddingTop: wrapperPaddingTop }}
+    >
+      {behind.map((v, i) => {
+        const depth = i + 1
+        const top = (behind.length - depth) * PEEK_HEIGHT
+        const inset = depth * PEEK_INSET
+        return (
+          <div
+            key={v.name}
+            aria-hidden="true"
+            className="absolute"
+            style={{ top, left: inset, right: inset, zIndex: behind.length - 1 - i }}
+          >
+            <div className="flex h-20 items-center gap-3 rounded-2xl bg-card px-6 ring-1 ring-foreground/10">
+              <img
+                src={v.icon}
+                alt=""
+                className="size-10 rounded-full bg-secondary object-cover ring-1 ring-black/5"
+              />
+              <span className="truncate text-2xl font-semibold leading-[1.05] tracking-tight text-foreground">
+                {v.name}
+              </span>
+            </div>
+          </div>
+        )
+      })}
 
-      <Sparkline values={SPARK} positive={DELTA_PCT >= 0} />
-
-      <div className="flex items-end justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-wider text-muted-foreground/70">NAV</span>
-          <span className="font-mono text-xl tabular-nums text-foreground">
-            ${NAV_USD.toFixed(2)}
-          </span>
+      <Card
+        className="relative justify-between gap-5 p-6"
+        style={{ zIndex: behind.length + 1 }}
+      >
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <img
+              src={front.icon}
+              alt={front.name}
+              className="size-10 rounded-full bg-secondary object-cover ring-1 ring-black/5"
+            />
+            <h3 className="line-clamp-2 text-2xl font-semibold leading-[1.05] tracking-tight text-foreground">
+              {front.name}
+            </h3>
+          </div>
+          <HoldingStack holdings={front.holdings} />
         </div>
-        <Delta value={DELTA_PCT} />
-      </div>
-    </Card>
+
+        <Sparkline values={front.spark} positive={front.delta24h >= 0} />
+
+        <div className="flex items-end justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <span className="text-xs uppercase tracking-wider text-muted-foreground/70">NAV</span>
+            <span className="font-mono text-xl tabular-nums text-foreground">
+              ${front.navUsd.toFixed(2)}
+            </span>
+          </div>
+          <Delta value={front.delta24h} />
+        </div>
+      </Card>
+    </div>
   )
 }
 
-function HoldingStack() {
+function HoldingStack({ holdings }: { holdings: Vault["holdings"] }) {
   return (
     <div className="flex items-center gap-2">
       <div className="flex items-center -space-x-1.5">
-        {HOLDINGS.slice(0, 6).map((h) => (
+        {holdings.slice(0, 6).map((h) => (
           <img
             key={h.ticker}
             src={h.src}
@@ -60,7 +142,7 @@ function HoldingStack() {
           />
         ))}
       </div>
-      <span className="text-xs text-muted-foreground/70">{HOLDINGS.length} holdings</span>
+      <span className="text-xs text-muted-foreground/70">{holdings.length} holdings</span>
     </div>
   )
 }

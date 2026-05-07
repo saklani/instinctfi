@@ -8,26 +8,76 @@ const POINTS = [
   128, 126, 131, 134, 132, 137, 142, 140, 145, 149, 147, 152, 156, 154, 159,
 ]
 
-export function NavChartPreview({ className }: { className?: string }) {
+type NavChartPreviewProps = {
+  className?: string
+  values?: number[]
+  latestNav?: number
+  label?: string
+  periodLabel?: string
+  startInvestment?: number
+}
+
+const usdFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
+const usdWholeFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+})
+
+export function NavChartPreview({
+  className,
+  values,
+  latestNav,
+  label = "Vault NAV",
+  periodLabel,
+  startInvestment,
+}: NavChartPreviewProps) {
+  const series = values && values.length > 1 ? values : POINTS
+  const latest = latestNav ?? series[series.length - 1]
+  const start = series[0]
+  const periodPct = start > 0 ? ((latest - start) / start) * 100 : 0
+  const periodPositive = periodPct >= 0
+  const span = series.length
+  const computedPeriod =
+    periodLabel ??
+    (span >= 300 ? "1Y" : span >= 60 ? "3M" : span >= 25 ? "1M" : `${span}d`)
+
   return (
     <Card className={cn("p-6", className)}>
       <div className="flex flex-col gap-4">
         <div className="flex items-baseline justify-between gap-4">
           <div className="flex flex-col gap-1">
             <span className="text-xs uppercase tracking-wider text-muted-foreground/70">
-              Portfolio NAV
+              {label}
             </span>
             <span className="font-mono text-3xl font-semibold tabular-nums text-foreground">
-              $1,584.20
+              {usdFormatter.format(latest)}
             </span>
+            {startInvestment !== undefined && (
+              <span className="text-xs text-muted-foreground">
+                {usdWholeFormatter.format(startInvestment)} invested · {computedPeriod}
+              </span>
+            )}
           </div>
-          <span className="inline-flex items-baseline gap-1 rounded-md bg-emerald-500/10 px-2 py-1 text-sm font-medium tabular-nums text-emerald-600">
-            <span>+12.4%</span>
-            <span className="text-xs text-emerald-600/70">1M</span>
+          <span
+            className={cn(
+              "inline-flex items-baseline rounded-md px-2 py-1 text-sm font-medium",
+              periodPositive
+                ? "bg-emerald-500/10 text-emerald-600"
+                : "bg-red-500/10 text-red-600",
+            )}
+          >
+            {periodPositive ? "+" : ""}{periodPct.toFixed(2)}%
           </span>
         </div>
 
-        <Chart values={POINTS} />
+        <Chart values={series} />
       </div>
     </Card>
   )

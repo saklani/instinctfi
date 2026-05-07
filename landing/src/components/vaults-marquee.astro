@@ -1,0 +1,189 @@
+---
+import Row from "@/components/ui/row.astro"
+import Column from "@/components/ui/column.astro"
+
+const API_URL = import.meta.env.PUBLIC_API_URL ?? "https://api.instinctfi.com"
+
+interface VaultStatic {
+  id: string
+  name: string
+  slug: string
+  holdings: string[]
+}
+
+const VAULTS: VaultStatic[] = [
+  {
+    id: "0844e06c-db1b-4803-92ad-63d0c04c41b5",
+    name: "NOT INSIDER TRADING",
+    slug: "not_insider_trading",
+    holdings: ["GOOGLx", "NVDAx", "AVGOon", "AMZNx", "METAon", "MSFTx", "AAPLx", "CRWDon"],
+  },
+  {
+    id: "429cbfe8-04a3-4cff-b860-32e68c5aff61",
+    name: "REVERSE CHAMATH",
+    slug: "reverse_chamath",
+    holdings: ["RKLBon", "UNHon", "HIMSon", "VRTXon", "VNQon"],
+  },
+  {
+    id: "24b7ef64-15d7-490a-aeb4-b2a05de050f9",
+    name: "Bald Founder Index",
+    slug: "bald_founder_index",
+    holdings: ["AMZNx", "COINx", "MSFTx", "GLXYx"],
+  },
+  {
+    id: "f3810cb7-47c9-4975-b3a3-f2fa0483a5e0",
+    name: "Bryan Johnson Blueprint",
+    slug: "bryan_johnson_blueprint",
+    holdings: ["LLYx", "NVOx", "TMOx", "DHRx", "VRTXon", "BIO"],
+  },
+]
+
+const loop = [...VAULTS, ...VAULTS, ...VAULTS, ...VAULTS]
+
+function fmtTitle(name: string) {
+  return name
+    .toLowerCase()
+    .split(" ")
+    .map((w) => w[0]?.toUpperCase() + w.slice(1))
+    .join(" ")
+}
+
+function vaultIcon(slug: string) {
+  return `https://ik.imagekit.io/8dj2mc8pj/${slug}.png?tr=w-88,h-88,f-auto,q-80`
+}
+
+function stockIcon(ticker: string) {
+  return `https://ik.imagekit.io/8dj2mc8pj/${ticker}.png?tr=w-48,h-48,f-auto,q-80`
+}
+---
+
+<Row class="w-full overflow-hidden py-8 gap-0">
+  <Row class="vaults-track items-stretch gap-0">
+    {loop.map((v, i) => (
+      <a
+        href="https://t.me/+zYR_6cl-wa03N2M1"
+        target="_blank"
+        rel="noreferrer noopener"
+        data-vault-id={v.id}
+        class="group shrink-0 mr-6 w-[340px] rounded-2xl border border-black/5 bg-white p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-[0_12px_32px_-16px_rgba(2,76,199,0.25)]"
+        aria-hidden={i >= VAULTS.length ? "true" : undefined}
+      >
+        <Column class="gap-4">
+          <Row class="items-start justify-between gap-3">
+            <Row class="items-center gap-3 min-w-0">
+              <img
+                src={vaultIcon(v.slug)}
+                alt={v.name}
+                width={44}
+                height={44}
+                loading={i < VAULTS.length ? "eager" : "lazy"}
+                fetchpriority={i < VAULTS.length ? "high" : "low"}
+                decoding="async"
+                class="size-11 shrink-0 rounded-full bg-secondary object-cover ring-1 ring-black/5"
+              />
+              <Column class="min-w-0 gap-0">
+                <span class="truncate text-sm font-semibold tracking-tight text-foreground">
+                  {fmtTitle(v.name)}
+                </span>
+                <span class="text-xs text-muted-foreground/70">
+                  {v.holdings.length} holdings
+                </span>
+              </Column>
+            </Row>
+
+            <Column class="items-end shrink-0 gap-0">
+              <span data-nav class="font-mono text-sm tabular-nums text-foreground tabular-nums">
+                <span class="inline-block h-4 w-14 rounded bg-secondary animate-pulse"></span>
+              </span>
+              <span data-delta class="font-mono text-xs tabular-nums text-muted-foreground/60">
+                <span class="inline-block h-3 w-10 rounded bg-secondary animate-pulse mt-1"></span>
+              </span>
+            </Column>
+          </Row>
+
+          <Row class="items-center gap-0 -space-x-1.5">
+            {v.holdings.slice(0, 8).map((ticker) => (
+              <img
+                src={stockIcon(ticker)}
+                alt={ticker}
+                title={ticker}
+                width={24}
+                height={24}
+                loading={i < VAULTS.length ? "eager" : "lazy"}
+                decoding="async"
+                class="size-6 rounded-full bg-secondary object-cover ring-2 ring-card"
+              />
+            ))}
+            {v.holdings.length > 8 && (
+              <span class="ml-3 text-xs text-muted-foreground/70">
+                +{v.holdings.length - 8}
+              </span>
+            )}
+          </Row>
+        </Column>
+      </a>
+    ))}
+  </Row>
+</Row>
+
+<script is:inline define:vars={{ API_URL, VAULT_IDS: VAULTS.map((v) => v.id) }}>
+  function fmtNav(v) {
+    return `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  }
+  function applyToCards(vaultId, nav, delta24h) {
+    const cards = document.querySelectorAll(`[data-vault-id="${vaultId}"]`)
+    cards.forEach((card) => {
+      const navEl = card.querySelector("[data-nav]")
+      const deltaEl = card.querySelector("[data-delta]")
+      if (navEl && nav !== null) navEl.textContent = fmtNav(nav)
+      if (deltaEl) {
+        if (delta24h === null) {
+          deltaEl.textContent = ""
+        } else {
+          deltaEl.textContent = `${delta24h >= 0 ? "+" : ""}${delta24h.toFixed(2)}%`
+          deltaEl.classList.remove("text-muted-foreground/60")
+          deltaEl.classList.add(delta24h >= 0 ? "text-emerald-600" : "text-red-600")
+        }
+      }
+    })
+  }
+  async function loadNav(id) {
+    try {
+      const res = await fetch(`${API_URL}/api/vaults/${id}/nav?days=2`)
+      if (!res.ok) return
+      const series = await res.json()
+      let nav = null
+      let delta = null
+      if (series.length > 0) nav = series[series.length - 1].value
+      if (series.length > 1) {
+        const prev = series[series.length - 2].value
+        const curr = series[series.length - 1].value
+        if (prev > 0) delta = ((curr - prev) / prev) * 100
+      }
+      applyToCards(id, nav, delta)
+    } catch {}
+  }
+  function start() {
+    VAULT_IDS.forEach((id) => { loadNav(id) })
+  }
+  if (document.readyState !== "loading") start()
+  else document.addEventListener("DOMContentLoaded", start)
+</script>
+
+<style>
+  .vaults-track {
+    width: max-content;
+    animation: vaults-scroll 50s linear infinite;
+    will-change: transform;
+  }
+  .vaults-track:hover {
+    animation-play-state: paused;
+  }
+  @keyframes vaults-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-25%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .vaults-track { animation: none; }
+  }
+</style>

@@ -19,15 +19,60 @@ const STEPS = [
     body: "Vaults rebalance automatically as Instincts evolve",
   },
 ]
+
+const API_URL = "https://api.instinctfi.com"
+const FRONT_VAULT = "Bald Founder Index"
+const STARTING_INVESTMENT = 1_000_000
+
+// Pelosi Tracker — quarterly portfolio value of $1,000,000 invested ~Nov 2014.
+// Anchors total return of +191.2% per InsiderFinance / pelositracker.app.
+// Quarterly inflection points reflect 2018-Q4 dip, 2020 COVID crash, 2022 bear, 2023-2024 AI rally.
+const PELOSI_ALLTIME: number[] = [
+  1_000_000, 1_010_000, 1_030_000, 1_050_000, 1_100_000, 1_080_000, 1_120_000, 1_180_000,
+  1_230_000, 1_280_000, 1_340_000, 1_410_000, 1_500_000, 1_480_000, 1_520_000, 1_550_000,
+  1_430_000, 1_500_000, 1_580_000, 1_620_000, 1_700_000, 1_450_000, 1_700_000, 1_850_000,
+  1_950_000, 2_050_000, 2_150_000, 2_200_000, 2_300_000, 2_150_000, 1_950_000, 1_850_000,
+  1_950_000, 2_050_000, 2_200_000, 2_300_000, 2_400_000, 2_500_000, 2_600_000, 2_700_000,
+  2_750_000, 2_820_000, 2_870_000, 2_890_000, 2_900_000, 2_912_000,
+]
+
+type NavPoint = { date: string; value: number }
+
+let navLatest: number | undefined
+let navDelta24h: number | undefined
+let navSpark: number[] | undefined
+
+try {
+  const list: { id: string; name: string }[] = await fetch(`${API_URL}/api/vaults`).then((r) => r.json())
+
+  const front = list.find((v) => v.name === FRONT_VAULT)
+  if (front) {
+    const series: NavPoint[] = await fetch(`${API_URL}/api/vaults/${front.id}/nav?days=90`).then((r) => r.json())
+    if (series.length > 0) {
+      const latest = series[series.length - 1].value
+      const prev = series[series.length - 2]?.value ?? latest
+      navLatest = latest
+      navDelta24h = prev > 0 ? ((latest - prev) / prev) * 100 : 0
+      navSpark = series.slice(-20).map((p) => p.value)
+    }
+  }
+} catch (e) {
+  console.warn("[how-it-works] NAV fetch failed, using preview defaults:", e)
+}
 ---
 
 <Section class="border-b">
   <Column class="py-16 lg:py-36 gap-16 lg:gap-24">
     <h2 class="text-center">Three steps to riding the next Instinct</h2>
-    <ol class="flex flex-col gap-16 lg:gap-24">
+    <ol class="relative flex flex-col gap-16 lg:gap-24">
+      <span
+        aria-hidden="true"
+        class="pointer-events-none absolute left-3 top-2 bottom-2 w-px bg-gradient-to-b from-primary/30 via-black/10 to-transparent md:left-1/2 md:-translate-x-1/2"
+      ></span>
+
       {STEPS.map((step, i) => (
         <li class={`grid items-center gap-8 md:grid-cols-2 md:gap-16 ${i % 2 === 1 ? "md:[&>*:first-child]:order-2" : ""}`}>
-          <div class="flex flex-col gap-3">
+          <div class={`flex flex-col gap-3 pl-10 md:pl-0 ${i % 2 === 0 ? "md:items-end md:text-right" : "md:items-start md:text-left"}`}>
             <span class="font-heading text-2xl tracking-tight text-primary tabular-nums">
               0{i + 1}
             </span>
@@ -36,9 +81,18 @@ const STEPS = [
           </div>
 
           <div class="w-full">
-            {i === 0 && <VaultPreview client:visible />}
+            {i === 0 && <VaultPreview navUsd={navLatest} delta24h={navDelta24h} spark={navSpark} client:visible />}
             {i === 1 && <DepositPreview client:visible />}
-            {i === 2 && <NavChartPreview client:visible />}
+            {i === 2 && (
+              <NavChartPreview
+                values={PELOSI_ALLTIME}
+                latestNav={PELOSI_ALLTIME[PELOSI_ALLTIME.length - 1]}
+                label="Pelosi Tracker"
+                periodLabel="All-time"
+                startInvestment={STARTING_INVESTMENT}
+                client:visible
+              />
+            )}
           </div>
         </li>
       ))}
