@@ -1,4 +1,7 @@
 ---
+import Column from "@/components/ui/column.astro"
+import Row from "@/components/ui/row.astro"
+
 const YEAR = new Date().getFullYear()
 
 const SOCIALS = [
@@ -18,50 +21,52 @@ const SOCIALS = [
 <footer class="mx-auto flex w-full max-w-7xl flex-col gap-10 px-6 pb-12 pt-16">
   <div class="h-px w-full bg-gradient-to-r from-transparent via-black/10 to-transparent"></div>
 
-  <div class="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
-    <div class="flex flex-col gap-3 max-w-sm">
-      <span class="font-heading text-2xl tracking-tight text-foreground">Instinct</span>
-      <p class="text-sm">
-        Curated tokenized stock vaults on Solana, track the smartest money through Instinct equity vaults, onchain
+  <Column class="lg:flex-row lg:justify-between gap-4">
+    <Column class="items-start"}>
+      <img
+        src="/instinct_wordmark.svg"
+        alt="Instinct"
+        class="h-6 "
+      />
+      <p class="text-sm max-w-sm">
+        Curated tokenized stock vaults on Solana, track the smartest money through Instinct equity vaults
       </p>
-    </div>
+    </Column>
 
-    <div class="flex flex-col gap-3">
+    <Column>
       <span class="eyebrow">Follow</span>
-      <ul class="flex items-center gap-2">
+      <Row class="items-center">
         {SOCIALS.map((s) => (
-          <li>
-            <a
-              href={s.href}
-              target="_blank"
-              rel="noreferrer noopener"
-              aria-label={s.label}
-              class="inline-flex size-9 items-center justify-center rounded-full border border-black/5 bg-white text-foreground transition-all hover:border-black/10 hover:text-primary hover:shadow-[0_4px_16px_-8px_rgba(2,76,199,0.4)]"
+          <a
+            href={s.href}
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label={s.label}
+            class="inline-flex size-9 items-center justify-center rounded-full border border-black/5 bg-white text-foreground transition-all hover:border-black/10 hover:text-primary hover:shadow-[0_4px_16px_-8px_rgba(2,76,199,0.4)]"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                {s.icon === "telegram" && (
-                  <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
-                )}
-                {s.icon === "x" && (
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                )}
-              </svg>
-            </a>
-          </li>
+              {s.icon === "telegram" && (
+                <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
+              )}
+              {s.icon === "x" && (
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              )}
+            </svg>
+          </a>
         ))}
-      </ul>
-    </div>
-  </div>
+      </Row>
+    </Column>
+  </Column>
 
-  <div class="flex flex-col items-start justify-between gap-3 border-t border-black/5 pt-6 text-xs text-muted-foreground md:flex-row md:items-center">
+  <Row class="justify-between text-xs text-muted-foreground">
     <span>© {YEAR} Instinct, All rights reserved</span>
     <span>Built on Solana</span>
-  </div>
+  </Row>
 </footer>

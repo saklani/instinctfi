@@ -57,7 +57,6 @@ export function DepositPreview({ className }: { className?: string }) {
             <img
               src={h.src}
               alt={h.ticker}
-              loading="lazy"
               className="size-6 rounded-full bg-secondary object-cover"
             />
             <span className="flex min-w-0 items-center gap-2">

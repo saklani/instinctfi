@@ -76,8 +76,6 @@ function stockIcon(ticker: string) {
                 alt={v.name}
                 width={44}
                 height={44}
-                loading={i < VAULTS.length ? "eager" : "lazy"}
-                fetchpriority={i < VAULTS.length ? "high" : "low"}
                 decoding="async"
                 class="size-11 shrink-0 rounded-full bg-secondary object-cover ring-1 ring-black/5"
               />
@@ -109,7 +107,6 @@ function stockIcon(ticker: string) {
                 title={ticker}
                 width={24}
                 height={24}
-                loading={i < VAULTS.length ? "eager" : "lazy"}
                 decoding="async"
                 class="size-6 rounded-full bg-secondary object-cover ring-2 ring-card"
               />
@@ -149,16 +146,16 @@ function stockIcon(ticker: string) {
   }
   async function loadNav(id) {
     try {
-      const res = await fetch(`${API_URL}/api/vaults/${id}/nav?days=2`)
+      const res = await fetch(`${API_URL}/api/vaults/${id}/nav?days=5000`)
       if (!res.ok) return
       const series = await res.json()
       let nav = null
       let delta = null
       if (series.length > 0) nav = series[series.length - 1].value
       if (series.length > 1) {
-        const prev = series[series.length - 2].value
+        const first = series[0].value
         const curr = series[series.length - 1].value
-        if (prev > 0) delta = ((curr - prev) / prev) * 100
+        if (first > 0) delta = ((curr - first) / first) * 100
       }
       applyToCards(id, nav, delta)
     } catch {}

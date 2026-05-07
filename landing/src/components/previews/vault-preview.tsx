@@ -153,7 +153,6 @@ function HoldingStack({ holdings }: { holdings: Vault["holdings"] }) {
             src={h.src}
             alt={h.ticker}
             title={h.ticker}
-            loading="lazy"
             className="size-6 rounded-full bg-secondary object-cover ring-2 ring-card"
           />
         ))}

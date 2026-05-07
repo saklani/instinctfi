@@ -62,35 +62,35 @@ try {
 }
 ---
 
-<Section class="border-b">
+<Section>
   <Column class="py-16 lg:py-36 gap-16 lg:gap-24">
     <h2 class="text-center">Three steps to riding the next Instinct</h2>
     <ol class="relative flex flex-col gap-16 lg:gap-24">
       <span
         aria-hidden="true"
-        class="pointer-events-none absolute left-3 top-2 bottom-2 w-px bg-gradient-to-b from-primary/30 via-black/10 to-transparent md:left-1/2 md:-translate-x-1/2"
+        class="pointer-events-none absolute left-3 top-2 bottom-2 -z-[1] w-0.5 rounded-full bg-gradient-to-b from-primary/70 via-primary/40 to-primary/10 md:left-1/2 md:-translate-x-1/2"
       ></span>
 
       {STEPS.map((step, i) => (
         <li class={`grid items-center gap-8 md:grid-cols-2 md:gap-16 ${i % 2 === 1 ? "md:[&>*:first-child]:order-2" : ""}`}>
-          <div class={`flex flex-col gap-3 pl-10 md:pl-0 ${i % 2 === 0 ? "md:items-end md:text-right" : "md:items-start md:text-left"}`}>
+          <Column class={`pl-8 md:pl-0 ${i % 2 === 0 ? "md:items-end md:text-right" : "md:items-start md:text-left"}`}>
             <span class="font-heading text-2xl tracking-tight text-primary tabular-nums">
               0{i + 1}
             </span>
             <h3 class="text-foreground">{step.title}</h3>
             <p>{step.body}</p>
-          </div>
+          </Column>
 
           <div class="w-full">
-            {i === 0 && <VaultPreview deltas={vaultDeltas} client:visible />}
-            {i === 1 && <DepositPreview client:visible />}
+            {i === 0 && <VaultPreview deltas={vaultDeltas} client:load />}
+            {i === 1 && <DepositPreview client:load />}
             {i === 2 && (
               <NavChartPreview
                 values={PELOSI_10YR}
                 latestNav={PELOSI_10YR[PELOSI_10YR.length - 1]}
                 periodLabel="10Y"
                 startInvestment={STARTING_INVESTMENT}
-                client:visible
+                client:load
               />
             )}
           </div>
