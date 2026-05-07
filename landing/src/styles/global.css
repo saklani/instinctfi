@@ -113,6 +113,11 @@
 
 
 @layer base {
+  .font-mono,
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
   h1,
   h2,
   h3,

@@ -34,7 +34,7 @@ export function NavChartPreview({
   className,
   values,
   latestNav,
-  label = "Vault NAV",
+  label,
   periodLabel,
   startInvestment,
 }: NavChartPreviewProps) {
@@ -53,9 +53,11 @@ export function NavChartPreview({
       <div className="flex flex-col gap-4">
         <div className="flex items-baseline justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <span className="text-xs uppercase tracking-wider text-muted-foreground/70">
-              {label}
-            </span>
+            {label && (
+              <span className="text-xs uppercase tracking-wider text-muted-foreground/70">
+                {label}
+              </span>
+            )}
             <span className="font-mono text-3xl font-semibold tabular-nums text-foreground">
               {usdFormatter.format(latest)}
             </span>

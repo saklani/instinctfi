@@ -9,7 +9,7 @@ type Vault = {
   holdings: { ticker: string; src: string }[]
   spark: number[]
   navUsd: number
-  delta24h: number
+  delta: number
 }
 
 const VAULTS: Vault[] = [
@@ -24,7 +24,7 @@ const VAULTS: Vault[] = [
     ],
     spark: [100, 102, 99, 104, 108, 106, 112, 115, 113, 119, 124, 122, 128, 132, 130, 138, 144, 141, 149, 156],
     navUsd: 1.56,
-    delta24h: 4.21,
+    delta: 4.21,
   },
   {
     name: "Reverse Chamath",
@@ -32,7 +32,7 @@ const VAULTS: Vault[] = [
     holdings: [],
     spark: [],
     navUsd: 0,
-    delta24h: 0,
+    delta: 0,
   },
   {
     name: "Bryan Johnson Blueprint",
@@ -40,7 +40,7 @@ const VAULTS: Vault[] = [
     holdings: [],
     spark: [],
     navUsd: 0,
-    delta24h: 0,
+    delta: 0,
   },
 ]
 
