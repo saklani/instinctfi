@@ -1,4 +1,7 @@
 ---
+import Section from "./ui/section.astro"
+import Column from "./ui/column.astro"
+
 const ITEMS = [
   {
     q: "What exactly am I buying?",
@@ -23,16 +26,14 @@ const ITEMS = [
 ]
 ---
 
-<section
-  id="faq"
-  class="mx-auto flex w-full max-w-3xl flex-col gap-12 px-6 py-24"
->
-  <header class="flex flex-col items-center gap-3 text-center">
+<Section>
+    <Column class="py-16 lg:py-36 gap-4 items-center">
+  <header class="flex flex-col items-center gap-4 text-center mb-6">
     <span class="eyebrow">FAQs</span>
     <h2>Questions, mostly the obvious ones.</h2>
   </header>
 
-  <ul class="flex flex-col gap-3">
+  <ul class="flex flex-col gap-4 max-w-4xl w-full">
     {ITEMS.map((item) => (
       <li>
         <details class="group rounded-2xl border border-black/5 bg-white">
@@ -61,7 +62,8 @@ const ITEMS = [
       </li>
     ))}
   </ul>
-</section>
+</Column>
+</Section>
 
 <style>
   summary {

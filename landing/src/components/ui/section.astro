@@ -6,7 +6,7 @@ const { class: className, ...rest } = Astro.props
 ---
 
 <section class={cn("flex items-center justify-center", className)} {...rest}>
-  <Column class="max-w-7xl w-full lg:border-x px-4 lg:px-16">
+  <Column class="max-w-7xl w-full px-4 lg:px-16">
     <slot />
   </Column>
 </section>

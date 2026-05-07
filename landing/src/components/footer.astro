@@ -1,12 +1,6 @@
 ---
 const YEAR = new Date().getFullYear()
 
-const LINKS = [
-  { label: "How it works", href: "#how-it-works" },
-  { label: "Why Instinct", href: "#why-instinct" },
-  { label: "FAQ", href: "#faq" },
-]
-
 const SOCIALS = [
   {
     label: "Telegram",
@@ -21,7 +15,7 @@ const SOCIALS = [
 ]
 ---
 
-<footer class="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 pb-12 pt-16">
+<footer class="mx-auto flex w-full max-w-7xl flex-col gap-10 px-6 pb-12 pt-16">
   <div class="h-px w-full bg-gradient-to-r from-transparent via-black/10 to-transparent"></div>
 
   <div class="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
@@ -31,22 +25,6 @@ const SOCIALS = [
         Curated tokenized stock baskets on Solana. Track the smart money through themed equity baskets, on-chain.
       </p>
     </div>
-
-    <nav class="flex flex-col gap-3" aria-label="Footer">
-      <span class="eyebrow">Explore</span>
-      <ul class="flex flex-col gap-2">
-        {LINKS.map((link) => (
-          <li>
-            <a
-              href={link.href}
-              class="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {link.label}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
 
     <div class="flex flex-col gap-3">
       <span class="eyebrow">Follow</span>
@@ -65,21 +43,14 @@ const SOCIALS = [
                 width="16"
                 height="16"
                 viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.75"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                fill="currentColor"
                 aria-hidden="true"
               >
                 {s.icon === "telegram" && (
-                  <path d="m22 2-7 20-4-9-9-4Z" />
+                  <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
                 )}
                 {s.icon === "x" && (
-                  <>
-                    <path d="M18 6 6 18" />
-                    <path d="m6 6 12 12" />
-                  </>
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                 )}
               </svg>
             </a>
