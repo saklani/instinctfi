@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Column } from "@/components/ui/column"
 import { PathDraw } from "@/components/motion"
 
 type PortfolioEmptyProps = {
@@ -29,17 +30,15 @@ export function PortfolioEmpty({
     <section
       data-slot="portfolio-empty"
       className={cn(
-        "flex flex-col items-center gap-6 px-4 py-12 text-center md:py-20",
+        "flex flex-col items-center text-center",
         className,
       )}
     >
       <Illustration />
-      <div className="flex flex-col gap-3">
-        <h2 className="max-w-md text-2xl font-semibold tracking-tight font-semibold tracking-tight text-foreground">
-          {title}
-        </h2>
-        <p className="max-w-md text-sm text-muted-foreground">{subtitle}</p>
-      </div>
+      <Column>
+        <h2 className="max-w-md">{title}</h2>
+        <p className="max-w-md">{subtitle}</p>
+      </Column>
       <Button asChild variant="default" size="lg">
         <Link to="/" className="group/empty-cta">
           {ctaLabel}
@@ -65,7 +64,7 @@ function Illustration() {
     >
       <span
         aria-hidden
-        className="absolute inset-3 rounded-full border border-dashed border-border"
+        className="absolute inset-0 rounded-full border border-dashed border-border"
       />
       <svg
         viewBox="0 0 80 80"

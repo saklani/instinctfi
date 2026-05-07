@@ -89,7 +89,7 @@ function NavChartTooltip({
   if (!active || !payload?.length || label == null) return null
   const point = payload[0]
   return (
-    <div className="rounded-md border border-border bg-card px-3 py-2 shadow-sm">
+    <div className="rounded-md border border-border bg-card shadow-sm">
       <div className="font-mono text-xs text-muted-foreground">
         {formatDate(String(label))}
       </div>
@@ -128,7 +128,7 @@ export function NavChart({
   height,
 }: NavChartProps) {
   return (
-    <div className={cn("flex w-full flex-col gap-4", className)}>
+    <div className={cn("flex w-full flex-col", className)}>
       <div
         className="relative w-full"
         style={{ height: height ?? 320 }}
@@ -218,7 +218,7 @@ export function NavChart({
       </div>
 
       {(periodSelector || toolbar) && (
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between">
           <div className="flex items-center">{periodSelector}</div>
           <div className="ml-auto flex items-center">{toolbar}</div>
         </div>
@@ -235,7 +235,7 @@ export function NavChartSkeleton({
   className?: string
 }) {
   return (
-    <div className={cn("flex w-full flex-col gap-4", className)}>
+    <div className={cn("flex w-full flex-col", className)}>
       <div className="relative w-full" style={{ height: height ?? 320 }}>
         <Skeleton className="size-full rounded-md" />
       </div>

@@ -28,7 +28,6 @@ export function StickyCta({
       data-slot="sticky-cta"
       className={cn(
         "fixed left-4 right-4 z-40 md:hidden",
-        "bottom-[calc(4rem+env(safe-area-inset-bottom,0px)+16px)]",
         className,
       )}
     >
@@ -38,7 +37,7 @@ export function StickyCta({
         disabled={disabled}
         aria-label={ariaLabel}
         className={cn(
-          "flex h-14 w-full items-center justify-center gap-2 rounded-full",
+          "flex h-14 w-full items-center justify-center rounded-full",
           "bg-primary text-primary-foreground select-none",
           "shadow-md transition-shadow duration-200 hover:shadow-lg",
           "active:translate-y-px active:duration-[80ms]",

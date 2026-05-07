@@ -22,7 +22,7 @@ export function VaultCard({ vault }: { vault: Vault }) {
         </CardHeader>
 
         <CardContent>
-          <Row className="gap-0 -space-x-1.5">
+          <Row className="-space-x-1.5">
             {vault.compositions?.map((c) => (
               <img
                 key={c.stock.id}
@@ -58,7 +58,7 @@ function VaultCover({ vault }: { vault: Vault }) {
       aria-hidden
       className="relative aspect-[16/9] w-full bg-secondary"
     >
-      <div className="absolute inset-0 flex items-center justify-center gap-3">
+      <div className="absolute inset-0 flex items-center justify-center">
         {stocks.length > 0 ? (
           stocks.map((c) => (
             <img

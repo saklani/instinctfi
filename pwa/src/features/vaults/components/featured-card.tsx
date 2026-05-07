@@ -3,62 +3,55 @@ import { Link } from "@tanstack/react-router"
 import { motion, useReducedMotion } from "framer-motion"
 
 import { cn } from "@/lib/utils"
-import { Card } from "@/components/ui/card"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Delta } from "@/components/ui/delta"
 import { MonoNumber } from "@/components/ui/mono-number"
 import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toTitleCase } from "@/lib/format"
 import type { VaultResponse as Vault } from "../hooks/use-vaults"
-import { useVaultNav } from "../hooks/use-vault-nav"
+import { useSuspenseVault } from "../hooks/use-vault"
+import { useSuspenseVaultNav } from "../hooks/use-vault-nav"
 import { durations, outQuart } from "@/components/motion"
 
-export type FeaturedKind = "trending" | "top-24h" | "newest"
-
 type FeaturedCardProps = {
-  vault: Vault
-  nav: number
-  delta: number
-  kind?: FeaturedKind
+  vaultId: string
   className?: string
 }
 
-export function FeaturedCard({
-  vault,
-  nav,
-  delta,
-  className,
-}: FeaturedCardProps) {
-  const { series } = useVaultNav(vault.id, 30)
-  const spark = series.length > 0 ? series.map((p) => p.value) : [nav || 100]
+export function FeaturedCard({ vaultId, className }: FeaturedCardProps) {
+  const vault = useSuspenseVault(vaultId)
+
+  const nav = vault.nav ?? 0
   const holdingCount = vault.compositions?.length ?? 0
   return (
     <Link
       to="/fund/$id"
-      params={{ id: vault.id }}
+      params={{ id: vaultId }}
       className={cn(
         "block h-full rounded-xl outline-none focus-visible:ring-[4px] focus-visible:ring-accent/30",
         className,
       )}
     >
-      <Card
-        interactive
-        className="relative h-full justify-between gap-5 pt-0 pb-6"
-      >
+      <Card interactive className="h-full">
         <FeaturedCover vault={vault} />
 
-        <div className="flex flex-col gap-3 px-6">
-          <h3 className="line-clamp-2 text-2xl font-semibold tracking-tight font-semibold leading-[1.05] tracking-tight text-foreground">
+        <CardHeader>
+          <CardTitle className="line-clamp-2">
             {toTitleCase(vault.name)}
-          </h3>
-          <HoldingStack vault={vault} count={holdingCount} />
-        </div>
-
-        <Sparkline values={spark} positive={delta >= 0} />
-
-        <div className="flex items-end justify-between gap-4 px-6">
-          <div className="flex flex-col gap-1">
-            <span className="text-xs uppercase tracking-wider text-muted-foreground/70">NAV</span>
+          </CardTitle>
+          <CardDescription>
+            <HoldingStack vault={vault} count={holdingCount} />
+          </CardDescription>
+          <CardAction>
             <MonoNumber
               value={nav}
               format="usd"
@@ -66,40 +59,80 @@ export function FeaturedCard({
               size="md"
               className="text-foreground"
             />
-          </div>
-          <Delta value={delta} size="lg" suffix="24h" />
-        </div>
+          </CardAction>
+        </CardHeader>
+
+        <CardContent>
+          <React.Suspense fallback={<NavChartSkeleton />}>
+            <NavChart vaultId={vaultId} fallbackNav={nav} />
+          </React.Suspense>
+        </CardContent>
+
+        <CardFooter className="justify-end">
+          <React.Suspense fallback={<DeltaSkeleton />}>
+            <DeltaChip vaultId={vaultId} />
+          </React.Suspense>
+        </CardFooter>
       </Card>
     </Link>
   )
+}
+
+function NavChart({
+  vaultId,
+  fallbackNav,
+}: {
+  vaultId: string
+  fallbackNav: number
+}) {
+  const series = useSuspenseVaultNav(vaultId, 30)
+  const spark =
+    series.length > 0 ? series.map((p) => p.value) : [fallbackNav || 100]
+  const delta30d =
+    series.length > 1
+      ? (series[series.length - 1].value - series[0].value) / series[0].value
+      : 0
+  return <Sparkline values={spark} positive={delta30d >= 0} />
+}
+
+function NavChartSkeleton() {
+  return <Skeleton className="h-16 w-full rounded-sm" />
+}
+
+function DeltaChip({ vaultId }: { vaultId: string }) {
+  const series = useSuspenseVaultNav(vaultId, 30)
+  const delta30d =
+    series.length > 1
+      ? (series[series.length - 1].value - series[0].value) / series[0].value
+      : null
+  return <Delta value={delta30d} size="lg" suffix="30d" />
+}
+
+function DeltaSkeleton() {
+  return <Skeleton className="h-6 w-16 rounded-full" />
 }
 
 function HoldingStack({ vault, count }: { vault: Vault; count: number }) {
   const visible = vault.compositions?.slice(0, 6) ?? []
   const overflow = Math.max(0, count - visible.length)
   return (
-    <div className="flex items-center gap-2">
-      <Row className="gap-0 -space-x-1.5">
-        {visible.map((c) => (
-          <img
-            key={c.stock.id}
-            src={c.stock.imageUrl}
-            alt={c.stock.ticker}
-            title={c.stock.ticker}
-            loading="lazy"
-            className="size-6 rounded-full bg-secondary object-cover ring-2 ring-card"
-          />
-        ))}
-        {overflow > 0 && (
-          <span className="z-10 inline-flex size-6 items-center justify-center rounded-full bg-muted text-[10px] font-medium tabular text-muted-foreground ring-2 ring-card">
-            +{overflow}
-          </span>
-        )}
-      </Row>
-      <span className="text-xs text-muted-foreground/70">
-        {count} holdings
-      </span>
-    </div>
+    <Row className="gap-0 -space-x-1.5">
+      {visible.map((c) => (
+        <img
+          key={c.stock.id}
+          src={c.stock.imageUrl}
+          alt={c.stock.ticker}
+          title={c.stock.ticker}
+          loading="lazy"
+          className="size-6 rounded-full bg-secondary object-cover ring-2 ring-card"
+        />
+      ))}
+      {overflow > 0 && (
+        <span className="z-10 inline-flex size-6 items-center justify-center rounded-full bg-muted text-[10px] font-medium tabular text-muted-foreground ring-2 ring-card">
+          +{overflow}
+        </span>
+      )}
+    </Row>
   )
 }
 
@@ -204,13 +237,14 @@ export function FeaturedCardSkeleton({ className }: { className?: string }) {
   return (
     <Card
       data-slot="featured-card-skeleton"
-      className={cn("relative h-full justify-between gap-5 pt-0 pb-6", className)}
+      className={cn("h-full pt-0", className)}
     >
       <Skeleton className="aspect-[16/9] w-full rounded-none" />
-      <div className="flex flex-col gap-3 px-6">
-        <Skeleton className="h-7 w-3/4 rounded-sm" />
-        <Skeleton className="h-5 w-1/2 rounded-sm" />
-        <Row className="items-center gap-2">
+      <CardHeader>
+        <CardTitle>
+          <Skeleton className="h-7 w-3/4 rounded-sm" />
+        </CardTitle>
+        <CardDescription>
           <Row className="gap-0 -space-x-1.5">
             {Array.from({ length: 4 }).map((_, i) => (
               <Skeleton
@@ -219,17 +253,17 @@ export function FeaturedCardSkeleton({ className }: { className?: string }) {
               />
             ))}
           </Row>
-          <Skeleton className="h-3 w-20 rounded-sm" />
-        </Row>
-      </div>
-      <Skeleton className="h-16 w-full rounded-sm" />
-      <div className="flex items-end justify-between gap-4 px-6">
-        <div className="flex flex-col gap-1.5">
-          <Skeleton className="h-3 w-8 rounded-sm" />
-          <Skeleton className="h-5 w-20 rounded-sm" />
-        </div>
-        <Skeleton className="h-6 w-16 rounded-full" />
-      </div>
+        </CardDescription>
+        <CardAction>
+          <Skeleton className="h-5 w-16 rounded-sm" />
+        </CardAction>
+      </CardHeader>
+      <CardContent>
+        <NavChartSkeleton />
+      </CardContent>
+      <CardFooter className="justify-end">
+        <DeltaSkeleton />
+      </CardFooter>
     </Card>
   )
 }

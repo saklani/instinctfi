@@ -60,10 +60,8 @@ export const vaults = pgTable("vaults", {
   name: text("name").notNull(),
   description: text("description"),
   imageUrl: text("image_url"),
-  vaultAddress: text("vault_address").notNull().unique(),
-  vaultMint: text("vault_mint").notNull().unique(),
-  depositFeeBps: integer("deposit_fee_bps").notNull().default(0),
-  withdrawFeeBps: integer("withdraw_fee_bps").notNull().default(50),
+  address: text("address").unique(),
+  mint: text("mint").unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 })
@@ -74,7 +72,7 @@ export const compositions = pgTable("compositions", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   vaultId: uuid("vault_id").notNull().references(() => vaults.id),
   stockId: uuid("stock_id").notNull().references(() => stocks.id),
-  weightBps: integer("weight_bps").notNull(),
+  weight: integer("weight").notNull(), // bps
 })
 
 // ── Vault NAV (precomputed weighted-sum series) ─────────
@@ -104,6 +102,16 @@ export const orders = pgTable("orders", {
   status: orderStatusEnum("status").notNull().default("pending"),
   signature: text("signature").unique(),        // USDC transfer tx sig
   error: text("error"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+})
+
+// ── Wallets ─────────────────────────────────────────────
+
+export const wallets = pgTable("wallets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().unique(), // Privy user ID
+  address: text("address").notNull(),         // user's connected Solana wallet
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 })

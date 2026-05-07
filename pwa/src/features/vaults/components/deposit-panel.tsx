@@ -12,12 +12,14 @@ import {
 import { ArrowUpRight, Clock } from "lucide-react"
 
 import { useWallet } from "@/hooks/use-wallet"
-import { useServerWallet } from "@/components/api-provider"
+import { useTreasuryAddress } from "@/components/api-provider"
 import { createDeposit, useOrders } from "@/features/orders"
 import { getUsdcBalance } from "@/lib/transfer"
 import { formatRaw } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Column } from "@/components/ui/column"
+import { Row } from "@/components/ui/row"
 import { TabPill, TabPillItem } from "@/components/ui/tab-pill"
 import { MonoNumber } from "@/components/ui/mono-number"
 import { Badge } from "@/components/ui/badge"
@@ -40,7 +42,7 @@ type DepositFormData = z.infer<typeof depositSchema>
 type DepositPanelTab = "deposit" | "withdraw" | "history"
 
 type DepositPanelProps = {
-  vault: Pick<Vault, "id" | "name" | "depositFeeBps" | "withdrawFeeBps">
+  vault: Pick<Vault, "id" | "name" | "address">
   className?: string
   /** Called after a successful deposit. Use to close a Sheet etc. */
   onDone?: () => void
@@ -54,12 +56,10 @@ export function DepositPanel({
   defaultTab = "deposit",
 }: DepositPanelProps) {
   const [tab, setTab] = React.useState<DepositPanelTab>(defaultTab)
+  const isLive = vault.address != null
 
   return (
-    <div
-      data-slot="deposit-panel"
-      className={cn("flex flex-col gap-5", className)}
-    >
+    <Column data-slot="deposit-panel" className={className}>
       <TabPill
         value={tab}
         onValueChange={(next) => setTab(next as DepositPanelTab)}
@@ -71,10 +71,26 @@ export function DepositPanel({
         <TabPillItem value="history">History</TabPillItem>
       </TabPill>
 
-      {tab === "deposit" && <DepositTab vault={vault} onDone={onDone} />}
+      {!isLive && tab === "deposit" && <NotDeployed />}
+      {isLive && tab === "deposit" && <DepositTab vault={vault} onDone={onDone} />}
       {tab === "withdraw" && <WithdrawTab vault={vault} />}
       {tab === "history" && <HistoryTab vaultId={vault.id} />}
-    </div>
+    </Column>
+  )
+}
+
+function NotDeployed() {
+  return (
+    <Column className="rounded-sm border border-dashed border-border text-xs text-muted-foreground">
+      <Row className="items-center text-foreground">
+        <Clock className="size-4 text-muted-foreground" />
+        <span className="font-medium">Not deployed yet</span>
+      </Row>
+      <p>
+        This vault doesn&rsquo;t have an on-chain destination yet. Deposits open
+        once it&rsquo;s live.
+      </p>
+    </Column>
   )
 }
 
@@ -86,7 +102,7 @@ function DepositTab({
   onDone?: () => void
 }) {
   const queryClient = useQueryClient()
-  const serverWallet = useServerWallet()
+  const treasuryAddress = useTreasuryAddress()
   const { ready, authenticated, login, wallet, walletAddress, signAndSendTransaction } =
     useWallet()
   const [isPending, setIsPending] = React.useState(false)
@@ -113,18 +129,11 @@ function DepositTab({
 
   const amountStr = watch("amount")
   const numericAmount = parseFloat(amountStr || "0")
-  const feePct = vault.depositFeeBps / 10000
-  const effectiveAmount =
-    Number.isFinite(numericAmount) && numericAmount > 0
-      ? numericAmount * (1 - feePct)
-      : 0
-  const feeAmount =
-    Number.isFinite(numericAmount) && numericAmount > 0
-      ? numericAmount * feePct
-      : 0
+  const estimatedShares =
+    Number.isFinite(numericAmount) && numericAmount > 0 ? numericAmount : 0
 
   const onSubmit = async (data: DepositFormData) => {
-    if (!serverWallet || !wallet || !walletAddress) return
+    if (!treasuryAddress || !wallet || !walletAddress) return
     setIsPending(true)
 
     try {
@@ -132,7 +141,7 @@ function DepositTab({
       const { buildUsdcTransfer } = await import("@/lib/transfer")
       const { transaction } = await buildUsdcTransfer({
         from: walletAddress,
-        to: serverWallet,
+        to: treasuryAddress,
         amount: rawAmount,
       })
 
@@ -202,10 +211,10 @@ function DepositTab({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.16, ease: outQuart }}
-            className="flex flex-col gap-4"
+            className="flex flex-col"
           >
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
+            <Column>
+              <Row className="items-center justify-between">
                 <label
                   htmlFor="deposit-amount"
                   className="text-xs text-muted-foreground"
@@ -216,7 +225,7 @@ function DepositTab({
                   <button
                     type="button"
                     onClick={handleMax}
-                    className="rounded-sm px-1.5 py-0.5 text-xs text-muted-foreground hover:text-foreground outline-none focus-visible:text-foreground focus-visible:ring-[3px] focus-visible:ring-accent/30"
+                    className="rounded-sm text-xs text-muted-foreground hover:text-foreground outline-none focus-visible:text-foreground focus-visible:ring-[3px] focus-visible:ring-accent/30"
                   >
                     Balance{" "}
                     <MonoNumber
@@ -227,11 +236,11 @@ function DepositTab({
                     />
                   </button>
                 )}
-              </div>
+              </Row>
 
               <div
                 className={cn(
-                  "group/amount relative flex items-center gap-2 rounded-md border border-border bg-secondary px-4",
+                  "group/amount relative flex items-center rounded-md border border-border bg-secondary",
                   "transition-[background-color,border-color,box-shadow] duration-200 ease-out",
                   "focus-within:border-accent/40 focus-within:bg-card focus-within:ring-[4px] focus-within:ring-accent/20",
                   errors.amount && "border-destructive focus-within:border-destructive",
@@ -243,12 +252,12 @@ function DepositTab({
                   step="any"
                   inputMode="decimal"
                   placeholder="0.00"
-                  className="h-14 flex-1 bg-transparent font-mono font-mono text-2xl tabular-nums tabular text-foreground outline-none placeholder:text-muted-foreground/70"
+                  className="h-14 flex-1 bg-transparent font-mono text-2xl tabular-nums text-foreground outline-none placeholder:text-muted-foreground/70"
                   disabled={isPending}
                   aria-invalid={!!errors.amount}
                   {...register("amount")}
                 />
-                <span className="font-mono font-mono text-sm tabular-nums tabular text-muted-foreground">
+                <span className="font-mono text-sm tabular-nums text-muted-foreground">
                   USDC
                 </span>
                 <Button
@@ -263,21 +272,13 @@ function DepositTab({
                 </Button>
               </div>
               {errors.amount && <FormError message={errors.amount.message} />}
-            </div>
+            </Column>
 
-            <div className="flex flex-col gap-2 rounded-sm bg-secondary/60 py-3">
+            <Column className="rounded-sm bg-secondary/60">
               <SummaryRow label="Estimated shares">
-                <MonoNumber value={effectiveAmount} size="md" precision={4} />
+                <MonoNumber value={estimatedShares} size="md" precision={4} />
               </SummaryRow>
-              <SummaryRow label={`Deposit fee (${(feePct * 100).toFixed(2)}%)`}>
-                <MonoNumber
-                  value={feeAmount}
-                  format="usd"
-                  size="sm"
-                  className="text-muted-foreground"
-                />
-              </SummaryRow>
-            </div>
+            </Column>
 
             {!authenticated ? (
               <Button
@@ -295,7 +296,7 @@ function DepositTab({
                 size="lg"
                 className="w-full"
                 isLoading={isPending}
-                disabled={!serverWallet}
+                disabled={!treasuryAddress}
               >
                 {ctaLabel}
               </LoadingButton>
@@ -307,22 +308,15 @@ function DepositTab({
   )
 }
 
-function WithdrawTab({ vault }: { vault: DepositPanelProps["vault"] }) {
-  const feePct = vault.withdrawFeeBps / 10000
+function WithdrawTab({ vault: _vault }: { vault: DepositPanelProps["vault"] }) {
   return (
-    <div className="flex flex-col gap-3 rounded-sm border border-dashed border-border py-6 text-xs text-muted-foreground">
-      <div className="flex items-center gap-2 text-foreground">
+    <Column className="rounded-sm border border-dashed border-border text-xs text-muted-foreground">
+      <Row className="items-center text-foreground">
         <Clock className="size-4 text-muted-foreground" />
         <span className="font-medium">Withdrawals coming soon</span>
-      </div>
-      <p>
-        Redemptions are queued at the next NAV print. Withdraw fee:{" "}
-        <span className="font-mono text-foreground">
-          {(feePct * 100).toFixed(2)}%
-        </span>
-        .
-      </p>
-    </div>
+      </Row>
+      <p>Redemptions are queued at the next NAV print.</p>
+    </Column>
   )
 }
 
@@ -340,17 +334,17 @@ function HistoryTab({
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-3">
+      <Column>
         {Array.from({ length: 3 }).map((_, i) => (
           <Skeleton key={i} className="h-12 rounded-sm" />
         ))}
-      </div>
+      </Column>
     )
   }
 
   if (!filtered.length) {
     return (
-      <div className="rounded-sm border border-dashed border-border py-6 text-xs text-muted-foreground">
+      <div className="rounded-sm border border-dashed border-border text-xs text-muted-foreground">
         No transactions yet.
       </div>
     )
@@ -381,15 +375,15 @@ function HistoryRow({ order }: { order: Order }) {
         : "secondary"
 
   const inner = (
-    <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-3">
-      <span className="font-mono font-mono text-xs tabular-nums tabular text-muted-foreground/70">{date}</span>
-      <span className="flex items-center gap-2 text-xs text-foreground">
+    <div className="grid grid-cols-[auto_1fr_auto] items-center">
+      <span className="font-mono text-xs tabular-nums text-muted-foreground/70">{date}</span>
+      <span className="flex items-center text-xs text-foreground">
         <span className="capitalize">{order.type}</span>
         <Badge variant={tone} className="capitalize">
           {order.status}
         </Badge>
       </span>
-      <span className="flex items-center gap-1 font-mono font-mono text-sm tabular-nums tabular text-foreground">
+      <span className="flex items-center font-mono text-sm tabular-nums text-foreground">
         {amount}
         {order.signature && (
           <ArrowUpRight className="size-3.5 text-muted-foreground" aria-hidden />
@@ -404,13 +398,13 @@ function HistoryRow({ order }: { order: Order }) {
         href={`https://solscan.io/tx/${order.signature}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="block rounded-sm px-2 transition-colors duration-150 hover:bg-secondary outline-none focus-visible:bg-secondary focus-visible:ring-[3px] focus-visible:ring-accent/30"
+        className="block rounded-sm transition-colors duration-150 hover:bg-secondary outline-none focus-visible:bg-secondary focus-visible:ring-[3px] focus-visible:ring-accent/30"
       >
         {inner}
       </a>
     )
   }
-  return <div className="px-2">{inner}</div>
+  return <div>{inner}</div>
 }
 
 function SummaryRow({
@@ -421,10 +415,10 @@ function SummaryRow({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex items-baseline justify-between text-xs">
+    <Row className="items-baseline justify-between text-xs">
       <span className="text-muted-foreground">{label}</span>
       <span className="text-foreground">{children}</span>
-    </div>
+    </Row>
   )
 }
 
@@ -434,34 +428,31 @@ export { SuccessState as DepositSuccessState }
 
 export function DepositPanelSkeleton({ className }: { className?: string }) {
   return (
-    <div
-      data-slot="deposit-panel-skeleton"
-      className={cn("flex flex-col gap-5", className)}
-    >
-      <div className="flex items-center gap-1 self-start rounded-full bg-secondary p-1">
+    <Column data-slot="deposit-panel-skeleton" className={className}>
+      <Row className="items-center self-start rounded-full bg-secondary">
         {Array.from({ length: 3 }).map((_, i) => (
           <Skeleton key={i} className="h-8 w-20 rounded-full" />
         ))}
-      </div>
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
+      </Row>
+      <Column>
+        <Row className="items-center justify-between">
           <Skeleton className="h-3 w-12 rounded-sm" />
           <Skeleton className="h-3 w-20 rounded-sm" />
-        </div>
+        </Row>
         <Skeleton className="h-14 w-full rounded-md" />
-      </div>
-      <div className="flex flex-col gap-2 rounded-sm bg-secondary/60 py-3">
-        <div className="flex items-center justify-between">
+      </Column>
+      <Column className="rounded-sm bg-secondary/60">
+        <Row className="items-center justify-between">
           <Skeleton className="h-3 w-24 rounded-sm" />
           <Skeleton className="h-4 w-16 rounded-sm" />
-        </div>
-        <div className="flex items-center justify-between">
+        </Row>
+        <Row className="items-center justify-between">
           <Skeleton className="h-3 w-28 rounded-sm" />
           <Skeleton className="h-3 w-12 rounded-sm" />
-        </div>
-      </div>
+        </Row>
+      </Column>
       <Skeleton className="h-12 w-full rounded-full" />
-    </div>
+    </Column>
   )
 }
 
@@ -475,7 +466,7 @@ function SuccessState({ amount }: { amount: number }) {
       exit={reduce ? { opacity: 0 } : { opacity: 0, y: -6 }}
       transition={{ duration: 0.24, ease: outQuart }}
       data-slot="deposit-success"
-      className="flex min-h-[220px] flex-col items-center justify-center gap-4 text-center"
+      className="flex min-h-[220px] flex-col items-center justify-center text-center"
     >
       <div className="flex size-16 items-center justify-center rounded-full bg-accent shadow-sm">
         <svg
@@ -494,9 +485,9 @@ function SuccessState({ amount }: { amount: number }) {
           />
         </svg>
       </div>
-      <div className="flex flex-col gap-1">
-        <p className="text-base font-semibold font-semibold text-foreground">Order placed</p>
-        <p className="text-xs text-muted-foreground">
+      <Column>
+        <p>Order placed</p>
+        <p>
           Depositing{" "}
           <MonoNumber
             value={amount}
@@ -506,7 +497,7 @@ function SuccessState({ amount }: { amount: number }) {
           />{" "}
           — settles at next NAV print.
         </p>
-      </div>
+      </Column>
     </motion.div>
   )
 }

@@ -27,6 +27,8 @@ import { toTitleCase } from "@/lib/format"
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Column } from "@/components/ui/column"
+import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Ticker as TickerPill, Count, Verified } from "@/components/ui/pill"
 import { Delta } from "@/components/ui/delta"
@@ -127,7 +129,7 @@ function FundDetailPage() {
       ticker: c.stock.ticker,
       name: c.stock.name,
       logoUrl: c.stock.imageUrl,
-      weightBps: c.weightBps,
+      weight: c.weight,
       delta24h: prices[c.stock.address]?.priceChange24h ?? null,
     }))
   }, [vault, prices])
@@ -136,14 +138,12 @@ function FundDetailPage() {
 
   if (error || !vault) {
     return (
-      <div className="flex flex-col items-center gap-3 py-16 text-center">
-        <p className="text-sm text-destructive">
-          {error ?? "Vault not found"}
-        </p>
+      <Column className="items-center text-center">
+        <p>{error ?? "Vault not found"}</p>
         <Button asChild variant="outline" size="sm">
           <Link to="/">Back to Discover</Link>
         </Button>
-      </div>
+      </Column>
     )
   }
 
@@ -158,10 +158,10 @@ function FundDetailPage() {
 
   return (
     <>
-      <Reveal as="div" className="flex flex-col gap-8">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10">
+      <Reveal as="div" className="flex flex-col">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px]">
           {/* LEFT */}
-          <div className="flex min-w-0 flex-col gap-8">
+          <Column className="min-w-0">
             <AssetHeader vault={vault} />
             <hr className="border-border" />
 
@@ -195,8 +195,8 @@ function FundDetailPage() {
             <CompositionSection items={compositionItems} />
 
             {authenticated && myPendingOrders.length > 0 && (
-              <section className="flex flex-col gap-3">
-                <h2 className="text-base font-semibold text-foreground">Open orders</h2>
+              <section className="flex flex-col">
+                <h2>Open orders</h2>
                 {myPendingOrders.map((order) => (
                   <OrderCard key={order.id} order={order} />
                 ))}
@@ -204,13 +204,13 @@ function FundDetailPage() {
             )}
 
             {/* Mobile-only About */}
-            <div className="flex flex-col gap-6 lg:hidden">
+            <Column className="lg:hidden">
               <AboutCard description={vault.description} />
-            </div>
-          </div>
+            </Column>
+          </Column>
 
           {/* RIGHT */}
-          <aside className="hidden flex-col gap-6 lg:flex">
+          <aside className="hidden flex-col lg:flex">
             <div className="lg:sticky lg:top-24">
               <Card>
                 <DepositPanel vault={vault} />
@@ -229,12 +229,9 @@ function FundDetailPage() {
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent
           side="bottom"
-          className={cn(
-            "rounded-t-xl border-t border-border bg-background p-6",
-            "pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]",
-          )}
+          className="rounded-t-xl border-t border-border bg-background"
         >
-          <SheetHeader className="p-0">
+          <SheetHeader>
             <SheetTitle className="text-base font-semibold text-foreground">
               {toTitleCase(vault.name)}
             </SheetTitle>
@@ -242,7 +239,7 @@ function FundDetailPage() {
               Deposit USDC, queue at next NAV print.
             </SheetDescription>
           </SheetHeader>
-          <div className="mt-4">
+          <div>
             <DepositPanel vault={vault} onDone={() => setSheetOpen(false)} />
           </div>
         </SheetContent>
@@ -258,14 +255,12 @@ function FundDetailPage() {
 function AssetHeader({ vault }: { vault: Vault }) {
   const tickerCount = vault.compositions?.length ?? 0
   return (
-    <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
-      <div className="flex items-start gap-4">
+    <header className="flex flex-col md:flex-row md:items-start md:justify-between">
+      <Row className="items-start">
         <VaultLogo vault={vault} />
-        <div className="flex min-w-0 flex-col gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight font-semibold tracking-tight text-foreground md:text-4xl font-semibold tracking-tight">
-            {toTitleCase(vault.name)}
-          </h1>
-          <div className="flex flex-wrap items-center gap-2">
+        <Column className="min-w-0">
+          <h1>{toTitleCase(vault.name)}</h1>
+          <Row className="flex-wrap items-center">
             <Verified label="Curated" />
             {tickerSymbolFor(vault) && (
               <TickerPill symbol={tickerSymbolFor(vault)!} />
@@ -273,9 +268,9 @@ function AssetHeader({ vault }: { vault: Vault }) {
             {tickerCount > 0 && (
               <Count interactive>{tickerCount} HOLDINGS</Count>
             )}
-          </div>
-        </div>
-      </div>
+          </Row>
+        </Column>
+      </Row>
       <HeaderActions />
     </header>
   )
@@ -312,7 +307,7 @@ function VaultLogo({ vault }: { vault: Vault }) {
         />
       ))}
       {stocks.length === 0 && (
-        <span className="absolute inset-0 flex items-center justify-center font-mono font-mono text-sm tabular-nums text-muted-foreground">
+        <span className="absolute inset-0 flex items-center justify-center font-mono text-sm tabular-nums text-muted-foreground">
           {vault.name.slice(0, 2).toUpperCase()}
         </span>
       )}
@@ -322,7 +317,7 @@ function VaultLogo({ vault }: { vault: Vault }) {
 
 function HeaderActions() {
   return (
-    <div className="flex items-center gap-1 md:gap-1">
+    <Row className="items-center">
       <Button variant="ghost" size="icon-sm" aria-label="Search vault detail">
         <Search />
       </Button>
@@ -343,7 +338,7 @@ function HeaderActions() {
       >
         <MoreHorizontal />
       </Button>
-    </div>
+    </Row>
   )
 }
 
@@ -371,9 +366,9 @@ function NavPriceBlock({
     year: "numeric",
   })
   return (
-    <div className="flex flex-col gap-2">
+    <Column>
       <span className="text-xs text-muted-foreground">NAV per share</span>
-      <div className="flex flex-wrap items-baseline gap-3">
+      <Row className="flex-wrap items-baseline">
         {loading || value == null ? (
           <Skeleton className="h-10 w-32 rounded-sm" />
         ) : (
@@ -385,11 +380,11 @@ function NavPriceBlock({
           />
         )}
         <Delta value={delta} size="lg" suffix="24h" />
-      </div>
-      <span className="font-mono font-mono text-xs tabular-nums tabular text-muted-foreground/70">
+      </Row>
+      <span className="font-mono text-xs tabular-nums text-muted-foreground/70">
         {today}
       </span>
-    </div>
+    </Column>
   )
 }
 
@@ -401,18 +396,18 @@ function CompositionSection({
     ticker: string
     name: string
     logoUrl?: string | null
-    weightBps: number
+    weight: number
     delta24h?: number | null
   }>
 }) {
   return (
-    <section className="flex flex-col gap-4">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-base font-semibold text-foreground">Composition</h2>
-        <span className="font-mono font-mono text-xs tabular-nums tabular text-muted-foreground/70">
+    <section className="flex flex-col">
+      <Row className="items-baseline justify-between">
+        <h2>Composition</h2>
+        <span className="font-mono text-xs tabular-nums text-muted-foreground/70">
           {items.length} holdings
         </span>
-      </div>
+      </Row>
       <CompositionList items={items} />
     </section>
   )
@@ -425,19 +420,12 @@ function AboutCard({ description }: { description: string | null }) {
     "A curated basket of tokenized equities, weighted by conviction and rebalanced on a deterministic schedule."
   return (
     <Card>
-      <h2 className="text-base font-semibold text-foreground">About this vault</h2>
-      <p
-        className={cn(
-          "text-sm text-muted-foreground",
-          !expanded && "line-clamp-3",
-        )}
-      >
-        {text}
-      </p>
+      <h2>About this vault</h2>
+      <p className={cn(!expanded && "line-clamp-3")}>{text}</p>
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="inline-flex w-fit items-center gap-1 rounded-sm px-1.5 py-0.5 text-xs text-foreground hover:text-accent outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30"
+        className="inline-flex w-fit items-center rounded-sm text-xs text-foreground hover:text-accent outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30"
       >
         {expanded ? "Show less" : "Read more"}
         <ChevronRight
@@ -458,28 +446,28 @@ function AboutCard({ description }: { description: string | null }) {
 
 function DetailSkeleton() {
   return (
-    <div className="flex flex-col gap-8">
+    <Column>
       <Skeleton className="h-4 w-40 rounded-sm" />
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="flex flex-col gap-6">
-          <div className="flex items-start gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <Column>
+          <Row className="items-start">
             <Skeleton className="size-20 rounded-full" />
-            <div className="flex flex-1 flex-col gap-3">
+            <Column className="flex-1">
               <Skeleton className="h-9 w-2/3 rounded-sm" />
               <Skeleton className="h-6 w-1/3 rounded-sm" />
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
+            </Column>
+          </Row>
+          <Column>
             <Skeleton className="h-3 w-24 rounded-sm" />
             <Skeleton className="h-10 w-40 rounded-sm" />
-          </div>
+          </Column>
           <NavChartSkeleton height={320} />
           <CompositionListSkeleton rows={5} />
-        </div>
+        </Column>
         <Card className="hidden lg:block">
           <DepositPanelSkeleton />
         </Card>
       </div>
-    </div>
+    </Column>
   )
 }

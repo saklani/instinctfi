@@ -12,7 +12,7 @@ export type ActivityRowData = {
 }
 
 const ROW_GRID_CLASS = cn(
-  "grid items-center gap-4",
+  "grid items-center",
   // Mobile: action + vault stacked w/ amount
   "grid-cols-[minmax(0,1fr)_auto_auto]",
   // Tablet+: date | action | vault | amount | tx
@@ -36,22 +36,22 @@ export function ActivityRow({ row }: { row: ActivityRowData }) {
       data-slot="activity-row"
       className={cn(
         ROW_GRID_CLASS,
-        "rounded-sm px-4 py-4 text-sm",
+        "rounded-sm text-sm",
         "transition-colors duration-150",
         "hover:bg-secondary/60",
       )}
     >
       {/* Mobile: vault + date stacked. Desktop: separate columns. */}
-      <div className="flex min-w-0 flex-col gap-1 md:hidden">
+      <div className="flex min-w-0 flex-col md:hidden">
         <span className="truncate font-medium text-foreground">
           {vaultName ?? "Unknown vault"}
         </span>
-        <span className="font-mono font-mono text-xs tabular-nums tabular text-muted-foreground/70">
+        <span className="font-mono text-xs tabular-nums text-muted-foreground/70">
           {date}
         </span>
       </div>
 
-      <span className="hidden font-mono font-mono text-xs tabular-nums tabular text-muted-foreground md:inline">
+      <span className="hidden font-mono text-xs tabular-nums text-muted-foreground md:inline">
         {date}
       </span>
 
@@ -63,7 +63,7 @@ export function ActivityRow({ row }: { row: ActivityRowData }) {
         {vaultName ?? "Unknown vault"}
       </span>
 
-      <div className="flex flex-col items-end gap-1 md:flex-row md:items-center md:gap-3">
+      <div className="flex flex-col items-end md:flex-row md:items-center">
         <ActionChip
           type={order.type}
           status={order.status}
@@ -138,7 +138,7 @@ export function ActivityTableHeader({ className }: { className?: string }) {
       data-slot="activity-table-header"
       className={cn(
         ROW_GRID_CLASS,
-        "px-4 pb-3 text-xs uppercase tracking-wider text-muted-foreground/70",
+        "text-xs uppercase tracking-wider text-muted-foreground/70",
         className,
       )}
     >

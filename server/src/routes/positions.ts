@@ -3,8 +3,7 @@ import { db } from "../db/index.js"
 import { positions } from "../db/schema.js"
 import { eq, and } from "drizzle-orm"
 import { authMiddleware } from "../middleware/auth.js"
-
-type AuthEnv = { Variables: { userId: string } }
+import type { AuthEnv } from "../lib/types.js"
 
 const app = new Hono<AuthEnv>()
 

@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { toast } from "sonner"
 import { useWallet } from "@/hooks/use-wallet"
-import { useServerWallet } from "@/components/api-provider"
+import { useTreasuryAddress } from "@/components/api-provider"
 import { createDeposit } from "@/features/orders"
 import { getUsdcBalance } from "@/lib/transfer"
 import { formatUsd } from "@/lib/format"
@@ -28,7 +28,7 @@ type DepositFormData = z.infer<typeof depositSchema>
 
 export function DepositForm({ vaultId, onDone }: { vaultId: string; onDone: () => void }) {
   const queryClient = useQueryClient()
-  const serverWallet = useServerWallet()
+  const treasuryAddress = useTreasuryAddress()
   const { wallet, walletAddress, signAndSendTransaction } = useWallet()
   const [isPending, setIsPending] = useState(false)
 
@@ -50,7 +50,7 @@ export function DepositForm({ vaultId, onDone }: { vaultId: string; onDone: () =
   })
 
   const onSubmit = async (data: DepositFormData) => {
-    if (!serverWallet || !wallet || !walletAddress) return
+    if (!treasuryAddress || !wallet || !walletAddress) return
     setIsPending(true)
 
     try {
@@ -59,7 +59,7 @@ export function DepositForm({ vaultId, onDone }: { vaultId: string; onDone: () =
       const { buildUsdcTransfer } = await import("@/lib/transfer")
       const { transaction } = await buildUsdcTransfer({
         from: walletAddress,
-        to: serverWallet,
+        to: treasuryAddress,
         amount: rawAmount,
       })
 
@@ -96,7 +96,7 @@ export function DepositForm({ vaultId, onDone }: { vaultId: string; onDone: () =
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Column className="gap-4 pt-4">
+      <Column>
         <Column>
           <Row className="items-center justify-between">
             <Label htmlFor="deposit-amount">Amount (USDC)</Label>
@@ -125,7 +125,7 @@ export function DepositForm({ vaultId, onDone }: { vaultId: string; onDone: () =
           {errors.amount && <FormError message={errors.amount.message} />}
         </Column>
 
-        <Row className="gap-2">
+        <Row>
           {[10, 25, 50, 100].map((preset) => (
             <Button
               key={preset}
@@ -146,7 +146,7 @@ export function DepositForm({ vaultId, onDone }: { vaultId: string; onDone: () =
           size="lg"
           className="w-full text-base font-semibold"
           isLoading={isPending}
-          disabled={!serverWallet}
+          disabled={!treasuryAddress}
         >
           Deposit
         </LoadingButton>

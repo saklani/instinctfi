@@ -84,7 +84,7 @@ export function InstallButton({ className }: InstallButtonProps = {}) {
         variant="outline"
         size="sm"
         onClick={handleClick}
-        className={cn("gap-1.5 md:hidden", className)}
+        className={cn("md:hidden", className)}
         aria-label="Install app"
       >
         <Download className="size-4" aria-hidden />
@@ -95,13 +95,13 @@ export function InstallButton({ className }: InstallButtonProps = {}) {
           side="bottom"
           className="bg-card sm:mx-auto sm:max-w-lg"
         >
-          <SheetHeader className="gap-2 pb-2">
+          <SheetHeader>
             <SheetTitle>Install Instinct</SheetTitle>
             <SheetDescription>
               Add to your Home Screen for full-screen access and quick launch.
             </SheetDescription>
           </SheetHeader>
-          <ol className="flex flex-col gap-3 px-6 pb-8 text-sm text-foreground">
+          <ol className="flex flex-col text-sm text-foreground">
             <Step n={1}>
               Tap the <Share className="inline size-4 align-text-bottom" aria-hidden />{" "}
               <span className="font-medium">Share</span> icon in Safari&rsquo;s toolbar.
@@ -124,10 +124,10 @@ export function InstallButton({ className }: InstallButtonProps = {}) {
 
 function Step({ n, children }: { n: number; children: React.ReactNode }) {
   return (
-    <li className="flex items-start gap-3">
+    <li className="flex items-start">
       <span
         aria-hidden
-        className="mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary font-mono text-xs tabular-nums text-foreground"
+        className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary font-mono text-xs tabular-nums text-foreground"
       >
         {n}
       </span>

@@ -31,7 +31,7 @@ function SettingsPage() {
 
   if (!authenticated) {
     return (
-      <Column className="gap-6">
+      <Column>
         <Header />
         <Card>
           <CardHeader>
@@ -51,7 +51,7 @@ function SettingsPage() {
   }
 
   return (
-    <Column className="gap-6">
+    <Column>
       <Header />
 
       <Card>
@@ -60,7 +60,7 @@ function SettingsPage() {
           <CardDescription>Connected via Privy.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Column className="gap-4">
+          <Column>
             <Row className="items-center justify-between">
               <span className="text-xs text-muted-foreground">Status</span>
               <span className="text-xs font-medium text-positive">
@@ -68,7 +68,7 @@ function SettingsPage() {
               </span>
             </Row>
             <Separator />
-            <Row className="items-center justify-between gap-3">
+            <Row className="items-center justify-between">
               <span className="text-xs text-muted-foreground">Address</span>
               {walletAddress ? (
                 <CopyAddress address={walletAddress} />
@@ -97,11 +97,9 @@ function SettingsPage() {
 
 function Header() {
   return (
-    <Column className="gap-1">
-      <h1 className="text-2xl font-semibold tracking-tight font-semibold tracking-tight text-foreground">
-        Settings
-      </h1>
-      <p className="text-sm text-muted-foreground">Manage your account.</p>
+    <Column>
+      <h1>Settings</h1>
+      <p>Manage your account.</p>
     </Column>
   )
 }
@@ -120,9 +118,9 @@ function CopyAddress({ address }: { address: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      className="group inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs text-foreground transition-colors duration-150 hover:bg-secondary outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30"
+      className="group inline-flex items-center rounded-full text-xs text-foreground transition-colors duration-150 hover:bg-secondary outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30"
     >
-      <span className="font-mono tabular font-mono text-xs tabular-nums">
+      <span className="font-mono text-xs tabular-nums">
         {truncateAddress(address)}
       </span>
       <Copy
@@ -136,8 +134,8 @@ function CopyAddress({ address }: { address: string }) {
 
 function SettingsSkeleton() {
   return (
-    <Column className="gap-6">
-      <Column className="gap-1">
+    <Column>
+      <Column>
         <Skeleton className="h-8 w-32" />
         <Skeleton className="h-4 w-44" />
       </Column>
@@ -147,7 +145,7 @@ function SettingsSkeleton() {
           <Skeleton className="h-4 w-48" />
         </CardHeader>
         <CardContent>
-          <Column className="gap-4">
+          <Column>
             <Row className="items-center justify-between">
               <Skeleton className="h-4 w-16" />
               <Skeleton className="h-4 w-20" />

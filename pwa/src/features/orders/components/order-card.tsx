@@ -53,7 +53,7 @@ export function OrderCard({ order }: { order: Order }) {
               <span className="text-xs text-muted-foreground">{vaultName}</span>
             )}
             {vault?.compositions && (
-              <Row className="gap-0 -space-x-1.5">
+              <Row className="-space-x-1.5">
                 {vault.compositions.map((c) => (
                   <img
                     key={c.stock.id}
@@ -77,7 +77,7 @@ export function OrderCard({ order }: { order: Order }) {
             href={`https://solscan.io/tx/${order.signature}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            className="inline-flex items-center text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             View on Solscan <ExternalLink className="size-3" />
           </a>

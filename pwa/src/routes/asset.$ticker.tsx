@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Column } from "@/components/ui/column"
+import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Ticker as TickerPill, Verified } from "@/components/ui/pill"
 import { Delta } from "@/components/ui/delta"
@@ -55,20 +57,20 @@ function AssetDetailPage() {
 
   if (stockError || !stock) {
     return (
-      <div className="flex flex-col items-center gap-3 py-16 text-center">
-        <p className="text-sm text-destructive">{stockError ?? "Stock not found"}</p>
+      <Column className="items-center text-center">
+        <p>{stockError ?? "Stock not found"}</p>
         <Button asChild variant="outline" size="sm">
           <Link to="/">Back to Discover</Link>
         </Button>
-      </div>
+      </Column>
     )
   }
 
   return (
-    <Reveal as="div" className="flex flex-col gap-8">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10">
+    <Reveal as="div" className="flex flex-col">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px]">
         {/* LEFT */}
-        <div className="flex min-w-0 flex-col gap-8">
+        <Column className="min-w-0">
           <AssetHeader stock={stock} token={token} />
           <hr className="border-border" />
 
@@ -86,13 +88,13 @@ function AssetDetailPage() {
           <TrustSection token={token} loading={tokensLoading} />
 
           {/* Mobile-only About */}
-          <div className="flex flex-col gap-6 lg:hidden">
+          <Column className="lg:hidden">
             <AboutCard description={stock.description} />
-          </div>
-        </div>
+          </Column>
+        </Column>
 
         {/* RIGHT */}
-        <aside className="hidden flex-col gap-6 lg:flex">
+        <aside className="hidden flex-col lg:flex">
           <AboutCard description={stock.description} />
         </aside>
       </div>
@@ -112,25 +114,23 @@ function AssetHeader({
   token: JupiterTokenInfo | undefined
 }) {
   return (
-    <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
-      <div className="flex items-start gap-4">
+    <header className="flex flex-col md:flex-row md:items-start md:justify-between">
+      <Row className="items-start">
         <img
           src={stock.imageUrl}
           alt={`${stock.name} logo`}
           className="size-20 rounded-full bg-secondary object-cover md:size-20"
           loading="eager"
         />
-        <div className="flex min-w-0 flex-col gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-4xl">
-            {stock.name}
-          </h1>
-          <div className="flex flex-wrap items-center gap-2">
+        <Column className="min-w-0">
+          <h1>{stock.name}</h1>
+          <Row className="flex-wrap items-center">
             <TickerPill symbol={stock.ticker.toUpperCase()} />
             {token?.isVerified && <Verified label="Jupiter verified" />}
             {token && !token.freezeAuthority && (
               <span
                 data-slot="trust-pill"
-                className="inline-flex h-5 items-center gap-1 rounded-full bg-secondary px-2 text-xs font-medium text-foreground"
+                className="inline-flex h-5 items-center rounded-full bg-secondary text-xs font-medium text-foreground"
                 title="Mint authority cannot freeze your tokens"
               >
                 <Lock className="size-3 text-accent" aria-hidden />
@@ -140,15 +140,15 @@ function AssetHeader({
             {token?.audit.isSus && (
               <span
                 data-slot="trust-pill"
-                className="inline-flex h-5 items-center gap-1 rounded-full bg-destructive/10 px-2 text-xs font-medium text-destructive"
+                className="inline-flex h-5 items-center rounded-full bg-destructive/10 text-xs font-medium text-destructive"
               >
                 <ShieldAlert className="size-3" aria-hidden />
                 <span className="uppercase tracking-wider">Flagged</span>
               </span>
             )}
-          </div>
-        </div>
-      </div>
+          </Row>
+        </Column>
+      </Row>
     </header>
   )
 }
@@ -173,9 +173,9 @@ function PriceBlock({
   const change = token?.stats24h?.priceChange ?? null
 
   return (
-    <div className="flex flex-col gap-2">
+    <Column>
       <span className="text-xs text-muted-foreground">Spot price</span>
-      <div className="flex flex-wrap items-baseline gap-3">
+      <Row className="flex-wrap items-baseline">
         {loading || value == null ? (
           <Skeleton className="h-10 w-32 rounded-sm" />
         ) : (
@@ -187,11 +187,11 @@ function PriceBlock({
           />
         )}
         <Delta value={change} size="lg" suffix="24h" asPercent />
-      </div>
+      </Row>
       <span className="font-mono text-xs tabular-nums text-muted-foreground/70">
         {today}
       </span>
-    </div>
+    </Column>
   )
 }
 
@@ -240,7 +240,7 @@ function PriceChart({
 
   if (!data.length) {
     return (
-      <div className="flex flex-col gap-4">
+      <Column>
         <div
           className="flex items-center justify-center rounded-md border border-dashed border-border text-xs text-muted-foreground"
           style={{ height: 320 }}
@@ -248,7 +248,7 @@ function PriceChart({
           Chart unavailable
         </div>
         <div className="flex">{selector}</div>
-      </div>
+      </Column>
     )
   }
 
@@ -272,7 +272,7 @@ function StatGrid({ token }: { token: JupiterTokenInfo | undefined }) {
       : null
 
   return (
-    <section className="grid grid-cols-2 gap-px overflow-hidden rounded-md bg-border md:grid-cols-4">
+    <section className="grid grid-cols-2 overflow-hidden rounded-md bg-border md:grid-cols-4">
       <Stat label="Liquidity" value={token?.liquidity ?? null} format="usd" compact />
       <Stat label="Holders" value={token?.holderCount ?? null} format="count" compact />
       <Stat label="24h Volume" value={volume24h} format="usd" compact />
@@ -293,7 +293,7 @@ function Stat({
   compact?: boolean
 }) {
   return (
-    <div className="flex flex-col gap-1 bg-card px-4 py-3">
+    <Column className="bg-card">
       <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
         {label}
       </span>
@@ -304,7 +304,7 @@ function Stat({
         size="md"
         className="text-foreground"
       />
-    </div>
+    </Column>
   )
 }
 
@@ -321,8 +321,8 @@ function TrustSection({
 }) {
   if (loading && !token) {
     return (
-      <section className="flex flex-col gap-4">
-        <h2 className="text-base font-semibold text-foreground">On-chain trust</h2>
+      <section className="flex flex-col">
+        <h2>On-chain trust</h2>
         <Skeleton className="h-24 rounded-md" />
       </section>
     )
@@ -331,15 +331,15 @@ function TrustSection({
   if (!token) return null
 
   return (
-    <section className="flex flex-col gap-4">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-base font-semibold text-foreground">On-chain trust</h2>
+    <section className="flex flex-col">
+      <Row className="items-baseline justify-between">
+        <h2>On-chain trust</h2>
         <span className="font-mono text-xs tabular-nums text-muted-foreground/70">
           via Jupiter
         </span>
-      </div>
+      </Row>
 
-      <div className="flex flex-col gap-4 rounded-md border border-border bg-card p-4">
+      <Column className="rounded-md border border-border bg-card">
         <ScoreBar score={token.organicScore} label={token.organicScoreLabel} />
 
         <hr className="border-border" />
@@ -352,7 +352,7 @@ function TrustSection({
             <TagRow tags={token.tags} />
           </>
         )}
-      </div>
+      </Column>
     </section>
   )
 }
@@ -373,14 +373,14 @@ function ScoreBar({
         : "bg-destructive"
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-baseline justify-between">
+    <Column>
+      <Row className="items-baseline justify-between">
         <span className="text-xs text-muted-foreground">Organic score</span>
-        <div className="flex items-baseline gap-2">
+        <Row className="items-baseline">
           <MonoNumber value={score} format="raw" precision={0} size="md" />
           <span
             className={cn(
-              "rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider",
+              "rounded-full text-[10px] uppercase tracking-wider",
               label === "high" && "bg-positive/10 text-positive",
               label === "medium" && "bg-amber-500/10 text-amber-600",
               label === "low" && "bg-destructive/10 text-destructive",
@@ -388,15 +388,15 @@ function ScoreBar({
           >
             {label}
           </span>
-        </div>
-      </div>
+        </Row>
+      </Row>
       <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
         <div className={cn("h-full rounded-full", tone)} style={{ width: `${pct}%` }} />
       </div>
       <span className="text-[11px] text-muted-foreground/70">
         Filters bot activity and wash trading. Higher is better.
       </span>
-    </div>
+    </Column>
   )
 }
 
@@ -446,37 +446,37 @@ function AuditRow({ token }: { token: JupiterTokenInfo }) {
   if (!items.length) return null
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-1.5">
+    <Column>
+      <Row className="items-center">
         <ShieldCheck className="size-3.5 text-muted-foreground" aria-hidden />
         <span className="text-xs text-muted-foreground">Audit</span>
-      </div>
-      <dl className="grid grid-cols-3 gap-3">
+      </Row>
+      <dl className="grid grid-cols-3">
         {items.map((it) => (
-          <div key={it.key} className="flex flex-col gap-0.5">
+          <Column key={it.key}>
             <dt className="text-[10px] uppercase tracking-wider text-muted-foreground/70">
               {it.label}
             </dt>
             <dd>{it.value}</dd>
-          </div>
+          </Column>
         ))}
       </dl>
-    </div>
+    </Column>
   )
 }
 
 function TagRow({ tags }: { tags: string[] }) {
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <Row className="flex-wrap">
       {tags.map((tag) => (
         <span
           key={tag}
-          className="inline-flex h-5 items-center rounded-full bg-secondary px-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
+          className="inline-flex h-5 items-center rounded-full bg-secondary text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
         >
           {tag}
         </span>
       ))}
-    </div>
+    </Row>
   )
 }
 
@@ -488,8 +488,8 @@ function AboutCard({ description }: { description: string | null }) {
   const text = description ?? "No description available."
   return (
     <Card>
-      <h2 className="px-6 text-base font-semibold text-foreground">About</h2>
-      <p className="px-6 text-sm text-muted-foreground">{text}</p>
+      <h2>About</h2>
+      <p>{text}</p>
     </Card>
   )
 }
@@ -500,32 +500,32 @@ function AboutCard({ description }: { description: string | null }) {
 
 function DetailSkeleton() {
   return (
-    <div className="flex flex-col gap-8">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="flex flex-col gap-6">
-          <div className="flex items-start gap-4">
+    <Column>
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <Column>
+          <Row className="items-start">
             <Skeleton className="size-20 rounded-full" />
-            <div className="flex flex-1 flex-col gap-3">
+            <Column className="flex-1">
               <Skeleton className="h-9 w-2/3 rounded-sm" />
               <Skeleton className="h-6 w-1/3 rounded-sm" />
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
+            </Column>
+          </Row>
+          <Column>
             <Skeleton className="h-3 w-24 rounded-sm" />
             <Skeleton className="h-10 w-40 rounded-sm" />
-          </div>
+          </Column>
           <NavChartSkeleton height={320} />
-          <div className="grid grid-cols-2 gap-px md:grid-cols-4">
+          <div className="grid grid-cols-2 md:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <Skeleton key={i} className="h-16 rounded-sm" />
             ))}
           </div>
           <Skeleton className="h-32 rounded-md" />
-        </div>
+        </Column>
         <Card className="hidden lg:block">
-          <Skeleton className="mx-6 h-24 rounded-sm" />
+          <Skeleton className="h-24 rounded-sm" />
         </Card>
       </div>
-    </div>
+    </Column>
   )
 }

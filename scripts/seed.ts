@@ -7,7 +7,7 @@
 
 import { neon } from "@neondatabase/serverless"
 import { drizzle } from "drizzle-orm/neon-http"
-import { inArray } from "drizzle-orm"
+import { eq, inArray } from "drizzle-orm"
 import { stocks, vaults, compositions } from "../server/src/db/schema"
 
 const sql = neon(process.env.DATABASE_URL!)
@@ -48,6 +48,11 @@ const STOCKS = [
   { name: "Solana", ticker: "SOL", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/SOL.png", description: "High-performance L1 blockchain", address: "So11111111111111111111111111111111111111112", decimals: 9 },
   { name: "USDC", ticker: "USDC", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/USDC.png", description: "USD stablecoin by Circle", address: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", decimals: 6 },
   { name: "BIO Protocol", ticker: "BIO", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/BIO.png", description: "Onchain biotech / DeSci anchor", address: "bioJ9JTqW62MLz7UKHU69gtKhPpGi1BQhccj2kmSvUJ", decimals: 9 },
+
+  // ── Commodities ──────────────────────────────────────────────────
+  { name: "Wrapped Bitcoin", ticker: "WBTC", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/WBTC.png", description: "Wormhole-bridged Bitcoin on Solana", address: "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh", decimals: 8 },
+  { name: "Gold", ticker: "GLDx", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/GLDx.png", description: "Tokenized gold exposure", address: "Xsv9hRk1z5ystj9MhnA7Lq4vjSsLwzL2nxrwmwtD3re", decimals: 8 },
+  { name: "Brent Crude Oil", ticker: "BNOon", imageUrl: "https://ik.imagekit.io/8dj2mc8pj/BNOon.png", description: "Brent crude oil ETF", address: "BAU83kqEqhyiexfAMQhZZE5KnGogSqh17fJc44Sondo", decimals: 9 },
 ]
 
 // ── Vault definitions ──────────────────────────────────────────────
@@ -55,11 +60,9 @@ const STOCKS = [
 interface VaultDef {
   name: string
   description: string
-  imageUrl: string
-  vaultAddress: string
-  vaultMint: string
-  depositFeeBps: number
-  withdrawFeeBps: number
+  imageUrl: string | null
+  address: string | null
+  mint: string | null
   weights: Record<string, number>
 }
 
@@ -68,10 +71,8 @@ const VAULTS: VaultDef[] = [
     name: "NOT INSIDER TRADING",
     description: "Curated basket tracking the highest-conviction recurring holdings across politician disclosure books — large-cap tech compounders.",
     imageUrl: "https://ik.imagekit.io/8dj2mc8pj/not_insider_trading.png",
-    vaultAddress: "G54nsrBx9a59YVqiqk2Sg3yX9wQauRz5MEugdWDjvmsf",
-    vaultMint: "FXcxe5f3AwkJZRaoYFuGME7rEXS4NmBxZPYKVh3Q4bnD",
-    depositFeeBps: 0,
-    withdrawFeeBps: 50,
+    address: "G54nsrBx9a59YVqiqk2Sg3yX9wQauRz5MEugdWDjvmsf",
+    mint: "FXcxe5f3AwkJZRaoYFuGME7rEXS4NmBxZPYKVh3Q4bnD",
     weights: {
       GOOGLx: 1600,
       NVDAx: 1500,
@@ -87,10 +88,8 @@ const VAULTS: VaultDef[] = [
     name: "REVERSE CHAMATH",
     description: "What SPACs should have been — names with real revenue, real execution, real staying power.",
     imageUrl: "https://ik.imagekit.io/8dj2mc8pj/reverse_chamath.png",
-    vaultAddress: "BT5UCXo1hhv2gndwByf4WQSJ43n6FZ1XhBA8QjGNQ9kE",
-    vaultMint: "C8nquiV3ZLwbh3d3hBgPyYaKM5tKvYyS15u2fLPmcfV9",
-    depositFeeBps: 0,
-    withdrawFeeBps: 50,
+    address: "BT5UCXo1hhv2gndwByf4WQSJ43n6FZ1XhBA8QjGNQ9kE",
+    mint: "C8nquiV3ZLwbh3d3hBgPyYaKM5tKvYyS15u2fLPmcfV9",
     weights: {
       RKLBon: 2800,
       UNHon: 2600,
@@ -103,10 +102,8 @@ const VAULTS: VaultDef[] = [
     name: "Bald Founder Index",
     description: "Long conviction on founders who let their hairline go gracefully.",
     imageUrl: "https://ik.imagekit.io/8dj2mc8pj/bald_founder_index.png",
-    vaultAddress: "EPE5SRsPYUUgYefm7sSns4BYfi5HxMdPuNDfchoYzN9s",
-    vaultMint: "9TUeXbEgrS4ohSkEUjnRbRuSQv3zaryYMWs64M6cCeD",
-    depositFeeBps: 0,
-    withdrawFeeBps: 50,
+    address: "EPE5SRsPYUUgYefm7sSns4BYfi5HxMdPuNDfchoYzN9s",
+    mint: "9TUeXbEgrS4ohSkEUjnRbRuSQv3zaryYMWs64M6cCeD",
     weights: {
       AMZNx: 3100,
       COINx: 2700,
@@ -118,10 +115,8 @@ const VAULTS: VaultDef[] = [
     name: "Peptidemaxxing",
     description: "Longevity, biomarkers, GLP-1, and frontier biotech — exposure to the measurement-obsessed protocol economy.",
     imageUrl: "https://ik.imagekit.io/8dj2mc8pj/peptidemaxxing.png",
-    vaultAddress: "79Ls18aStxgxYouEwrynr2u4xTtsLWmU8ogap6Nfjy7m",
-    vaultMint: "2BXw5F5oBTage2B5GZWWdftHKWGynza4AGtcBxBTqnk1",
-    depositFeeBps: 0,
-    withdrawFeeBps: 50,
+    address: "79Ls18aStxgxYouEwrynr2u4xTtsLWmU8ogap6Nfjy7m",
+    mint: "2BXw5F5oBTage2B5GZWWdftHKWGynza4AGtcBxBTqnk1",
     weights: {
       LLYx: 2800,
       NVOx: 2300,
@@ -129,6 +124,48 @@ const VAULTS: VaultDef[] = [
       DHRx: 1500,
       VRTXon: 1200,
       BIO: 500,
+    },
+  },
+
+  // ── Mock vaults (no on-chain Symmetry vault yet — deposits disabled) ──
+  {
+    name: "WORLD WAR 3",
+    description: "When the missiles fly, these are the picks-and-shovels.",
+    imageUrl: null,
+    address: null,
+    mint: null,
+    weights: {
+      PLTRx: 3500,
+      RKLBon: 2500,
+      AVGOon: 2000,
+      CRWDon: 2000,
+    },
+  },
+  {
+    name: "HARD ASSETS",
+    description: "Three eras of stuff that doesn't print: bitcoin, gold, oil.",
+    imageUrl: null,
+    address: null,
+    mint: null,
+    weights: {
+      WBTC: 4000,
+      GLDx: 3500,
+      BNOon: 2500,
+    },
+  },
+  {
+    name: "ANTI FINANCE FINANCE CLUB",
+    description: "Companies whose entire P&L is leaning all-in onchain.",
+    imageUrl: null,
+    address: null,
+    mint: null,
+    weights: {
+      COINx: 2500,
+      CRCLx: 2000,
+      HOODx: 2000,
+      MSTRx: 1500,
+      GLXYx: 1000,
+      STRCx: 1000,
     },
   },
 ]
@@ -167,32 +204,61 @@ async function main() {
 
   for (const vault of VAULTS) {
     console.log(`\nSeeding vault: ${vault.name}...`)
-    const [row] = await db
-      .insert(vaults)
-      .values({
-        name: vault.name,
-        description: vault.description,
-        imageUrl: vault.imageUrl,
-        vaultAddress: vault.vaultAddress,
-        vaultMint: vault.vaultMint,
-        depositFeeBps: vault.depositFeeBps,
-        withdrawFeeBps: vault.withdrawFeeBps,
-      })
-      .onConflictDoUpdate({ target: vaults.vaultAddress, set: { name: vault.name, description: vault.description, imageUrl: vault.imageUrl } })
-      .returning()
+    let row
+    if (vault.address) {
+      ;[row] = await db
+        .insert(vaults)
+        .values({
+          name: vault.name,
+          description: vault.description,
+          imageUrl: vault.imageUrl,
+          address: vault.address,
+          mint: vault.mint,
+        })
+        .onConflictDoUpdate({
+          target: vaults.address,
+          set: { name: vault.name, description: vault.description, imageUrl: vault.imageUrl },
+        })
+        .returning()
+    } else {
+      // Null-address mock vault — Postgres can't conflict on NULL, so look up by name.
+      const [existing] = await db
+        .select()
+        .from(vaults)
+        .where(eq(vaults.name, vault.name))
+        .limit(1)
+      if (existing) {
+        ;[row] = await db
+          .update(vaults)
+          .set({ description: vault.description, imageUrl: vault.imageUrl })
+          .where(eq(vaults.id, existing.id))
+          .returning()
+      } else {
+        ;[row] = await db
+          .insert(vaults)
+          .values({
+            name: vault.name,
+            description: vault.description,
+            imageUrl: vault.imageUrl,
+            address: null,
+            mint: null,
+          })
+          .returning()
+      }
+    }
     console.log(`  Vault: ${row.id}`)
 
     console.log("  Compositions:")
-    for (const [ticker, weightBps] of Object.entries(vault.weights)) {
+    for (const [ticker, weight] of Object.entries(vault.weights)) {
       if (!stockIds[ticker]) {
         console.log(`    ✗ ${ticker}: stock not found`)
         continue
       }
       await db
         .insert(compositions)
-        .values({ vaultId: row.id, stockId: stockIds[ticker], weightBps })
+        .values({ vaultId: row.id, stockId: stockIds[ticker], weight })
         .onConflictDoNothing()
-      console.log(`    ${ticker}: ${weightBps} bps`)
+      console.log(`    ${ticker}: ${weight} bps`)
     }
   }
 

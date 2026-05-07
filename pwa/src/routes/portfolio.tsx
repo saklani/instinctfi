@@ -18,6 +18,8 @@ import {
 import { useWallet } from "@/hooks/use-wallet"
 
 import { Button } from "@/components/ui/button"
+import { Column } from "@/components/ui/column"
+import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Delta } from "@/components/ui/delta"
 import { TabPill, TabPillItem } from "@/components/ui/tab-pill"
@@ -74,7 +76,7 @@ function PortfolioPage() {
   }
 
   return (
-    <Reveal as="div" className="flex flex-col gap-10 lg:gap-12">
+    <Reveal as="div" className="flex flex-col">
       <PortfolioHero
         totalValue={totals.totalValue}
         delta24h={totals.delta24h}
@@ -84,8 +86,8 @@ function PortfolioPage() {
         loading={loading}
       />
 
-      <section className="flex flex-col gap-4">
-        <header className="flex items-center justify-between gap-3 ">
+      <section className="flex flex-col">
+        <header className="flex items-center justify-between">
           <TabPill
             value={tab}
             onValueChange={(v) => setTab(v as PortfolioTab)}
@@ -95,7 +97,7 @@ function PortfolioPage() {
             <TabPillItem value="holdings">Holdings</TabPillItem>
             <TabPillItem value="activity">Activity</TabPillItem>
           </TabPill>
-          <span className="font-mono font-mono text-xs tabular-nums tabular text-muted-foreground/70">
+          <span className="font-mono text-xs tabular-nums text-muted-foreground/70">
             {tab === "holdings"
               ? holdings.length === 1
                 ? "1 holding"
@@ -142,10 +144,10 @@ function PortfolioHero({
   return (
     <section
       data-slot="portfolio-hero"
-      className="flex flex-col gap-4  pt-2 lg:pt-6"
+      className="flex flex-col"
     >
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
+      <Column>
+        <Row className="flex-wrap items-baseline">
           {loading ? (
             <Skeleton className="h-12 w-56" />
           ) : (
@@ -161,8 +163,8 @@ function PortfolioHero({
             size="lg"
             suffix={deltaWindow === "24h" ? "24h" : "all time"}
           />
-        </div>
-      </div>
+        </Row>
+      </Column>
       <TabPill
         value={deltaWindow}
         onValueChange={(v) => onDeltaWindowChange(v as DeltaWindow)}
@@ -190,11 +192,11 @@ function HoldingsView({
   }
   if (holdings.length === 0) {
     return (
-      <div className=" py-12 text-center text-xs text-muted-foreground">
+      <div className="text-center text-xs text-muted-foreground">
         No holdings yet.{" "}
         <Link
           to="/"
-          className="rounded-sm px-1 text-foreground underline-offset-4 hover:underline outline-none focus-visible:underline focus-visible:ring-[3px] focus-visible:ring-accent/30"
+          className="rounded-sm text-foreground underline-offset-4 hover:underline outline-none focus-visible:underline focus-visible:ring-[3px] focus-visible:ring-accent/30"
         >
           Browse vaults →
         </Link>
@@ -202,7 +204,7 @@ function HoldingsView({
     )
   }
   return (
-    <div role="table" aria-label="Holdings" className="flex flex-col">
+    <Column role="table" aria-label="Holdings">
       <HoldingTableHeader />
       <Stagger
         gap={0.03}
@@ -216,7 +218,7 @@ function HoldingsView({
           </Stagger.Item>
         ))}
       </Stagger>
-    </div>
+    </Column>
   )
 }
 
@@ -232,13 +234,13 @@ function ActivityView({
   }
   if (rows.length === 0) {
     return (
-      <div className=" py-12 text-center text-xs text-muted-foreground">
+      <div className="text-center text-xs text-muted-foreground">
         No activity yet.
       </div>
     )
   }
   return (
-    <div role="table" aria-label="Activity" className="flex flex-col">
+    <Column role="table" aria-label="Activity">
       <ActivityTableHeader />
       <Stagger
         gap={0.03}
@@ -252,7 +254,7 @@ function ActivityView({
           </Stagger.Item>
         ))}
       </Stagger>
-    </div>
+    </Column>
   )
 }
 
@@ -260,12 +262,10 @@ function ActivityView({
 
 function PortfolioConnect({ onConnect }: { onConnect: () => void }) {
   return (
-    <Reveal as="div" className="flex flex-col gap-6  pt-2 lg:pt-6">
+    <Reveal as="div" className="flex flex-col">
       <span className="text-xs uppercase tracking-wider text-muted-foreground/70">Portfolio</span>
-      <h1 className="max-w-2xl text-2xl font-semibold tracking-tight font-semibold tracking-tight text-foreground lg:text-4xl font-semibold tracking-tight">
-        Connect a wallet to see your holdings.
-      </h1>
-      <p className="max-w-md text-sm text-muted-foreground">
+      <h1 className="max-w-2xl">Connect a wallet to see your holdings.</h1>
+      <p className="max-w-md">
         Sign in with Privy to view total value, delta, and activity across your
         vault positions.
       </p>
@@ -278,31 +278,31 @@ function PortfolioConnect({ onConnect }: { onConnect: () => void }) {
 
 function PortfolioSkeleton() {
   return (
-    <div className="flex flex-col gap-10 lg:gap-12">
-      <div className="flex flex-col gap-4  pt-2 lg:pt-6">
+    <Column>
+      <Column>
         <Skeleton className="h-3 w-20 rounded-sm" />
         <Skeleton className="h-12 w-56 rounded-sm" />
         <Skeleton className="h-8 w-48 rounded-full" />
-      </div>
-      <div className="">
+      </Column>
+      <div>
         <RowsSkeleton />
       </div>
-    </div>
+    </Column>
   )
 }
 
 function RowsSkeleton() {
   return (
-    <div className="flex flex-col divide-y divide-border">
+    <Column className="divide-y divide-border">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-4  py-4">
+        <Row key={i} className="items-center">
           <Skeleton className="size-7 rounded-full" />
           <Skeleton className="h-4 flex-1 max-w-[280px] rounded-sm" />
           <Skeleton className="h-4 w-16 rounded-sm" />
           <Skeleton className="hidden h-4 w-16 rounded-sm md:block" />
-        </div>
+        </Row>
       ))}
-    </div>
+    </Column>
   )
 }
 
@@ -381,4 +381,3 @@ function computeTotals(holdings: HoldingRowData[]) {
     totalInvested > 0 ? (totalValue - totalInvested) / totalInvested : null
   return { totalValue, delta24h, deltaAllTime }
 }
-

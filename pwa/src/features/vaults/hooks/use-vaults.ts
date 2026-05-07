@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { request } from "@/lib/api"
 import type { Vault, Stock } from "@/db/schema"
 
-export type VaultComposition = { weightBps: number; stock: Stock }
+export type VaultComposition = { weight: number; stock: Stock } // weight in bps
 
 export type VaultResponse = Vault & {
   compositions: VaultComposition[]

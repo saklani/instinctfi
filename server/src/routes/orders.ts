@@ -7,8 +7,7 @@ import { eq, desc } from "drizzle-orm"
 import { authMiddleware } from "../middleware/auth.js"
 import { verifyUsdcTransfer } from "../lib/verify-transfer.js"
 import { getTreasuryWallet } from "../lib/privy.js"
-
-type AuthEnv = { Variables: { userId: string } }
+import type { AuthEnv } from "../lib/types.js"
 
 const app = new Hono<AuthEnv>()
 const connection = new Connection(process.env.RPC_URL!, "confirmed")

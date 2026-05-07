@@ -25,16 +25,15 @@ export function MobileDepositButton({ vaultId, vaultName }: { vaultId: string; v
       <Button
         size="lg"
         className="fixed left-4 right-4 z-50 shadow-md md:hidden"
-        style={{ bottom: "calc(4rem + env(safe-area-inset-bottom, 0px) + 1rem)" }}
         onClick={handleClick}
       >
         {!ready ? "Loading..." : !authenticated ? "Connect Wallet" : "Deposit"}
       </Button>
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="bottom" className="px-4 pb-16">
-          <div className="mx-auto mt-3 h-1 w-10 bg-muted-foreground/20" />
-          <SheetHeader className="px-0">
+        <SheetContent side="bottom">
+          <div className="mx-auto h-1 w-10 bg-muted-foreground/20" />
+          <SheetHeader>
             <SheetTitle>Deposit USDC in {vaultName}</SheetTitle>
             <SheetDescription></SheetDescription>
           </SheetHeader>

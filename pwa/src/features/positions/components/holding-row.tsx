@@ -20,7 +20,7 @@ export type HoldingRowData = {
 }
 
 const ROW_GRID_CLASS = cn(
-  "grid items-center gap-4",
+  "grid items-center",
   // Mobile: name | value | manage
   "grid-cols-[minmax(0,1fr)_auto_auto]",
   // Tablet+: name | value | 24h | manage
@@ -37,7 +37,7 @@ export function HoldingRow({ row }: { row: HoldingRowData }) {
       data-slot="holding-row"
       className={cn(
         ROW_GRID_CLASS,
-        "rounded-sm px-4 py-4 text-sm",
+        "rounded-sm text-sm",
         "transition-colors duration-150",
         "hover:bg-secondary/60",
       )}
@@ -47,12 +47,12 @@ export function HoldingRow({ row }: { row: HoldingRowData }) {
         params={{ id: vaultId }}
         aria-label={`View ${name}`}
         className={cn(
-          "flex min-w-0 items-center gap-3 outline-none",
+          "flex min-w-0 items-center outline-none",
           "focus-visible:ring-[3px] focus-visible:ring-accent/30 rounded-sm",
         )}
       >
         <HoldingLogo vault={vault} />
-        <span className="flex min-w-0 items-center gap-2">
+        <span className="flex min-w-0 items-center">
           <span className="truncate font-medium text-foreground">{name}</span>
           {ticker && <TickerPill symbol={ticker} className="hidden sm:inline-flex" />}
         </span>
@@ -94,7 +94,7 @@ export function HoldingTableHeader({ className }: HoldingTableHeaderProps) {
       data-slot="holding-table-header"
       className={cn(
         ROW_GRID_CLASS,
-        "px-4 pb-3 text-xs uppercase tracking-wider text-muted-foreground/70",
+        "text-xs uppercase tracking-wider text-muted-foreground/70",
         className,
       )}
     >

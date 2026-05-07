@@ -4,6 +4,7 @@ import { ChevronUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Delta } from "@/components/ui/delta"
 import { MonoNumber } from "@/components/ui/mono-number"
+import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toTitleCase } from "@/lib/format"
 import type { VaultResponse as Vault } from "../hooks/use-vaults"
@@ -15,7 +16,7 @@ export type VaultRowData = {
 }
 
 const ROW_GRID_CLASS = cn(
-  "grid items-center gap-4",
+  "grid items-center",
   "grid-cols-[minmax(0,1fr)_auto_auto]",
 )
 
@@ -48,7 +49,7 @@ export function VaultTableHeader({ sort, onSortChange }: VaultTableHeaderProps) 
       data-slot="vault-table-header"
       className={cn(
         ROW_GRID_CLASS,
-        "pb-3 text-xs uppercase tracking-wider text-muted-foreground/70",
+        "text-xs uppercase tracking-wider text-muted-foreground/70",
       )}
     >
       {COLUMNS.map((col) => {
@@ -65,7 +66,7 @@ export function VaultTableHeader({ sort, onSortChange }: VaultTableHeaderProps) 
             disabled={!interactive}
             onClick={() => onSortChange?.(col.key)}
             className={cn(
-              "group/col flex items-center gap-1 rounded-sm px-1.5 py-1 outline-none",
+              "group/col flex items-center rounded-sm outline-none",
               col.align === "right" && "justify-end",
               interactive
                 ? "cursor-pointer hover:text-foreground focus-visible:text-foreground focus-visible:ring-[3px] focus-visible:ring-accent/30"
@@ -102,17 +103,17 @@ export function VaultRow({ row }: { row: VaultRowData }) {
       data-slot="vault-row"
       className={cn(
         ROW_GRID_CLASS,
-        "rounded-sm py-4 text-sm",
+        "rounded-sm text-sm",
         "transition-colors duration-150 outline-none",
         "hover:bg-secondary focus-visible:bg-secondary focus-visible:ring-[3px] focus-visible:ring-accent/30",
       )}
     >
-      <div className="flex min-w-0 items-center gap-3">
+      <Row className="min-w-0 items-center">
         <VaultRowLogo vault={vault} />
         <span className="truncate font-medium text-foreground">{toTitleCase(vault.name)}</span>
-      </div>
+      </Row>
 
-      <div className="flex justify-end">
+      <Row className="justify-end">
         <MonoNumber
           value={nav}
           format="usd"
@@ -120,11 +121,11 @@ export function VaultRow({ row }: { row: VaultRowData }) {
           size="md"
           className="text-foreground"
         />
-      </div>
+      </Row>
 
-      <div className="flex justify-end">
+      <Row className="justify-end">
         <Delta value={delta24h} hideArrow size="md" />
-      </div>
+      </Row>
     </Link>
   )
 }
@@ -175,18 +176,18 @@ export function VaultRowSkeleton() {
     <div
       data-slot="vault-row-skeleton"
       role="row"
-      className={cn(ROW_GRID_CLASS, "py-4")}
+      className={ROW_GRID_CLASS}
     >
-      <div className="flex min-w-0 items-center gap-3">
+      <Row className="min-w-0 items-center">
         <Skeleton className="size-7 shrink-0 rounded-full" />
         <Skeleton className="h-4 w-full max-w-[220px] rounded-sm" />
-      </div>
-      <div className="flex justify-end">
+      </Row>
+      <Row className="justify-end">
         <Skeleton className="h-4 w-16 rounded-sm" />
-      </div>
-      <div className="flex justify-end">
+      </Row>
+      <Row className="justify-end">
         <Skeleton className="h-4 w-12 rounded-sm" />
-      </div>
+      </Row>
     </div>
   )
 }

@@ -4,39 +4,33 @@ import {
   VaultTableSkeleton,
 } from "@/features/vaults/components/vault-row"
 import { useDiscoverVaults } from "@/features/vaults/hooks/use-enriched-vaults"
-import { Section } from "@/components/ui/section"
-import { Stagger } from "@/components/motion"
+import { Column } from "@/components/ui/column"
+import { Section, SectionHeader } from "@/components/ui/section"
 
 export function AllVaultsSection() {
   const { rows, sort, onSort, loading, error } = useDiscoverVaults()
 
   return (
     <Section>
-      <div role="table" aria-label="All vaults" className="flex flex-col">
+      <SectionHeader title="All vaults" />
+      <Column role="table" aria-label="All vaults">
         <VaultTableHeader sort={sort} onSortChange={onSort} />
-        <div role="rowgroup" className="flex flex-col divide-y divide-border">
+        <Column role="rowgroup" className="divide-y divide-border">
           {loading && <VaultTableSkeleton />}
           {error && (
-            <div className="py-12 text-center text-xs text-destructive">
+            <div className="text-center text-xs text-destructive">
               {error}
             </div>
           )}
           {!loading && !error && rows.length === 0 && (
-            <div className="py-16 text-center text-xs text-muted-foreground">
+            <div className="text-center text-xs text-muted-foreground">
               No vaults yet. Check back soon.
             </div>
           )}
-          {!loading && !error && rows.length > 0 && (
-            <Stagger gap={0.03} offset={6}>
-              {rows.map((row) => (
-                <Stagger.Item key={row.vault.id}>
-                  <VaultRow row={row} />
-                </Stagger.Item>
-              ))}
-            </Stagger>
-          )}
-        </div>
-      </div>
+          {!loading && !error && rows.length > 0 &&
+            rows.map((row) => <VaultRow key={row.vault.id} row={row} />)}
+        </Column>
+      </Column>
     </Section>
   )
 }

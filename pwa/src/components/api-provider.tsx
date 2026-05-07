@@ -1,25 +1,42 @@
 import { createContext, useContext, useEffect, type ReactNode } from "react"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { usePrivy } from "@privy-io/react-auth"
-import { setAccessTokenGetter } from "@/lib/api"
-import { useAuth } from "@/hooks/use-auth"
+import { authenticate, getTreasury, setAccessTokenGetter } from "@/lib/api"
+import { useWallet } from "@/hooks/use-wallet"
 
-const WalletContext = createContext<string | null>(null)
+const TreasuryContext = createContext<string | null>(null)
 
-export function useServerWallet() {
-  return useContext(WalletContext)
+export function useTreasuryAddress() {
+  return useContext(TreasuryContext)
 }
 
 export function ApiProvider({ children }: { children: ReactNode }) {
   const { getAccessToken } = usePrivy()
-  const { treasuryWalletAddress } = useAuth()
+  const { authenticated, walletAddress } = useWallet()
 
   useEffect(() => {
     setAccessTokenGetter(getAccessToken)
   }, [getAccessToken])
 
+  const { data: treasury } = useQuery({
+    queryKey: ["treasury"],
+    queryFn: getTreasury,
+    staleTime: Infinity,
+  })
+
+  const { mutate: registerWallet } = useMutation({
+    mutationFn: authenticate,
+  })
+
+  useEffect(() => {
+    if (authenticated && walletAddress) {
+      registerWallet(walletAddress)
+    }
+  }, [authenticated, walletAddress, registerWallet])
+
   return (
-    <WalletContext.Provider value={treasuryWalletAddress}>
+    <TreasuryContext.Provider value={treasury?.address ?? null}>
       {children}
-    </WalletContext.Provider>
+    </TreasuryContext.Provider>
   )
 }

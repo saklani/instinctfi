@@ -57,9 +57,13 @@ export const processOrderQueue = inngest.createFunction(
       return { skipped: true, reason: "Vault not found" }
     }
 
+    if (!vault.address || !vault.mint) {
+      return { skipped: true, reason: "Vault not deployed on-chain" }
+    }
+
     // Check if vault has an active intent — if so, wait
     const intentActive = await step.run("check-intent", async () => {
-      return hasActiveIntent(vault.vaultAddress)
+      return hasActiveIntent(vault.address!)
     })
 
     if (intentActive) {
@@ -80,7 +84,7 @@ export const processOrderQueue = inngest.createFunction(
           const result = await executeDeposit({
             walletId: treasury.walletId,
             walletAddress: treasury.address,
-            vaultMint: vault.vaultMint,
+            vaultMint: vault.mint!,
             amountLamports: Number(order.amount),
           })
 
@@ -126,7 +130,7 @@ export const processOrderQueue = inngest.createFunction(
           const result = await executeWithdraw({
             walletId: treasury.walletId,
             walletAddress: treasury.address,
-            vaultMint: vault.vaultMint,
+            vaultMint: vault.mint!,
             amount: Number(order.amount),
           })
 

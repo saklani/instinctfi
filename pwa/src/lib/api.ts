@@ -33,12 +33,22 @@ export async function request<T>(
 
 export interface AuthResponse {
   userId: string
-  walletAddress: string
-  treasuryWalletAddress: string
+  address: string
 }
 
-export function authenticate(): Promise<AuthResponse> {
-  return request("/api/auth", { method: "POST" })
+export function authenticate(address: string): Promise<AuthResponse> {
+  return request("/api/auth", {
+    method: "POST",
+    body: JSON.stringify({ address }),
+  })
 }
 
+// ── Treasury ────────────────────────────────────────────
 
+export interface Treasury {
+  address: string
+}
+
+export function getTreasury(): Promise<Treasury> {
+  return request("/api/treasury")
+}

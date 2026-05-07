@@ -12,7 +12,7 @@ export type CompositionItem = {
   name: string
   logoUrl?: string | null
   /** Weight in basis points. */
-  weightBps: number
+  weight: number
   /** 24h delta as fraction (0.012 = 1.2%). */
   delta24h?: number | null
   /** Optional link target (e.g. /assets/$ticker). */
@@ -27,7 +27,7 @@ type CompositionListProps = React.ComponentProps<"ol"> & {
 
 function rowClassName(href: string | undefined) {
   return cn(
-    "group/row grid grid-cols-[28px_24px_1fr_auto] items-center gap-3 rounded-sm px-2 py-3",
+    "group/row grid grid-cols-[28px_24px_1fr_auto] items-center rounded-sm",
     "transition-colors duration-150",
     href &&
       "cursor-pointer hover:bg-secondary outline-none focus-visible:bg-secondary focus-visible:ring-[3px] focus-visible:ring-accent/30",
@@ -46,7 +46,7 @@ function CompositionRow({
     <>
       <span
         aria-hidden
-        className="font-mono font-mono text-xs tabular-nums tabular text-muted-foreground/70"
+        className="font-mono text-xs tabular-nums text-muted-foreground/70"
       >
         {String(index + 1).padStart(2, "0")}
       </span>
@@ -62,17 +62,17 @@ function CompositionRow({
           <span aria-hidden>{fallback}</span>
         )}
       </span>
-      <span className="flex min-w-0 items-center gap-2">
+      <span className="flex min-w-0 items-center">
         <span className="truncate text-sm font-medium text-foreground">
           {item.name}
         </span>
-        <span className="hidden font-mono font-mono text-xs tabular-nums tabular text-muted-foreground sm:inline">
+        <span className="hidden font-mono text-xs tabular-nums text-muted-foreground sm:inline">
           {item.ticker.toUpperCase()}
         </span>
       </span>
-      <span className="flex items-baseline gap-3">
+      <span className="flex items-baseline">
         <MonoNumber
-          value={item.weightBps / 100}
+          value={item.weight / 100}
           format="pct"
           precision={2}
           size="md"
@@ -112,7 +112,7 @@ export function CompositionList({
     return (
       <div
         data-slot="composition-list-empty"
-        className="rounded-sm border border-dashed border-border py-6 text-xs text-muted-foreground"
+        className="rounded-sm border border-dashed border-border text-xs text-muted-foreground"
       >
         Composition unavailable.
       </div>
@@ -161,15 +161,15 @@ export function CompositionListSkeleton({ rows = 5 }: { rows?: number }) {
       {Array.from({ length: rows }).map((_, i) => (
         <div
           key={i}
-          className="grid grid-cols-[28px_24px_1fr_auto] items-center gap-3 px-2 py-3"
+          className="grid grid-cols-[28px_24px_1fr_auto] items-center"
         >
           <Skeleton className="h-3 w-5 rounded-sm" />
           <Skeleton className="size-6 rounded-full" />
-          <div className="flex min-w-0 items-center gap-2">
+          <div className="flex min-w-0 items-center">
             <Skeleton className="h-4 w-32 rounded-sm" />
             <Skeleton className="hidden h-3 w-12 rounded-sm sm:block" />
           </div>
-          <div className="flex items-baseline gap-3">
+          <div className="flex items-baseline">
             <Skeleton className="h-4 w-12 rounded-sm" />
             <Skeleton className="h-3 w-10 rounded-sm" />
           </div>

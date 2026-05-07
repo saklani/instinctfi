@@ -32,7 +32,7 @@ async function main() {
     const rows = await db
       .select({
         date: stockPrices.date,
-        weightBps: compositions.weightBps,
+        weight: compositions.weight,
         close: stockPrices.close,
       })
       .from(compositions)
@@ -53,7 +53,7 @@ async function main() {
     const byDate = new Map<string, { sum: number; count: number }>()
     for (const r of rows) {
       const slot = byDate.get(r.date) ?? { sum: 0, count: 0 }
-      slot.sum += Number(r.close) * (r.weightBps / 10_000)
+      slot.sum += Number(r.close) * (r.weight / 10_000)
       slot.count++
       byDate.set(r.date, slot)
     }

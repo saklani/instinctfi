@@ -1,12 +1,13 @@
+import * as React from "react"
+
 import {
   FeaturedCard,
   FeaturedCardSkeleton,
 } from "@/features/vaults/components/featured-card"
 import { useFeaturedVaults } from "@/features/vaults/hooks/use-enriched-vaults"
-import { Stagger, durations } from "@/components/motion"
 
 const GRID_CLASS =
-  "grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6"
+  "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
 
 export function FeaturedSection() {
   const { rows, loading } = useFeaturedVaults(3)
@@ -24,16 +25,20 @@ export function FeaturedSection() {
   if (!rows.length) return null
 
   return (
-    <Stagger gap={0.08} childDuration={durations.reveal} className={GRID_CLASS}>
-      {rows.map((row) => (
-        <Stagger.Item key={row.vault.id} className="h-full">
-          <FeaturedCard
-            vault={row.vault}
-            nav={row.nav}
-            delta={row.delta24h}
-          />
-        </Stagger.Item>
-      ))}
-    </Stagger>
+    <React.Suspense
+      fallback={
+        <div className={GRID_CLASS}>
+          {Array.from({ length: rows.length }).map((_, i) => (
+            <FeaturedCardSkeleton key={i} />
+          ))}
+        </div>
+      }
+    >
+      <div className={GRID_CLASS}>
+        {rows.map((row) => (
+          <FeaturedCard key={row.vault.id} vaultId={row.vault.id} />
+        ))}
+      </div>
+    </React.Suspense>
   )
 }

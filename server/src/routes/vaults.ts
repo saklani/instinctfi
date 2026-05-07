@@ -2,13 +2,9 @@ import { Hono } from "hono"
 import { db } from "../db/index.js"
 import { vaults, compositions, stocks, vaultNav } from "../db/schema.js"
 import { and, asc, desc, eq, gte, sql } from "drizzle-orm"
+import type { VaultComposition } from "../lib/types.js"
 
 const app = new Hono()
-
-type CompositionRow = {
-  weightBps: number
-  stock: typeof stocks.$inferSelect
-}
 
 /** Latest two `vault_nav` rows → headline NAV + 24h delta. */
 function snapshotFromRows(rows: { value: string }[]) {
@@ -27,7 +23,7 @@ app.get("/", async (c) => {
     db
       .select({
         vaultId: compositions.vaultId,
-        weightBps: compositions.weightBps,
+        weight: compositions.weight,
         stock: stocks,
       })
       .from(compositions)
@@ -42,10 +38,10 @@ app.get("/", async (c) => {
     `),
   ])
 
-  const compsByVault = new Map<string, CompositionRow[]>()
+  const compsByVault = new Map<string, VaultComposition[]>()
   for (const r of compRows) {
     const arr = compsByVault.get(r.vaultId) ?? []
-    arr.push({ weightBps: r.weightBps, stock: r.stock })
+    arr.push({ weight: r.weight, stock: r.stock })
     compsByVault.set(r.vaultId, arr)
   }
 
@@ -73,7 +69,7 @@ app.get("/:id", async (c) => {
 
   const [compRows, navRows] = await Promise.all([
     db
-      .select({ weightBps: compositions.weightBps, stock: stocks })
+      .select({ weight: compositions.weight, stock: stocks })
       .from(compositions)
       .innerJoin(stocks, eq(compositions.stockId, stocks.id))
       .where(eq(compositions.vaultId, id)),
