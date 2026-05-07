@@ -36,9 +36,9 @@ const VAULTS: Vault[] = [
     delta: 218.50,
   },
   {
-    // Bryan Johnson Blueprint synthetic 5Y: Lilly + Novo GLP-1 boom dominates
-    name: "Bryan Johnson Blueprint",
-    icon: "https://ik.imagekit.io/8dj2mc8pj/bryan_johnson_blueprint.png",
+    // Peptidemaxxing synthetic 5Y: Lilly + Novo GLP-1 boom dominates
+    name: "Peptidemaxxing",
+    icon: "https://ik.imagekit.io/8dj2mc8pj/peptidemaxxing.png",
     holdings: [],
     spark: [],
     delta: 312.40,

@@ -137,6 +137,7 @@ export type Stock = typeof stocks.$inferSelect
 export type StockPrice = typeof stockPrices.$inferSelect
 export type Vault = typeof vaults.$inferSelect
 export type Composition = typeof compositions.$inferSelect
+export type VaultNav = typeof vaultNav.$inferSelect
 export type Order = typeof orders.$inferSelect
 export type Wallet = typeof wallets.$inferSelect
 export type Position = typeof positions.$inferSelect

@@ -89,8 +89,8 @@ const VAULTS: Vault[] = [
     },
   },
   {
-    name: "Bryan Johnson Blueprint",
-    prefix: "BJB_NAV",
+    name: "Peptidemaxxing",
+    prefix: "PEPTIDE_NAV",
     weights: {
       SOL: 5000,
       USDC: 5000,

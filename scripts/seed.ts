@@ -115,9 +115,9 @@ const VAULTS: VaultDef[] = [
     },
   },
   {
-    name: "Bryan Johnson Blueprint",
+    name: "Peptidemaxxing",
     description: "Longevity, biomarkers, GLP-1, and frontier biotech — exposure to the measurement-obsessed protocol economy.",
-    imageUrl: "https://ik.imagekit.io/8dj2mc8pj/bryan_johnson_blueprint.png",
+    imageUrl: "https://ik.imagekit.io/8dj2mc8pj/peptidemaxxing.png",
     vaultAddress: "79Ls18aStxgxYouEwrynr2u4xTtsLWmU8ogap6Nfjy7m",
     vaultMint: "2BXw5F5oBTage2B5GZWWdftHKWGynza4AGtcBxBTqnk1",
     depositFeeBps: 0,
