@@ -23,7 +23,10 @@ const TOKENS: Token[] = [
   { ticker: "GOOGLx", pythSymbol: "Equity.US.GOOGL/USD" },
   { ticker: "AMZNx",  pythSymbol: "Equity.US.AMZN/USD" },
   { ticker: "AAPLx",  pythSymbol: "Equity.US.AAPL/USD" },
+  { ticker: "METAx",  pythSymbol: "Equity.US.META/USD" },
   { ticker: "MSFTx",  pythSymbol: "Equity.US.MSFT/USD" },
+  { ticker: "TSLAx",  pythSymbol: "Equity.US.TSLA/USD" },
+  { ticker: "PLTRx",  pythSymbol: "Equity.US.PLTR/USD" },
   { ticker: "HOODx",  pythSymbol: "Equity.US.HOOD/USD" },
   { ticker: "COINx",  pythSymbol: "Equity.US.COIN/USD" },
   { ticker: "CRCLx",  pythSymbol: "Equity.US.CRCL/USD" },
@@ -47,6 +50,10 @@ const TOKENS: Token[] = [
   { ticker: "SOL",    pythSymbol: "Crypto.SOL/USD" },
   { ticker: "USDC",   pythSymbol: "Crypto.USDC/USD" },
   { ticker: "BIO",    pythSymbol: "Crypto.BIO/USD" },
+  { ticker: "WBTC",   pythSymbol: "Crypto.BTC/USD" },
+  // Commodities — Pyth symbols may need adjustment if Benchmarks rejects them.
+  { ticker: "GLDx",   pythSymbol: "Metal.XAU/USD" },        // tokenized gold → spot XAU
+  { ticker: "BNOon",  pythSymbol: "Equity.US.BNO/USD" },    // United States Brent Oil Fund ETF
 ]
 
 // ── Vault compositions ─────────────────────────────────────────────

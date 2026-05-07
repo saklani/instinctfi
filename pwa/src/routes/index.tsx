@@ -41,7 +41,7 @@ function Footer() {
           Github
         </a>
         <a
-          href="https://x.com/"
+          href="https://x.com/instinctxyz"
           target="_blank"
           rel="noreferrer"
           className="rounded-sm hover:text-foreground outline-none focus-visible:text-foreground focus-visible:ring-[3px] focus-visible:ring-accent/30"
