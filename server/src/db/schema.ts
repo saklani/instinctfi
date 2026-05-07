@@ -59,7 +59,7 @@ export const vaults = pgTable("vaults", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   description: text("description"),
-  imageUrl: text("image_url"),
+  imageUrl: text("image_url").notNull(),
   address: text("address").unique(),
   mint: text("mint").unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

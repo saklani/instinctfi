@@ -11,7 +11,7 @@ const desktopLinks = [
 ] as const
 
 export function Header() {
-  const { authenticated, login, ready } = useWallet()
+  const { login, ready } = useWallet()
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">

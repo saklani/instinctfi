@@ -23,13 +23,21 @@ export function useEnrichedVaults() {
   }
 }
 
-/** Top-N vaults by 24h delta (descending). */
-export function useFeaturedVaults(limit = 3) {
+/** Hand-picked featured vaults, rendered in this order. */
+const FEATURED_VAULT_NAMES = [
+  "NOT INSIDER TRADING",
+  "Bald Founder Index",
+  "REVERSE CHAMATH",
+] as const
+
+export function useFeaturedVaults(limit = FEATURED_VAULT_NAMES.length) {
   const { rows, loading } = useEnrichedVaults()
-  const featured = React.useMemo(
-    () => [...rows].sort((a, b) => b.delta24h - a.delta24h).slice(0, limit),
-    [rows, limit],
-  )
+  const featured = React.useMemo(() => {
+    const byName = new Map(rows.map((r) => [r.vault.name, r]))
+    return FEATURED_VAULT_NAMES.map((name) => byName.get(name))
+      .filter((r): r is NonNullable<typeof r> => r != null)
+      .slice(0, limit)
+  }, [rows, limit])
   return { rows: featured, loading }
 }
 

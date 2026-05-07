@@ -60,7 +60,7 @@ const STOCKS = [
 interface VaultDef {
   name: string
   description: string
-  imageUrl: string | null
+  imageUrl: string
   address: string | null
   mint: string | null
   weights: Record<string, number>
@@ -131,7 +131,7 @@ const VAULTS: VaultDef[] = [
   {
     name: "WORLD WAR 3",
     description: "When the missiles fly, these are the picks-and-shovels.",
-    imageUrl: null,
+    imageUrl: "https://ik.imagekit.io/8dj2mc8pj/world_war_3.png",
     address: null,
     mint: null,
     weights: {
@@ -144,7 +144,7 @@ const VAULTS: VaultDef[] = [
   {
     name: "HARD ASSETS",
     description: "Three eras of stuff that doesn't print: bitcoin, gold, oil.",
-    imageUrl: null,
+    imageUrl: "https://ik.imagekit.io/8dj2mc8pj/hard_assets.png",
     address: null,
     mint: null,
     weights: {
@@ -156,7 +156,7 @@ const VAULTS: VaultDef[] = [
   {
     name: "ANTI FINANCE FINANCE CLUB",
     description: "Companies whose entire P&L is leaning all-in onchain.",
-    imageUrl: null,
+    imageUrl: "https://ik.imagekit.io/8dj2mc8pj/anti_finance_finance_club.png",
     address: null,
     mint: null,
     weights: {

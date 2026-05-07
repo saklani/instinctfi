@@ -78,6 +78,13 @@
       "when": 1778188134161,
       "tag": "0010_aspiring_electro",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1778190638735,
+      "tag": "0011_organic_jimmy_woo",
+      "breakpoints": true
     }
   ]
 }
