@@ -1,6 +1,7 @@
 ---
 import Layout from "@/layouts/main.astro"
 import Hero from "@/components/hero.astro"
+import StocksTicker from "@/components/stocks-ticker.astro"
 import Features from "@/components/features.astro"
 import HowItWorks from "@/components/how-it-works.astro"
 import CTA from "@/components/cta.astro"
@@ -14,7 +15,8 @@ import Image from "astro/components/Image.astro"
     <Image src="/logo.gif" alt="Instinct" width={800} height={266} class="w-auto mix-blend-multiply" />
   </header>
   <Hero />
-  <div class="mx-auto w-full max-w-5xl px-6">
+  <StocksTicker />
+  <div class="mx-auto w-full max-w-5xl px-6 mt-24">
     <div class="h-px w-full bg-gradient-to-r from-transparent via-black/10 to-transparent"></div>
   </div>
   <Features />

@@ -2,38 +2,62 @@
 import { Button } from "@/components/ui/button";
 ---
 
-<section class="flex flex-col w-full items-center justify-center">
-            <div class="max-w-2xl flex flex-col pt-16 items-center h-[calc(100vh-80px)]">
-                 <div class="flex flex-col items-center gap-8">
-                    <div class="px-2 max-w-md"> 
-                    <video
-                        src="/video.mp4"
-                        autoplay
-                        loop
-                        muted
-                        playsinline
-                        width={720}
-                        height={720}
-                        class="aspect-square object-cover mix-blend-multiply w-full "
-                    />
-                 </div>
-                 <div class="flex flex-col gap-4 items-center">
-                    <h1 class="text-center">
-                        Your cheatcode to
-                        <br />
-                        Internet Capital Markets.
-                    </h1>
-                    <span class="eyebrow text-center">
-                        One click exposure to tokenized assets.
-                        <br />
-                        Curated from the hottest trends of the internet.
-                    </span> 
-                </div>  
-                <Button size={"lg"} className="px-12 text-lg">
-                    <a href={"https://t.me/+zYR_6cl-wa03N2M1"} target="_blank" rel="noreferrer noopener">
-                        Join the Telegram →
-                    </a>
-                </Button>
-                 </div>
-            </div>
-        </section>
+<section class="relative w-full overflow-hidden">
+  <div class="mx-auto grid w-full max-w-6xl gap-12 px-6 pt-12 pb-24 md:grid-cols-2 md:items-center md:gap-16 md:pt-20 md:pb-32">
+    <div class="order-2 flex flex-col items-center gap-8 md:order-1 md:items-start">
+      <div class="flex flex-col gap-4 text-center md:text-left">
+        <h1>
+          Your cheatcode to
+          <br />
+          <span class="bg-gradient-to-r from-primary to-foreground bg-clip-text text-transparent">
+            Internet Capital Markets.
+          </span>
+        </h1>
+        <span class="eyebrow">
+          One click exposure to tokenized assets.
+          <br />
+          Curated from the hottest trends of the internet.
+        </span>
+      </div>
+
+      <Button
+        size={"lg"}
+        className="px-12 text-lg shadow-[0_8px_24px_-12px_rgba(2,76,199,0.6)] hover:shadow-[0_12px_32px_-12px_rgba(2,76,199,0.8)]"
+      >
+        <a href={"https://t.me/+zYR_6cl-wa03N2M1"} target="_blank" rel="noreferrer noopener">
+          Join the Telegram →
+        </a>
+      </Button>
+
+      <ul class="hidden flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground md:flex md:justify-start">
+        <li class="inline-flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M20 6 9 17l-5-5"/></svg>
+          Built on Solana
+        </li>
+        <li class="size-1 rounded-full bg-foreground/15"></li>
+        <li class="inline-flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M20 6 9 17l-5-5"/></svg>
+          Self-custodial
+        </li>
+        <li class="size-1 rounded-full bg-foreground/15"></li>
+        <li class="inline-flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M20 6 9 17l-5-5"/></svg>
+          Fully onchain
+        </li>
+      </ul>
+    </div>
+
+    <div class="order-1 mx-auto w-full max-w-md md:order-2 md:max-w-none">
+      <video
+        src="/video.mp4"
+        autoplay
+        loop
+        muted
+        playsinline
+        width={720}
+        height={720}
+        class="aspect-square w-full object-cover mix-blend-multiply"
+      />
+    </div>
+  </div>
+</section>
