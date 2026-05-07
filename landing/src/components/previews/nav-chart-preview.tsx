@@ -88,7 +88,7 @@ export function NavChartPreview({
 function Chart({
   values,
   width = 640,
-  height = 180,
+  height = 280,
 }: {
   values: number[]
   width?: number

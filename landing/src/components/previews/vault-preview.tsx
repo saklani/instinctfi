@@ -8,39 +8,40 @@ type Vault = {
   icon: string
   holdings: { ticker: string; src: string }[]
   spark: number[]
-  navUsd: number
   delta: number
 }
 
 const VAULTS: Vault[] = [
   {
-    name: "Bald Founder Index",
-    icon: "https://ik.imagekit.io/8dj2mc8pj/bald_founder_index.png",
+    name: "Not Insider Trading",
+    icon: "https://ik.imagekit.io/8dj2mc8pj/not_insider_trading.png",
     holdings: [
-      { ticker: "AMZNx", src: "https://ik.imagekit.io/8dj2mc8pj/AMZNx.png" },
-      { ticker: "COINx", src: "https://ik.imagekit.io/8dj2mc8pj/COINx.png" },
-      { ticker: "MSFTx", src: "https://ik.imagekit.io/8dj2mc8pj/MSFTx.png" },
-      { ticker: "GLXYx", src: "https://ik.imagekit.io/8dj2mc8pj/GLXYx.png" },
+      { ticker: "GOOGLx", src: "https://ik.imagekit.io/8dj2mc8pj/GOOGLx.png" },
+      { ticker: "NVDAx",  src: "https://ik.imagekit.io/8dj2mc8pj/NVDAx.png"  },
+      { ticker: "AVGOon", src: "https://ik.imagekit.io/8dj2mc8pj/AVGOon.png" },
+      { ticker: "AMZNx",  src: "https://ik.imagekit.io/8dj2mc8pj/AMZNx.png"  },
+      { ticker: "METAon", src: "https://ik.imagekit.io/8dj2mc8pj/METAon.png" },
+      { ticker: "MSFTx",  src: "https://ik.imagekit.io/8dj2mc8pj/MSFTx.png"  },
     ],
-    spark: [100, 102, 99, 104, 108, 106, 112, 115, 113, 119, 124, 122, 128, 132, 130, 138, 144, 141, 149, 156],
-    navUsd: 1.56,
-    delta: 4.21,
+    // 5Y curve: $1.000 → $2.794 (matches Pelosi tracker 5Y per pelositracker.app, ~22.8% annualized)
+    spark: [100, 108, 118, 108, 94, 87, 91, 102, 118, 135, 158, 178, 198, 220, 242, 256, 265, 272, 277, 279],
+    delta: 179.40,
   },
   {
+    // Reverse Chamath synthetic 5Y: dominant Rocket Lab + Hims gains offset by UNH/VNQ weakness
     name: "Reverse Chamath",
     icon: "https://ik.imagekit.io/8dj2mc8pj/reverse_chamath.png",
     holdings: [],
     spark: [],
-    navUsd: 0,
-    delta: 0,
+    delta: 218.50,
   },
   {
+    // Bryan Johnson Blueprint synthetic 5Y: Lilly + Novo GLP-1 boom dominates
     name: "Bryan Johnson Blueprint",
     icon: "https://ik.imagekit.io/8dj2mc8pj/bryan_johnson_blueprint.png",
     holdings: [],
     spark: [],
-    navUsd: 0,
-    delta: 0,
+    delta: 312.40,
   },
 ]
 
@@ -49,17 +50,18 @@ const PEEK_INSET = 14
 
 type VaultPreviewProps = {
   className?: string
-  navUsd?: number
-  delta24h?: number
+  deltas?: (number | undefined)[]
   spark?: number[]
 }
 
-export function VaultPreview({ className, navUsd, delta24h, spark }: VaultPreviewProps) {
-  const [defaultFront, ...behind] = VAULTS
+export function VaultPreview({ className, deltas, spark }: VaultPreviewProps) {
+  const merged: Vault[] = VAULTS.map((v, i) => ({
+    ...v,
+    delta: deltas?.[i] ?? v.delta,
+  }))
+  const [defaultFront, ...behind] = merged
   const front: Vault = {
     ...defaultFront,
-    navUsd: navUsd ?? defaultFront.navUsd,
-    delta24h: delta24h ?? defaultFront.delta24h,
     spark: spark && spark.length > 0 ? spark : defaultFront.spark,
   }
   const wrapperPaddingTop = behind.length * PEEK_HEIGHT
@@ -79,14 +81,26 @@ export function VaultPreview({ className, navUsd, delta24h, spark }: VaultPrevie
             className="absolute"
             style={{ top, left: inset, right: inset, zIndex: behind.length - 1 - i }}
           >
-            <div className="flex h-20 items-center gap-3 rounded-2xl bg-card px-6 ring-1 ring-foreground/10">
-              <img
-                src={v.icon}
-                alt=""
-                className="size-10 rounded-full bg-secondary object-cover ring-1 ring-black/5"
-              />
-              <span className="truncate text-2xl font-semibold leading-[1.05] tracking-tight text-foreground">
-                {v.name}
+            <div className="flex h-20 items-center justify-between gap-3 rounded-2xl bg-card px-6 ring-1 ring-foreground/10">
+              <div className="flex min-w-0 items-center gap-3">
+                <img
+                  src={v.icon}
+                  alt=""
+                  className="size-10 rounded-full bg-secondary object-cover ring-1 ring-black/5"
+                />
+                <span className="truncate text-2xl font-semibold leading-[1.05] tracking-tight text-foreground">
+                  {v.name}
+                </span>
+              </div>
+              <span
+                className={cn(
+                  "inline-flex shrink-0 items-baseline rounded-md px-2 py-1 text-sm font-medium tabular-nums",
+                  v.delta >= 0
+                    ? "bg-emerald-500/10 text-emerald-600"
+                    : "bg-red-500/10 text-red-600",
+                )}
+              >
+                {v.delta >= 0 ? "+" : ""}{v.delta.toFixed(2)}%
               </span>
             </div>
           </div>
@@ -98,30 +112,32 @@ export function VaultPreview({ className, navUsd, delta24h, spark }: VaultPrevie
         style={{ zIndex: behind.length + 1 }}
       >
         <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <img
-              src={front.icon}
-              alt={front.name}
-              className="size-10 rounded-full bg-secondary object-cover ring-1 ring-black/5"
-            />
-            <h3 className="line-clamp-2 text-2xl font-semibold leading-[1.05] tracking-tight text-foreground">
-              {front.name}
-            </h3>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <img
+                src={front.icon}
+                alt={front.name}
+                className="size-10 rounded-full bg-secondary object-cover ring-1 ring-black/5"
+              />
+              <h3 className="line-clamp-2 text-2xl font-semibold leading-[1.05] tracking-tight text-foreground">
+                {front.name}
+              </h3>
+            </div>
+            <span
+              className={cn(
+                "inline-flex shrink-0 items-baseline rounded-md px-2 py-1 text-sm font-medium tabular-nums",
+                front.delta >= 0
+                  ? "bg-emerald-500/10 text-emerald-600"
+                  : "bg-red-500/10 text-red-600",
+              )}
+            >
+              {front.delta >= 0 ? "+" : ""}{front.delta.toFixed(2)}%
+            </span>
           </div>
           <HoldingStack holdings={front.holdings} />
         </div>
 
-        <Sparkline values={front.spark} positive={front.delta24h >= 0} />
-
-        <div className="flex items-end justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <span className="text-xs uppercase tracking-wider text-muted-foreground/70">NAV</span>
-            <span className="font-mono text-xl tabular-nums text-foreground">
-              ${front.navUsd.toFixed(2)}
-            </span>
-          </div>
-          <Delta value={front.delta24h} />
-        </div>
+        <Sparkline values={front.spark} positive={front.delta >= 0} />
       </Card>
     </div>
   )
@@ -147,26 +163,11 @@ function HoldingStack({ holdings }: { holdings: Vault["holdings"] }) {
   )
 }
 
-function Delta({ value }: { value: number }) {
-  const positive = value >= 0
-  return (
-    <span
-      className={cn(
-        "inline-flex items-baseline gap-1 rounded-md px-2 py-1 text-sm font-medium tabular-nums",
-        positive ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-600",
-      )}
-    >
-      <span>{positive ? "+" : ""}{value.toFixed(2)}%</span>
-      <span className="text-xs text-muted-foreground/70">24h</span>
-    </span>
-  )
-}
-
 function Sparkline({
   values,
   positive = true,
   width = 320,
-  height = 56,
+  height = 240,
 }: {
   values: number[]
   positive?: boolean
