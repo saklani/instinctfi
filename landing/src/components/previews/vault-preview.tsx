@@ -88,7 +88,7 @@ export function VaultPreview({ className, deltas, spark }: VaultPreviewProps) {
                   alt=""
                   className="size-10 rounded-full bg-secondary object-cover ring-1 ring-black/5"
                 />
-                <span className="truncate text-2xl font-semibold leading-[1.05] tracking-tight text-foreground">
+                <span className="truncate text-lg lg:text-xl font-semibold leading-[1.05] tracking-tight text-foreground">
                   {v.name}
                 </span>
               </div>
