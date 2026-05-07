@@ -8,23 +8,22 @@ import { NavChartPreview } from "./previews/nav-chart-preview"
 const STEPS = [
   {
     title: "Pick an instinct",
-    body: "Choose the trend, idea, or cycle you think grows next.",
+    body: "Choose the trend, idea, or cycle you think grows next",
   },
   {
     title: "Invest instantly",
-    body: "Buy tokenized exposure to multiple assets — stocks, ETFs, Solana tokens — in one transaction.",
+    body: "Buy tokenized exposure to multiple assets, stocks, ETFs, Solana tokens, in one transaction",
   },
   {
     title: "Ride the momentum",
-    body: "Vaults rebalance automatically as narratives evolve.",
+    body: "Vaults rebalance automatically as Instincts evolve",
   },
 ]
 ---
 
 <Section class="border-b">
   <Column class="py-16 lg:py-36 gap-16 lg:gap-24">
-    <h2 class="text-center">Three steps to riding the next narrative.</h2>
-
+    <h2 class="text-center">Three steps to riding the next Instinct</h2>
     <ol class="flex flex-col gap-16 lg:gap-24">
       {STEPS.map((step, i) => (
         <li class={`grid items-center gap-8 md:grid-cols-2 md:gap-16 ${i % 2 === 1 ? "md:[&>*:first-child]:order-2" : ""}`}>
