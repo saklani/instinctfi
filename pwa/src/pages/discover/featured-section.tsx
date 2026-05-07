@@ -31,7 +31,6 @@ export function FeaturedSection() {
             vault={row.vault}
             nav={row.nav}
             delta={row.delta24h}
-            spark={row.spark}
           />
         </Stagger.Item>
       ))}

@@ -12,7 +12,7 @@ function DiscoverPage() {
   return (
     <div className="flex flex-col gap-12 lg:gap-16">
       <Reveal>
-        <h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground lg:text-4xl">
           Curated stock baskets{" "}
           <span className="text-muted-foreground">on Solana.</span>
         </h1>

@@ -12,7 +12,7 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
-import type { ChartPoint } from "@/lib/nav-data"
+import type { ChartPoint } from "@/features/vaults/hooks/use-vault-nav"
 
 export type { ChartPoint }
 

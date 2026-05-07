@@ -13,6 +13,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as FundIdRouteImport } from './routes/fund.$id'
+import { Route as AssetTickerRouteImport } from './routes/asset.$ticker'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -34,17 +35,24 @@ const FundIdRoute = FundIdRouteImport.update({
   path: '/fund/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AssetTickerRoute = AssetTickerRouteImport.update({
+  id: '/asset/$ticker',
+  path: '/asset/$ticker',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/portfolio': typeof PortfolioRoute
   '/settings': typeof SettingsRoute
+  '/asset/$ticker': typeof AssetTickerRoute
   '/fund/$id': typeof FundIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/portfolio': typeof PortfolioRoute
   '/settings': typeof SettingsRoute
+  '/asset/$ticker': typeof AssetTickerRoute
   '/fund/$id': typeof FundIdRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,28 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/portfolio': typeof PortfolioRoute
   '/settings': typeof SettingsRoute
+  '/asset/$ticker': typeof AssetTickerRoute
   '/fund/$id': typeof FundIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/portfolio' | '/settings' | '/fund/$id'
+  fullPaths: '/' | '/portfolio' | '/settings' | '/asset/$ticker' | '/fund/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/portfolio' | '/settings' | '/fund/$id'
-  id: '__root__' | '/' | '/portfolio' | '/settings' | '/fund/$id'
+  to: '/' | '/portfolio' | '/settings' | '/asset/$ticker' | '/fund/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/portfolio'
+    | '/settings'
+    | '/asset/$ticker'
+    | '/fund/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PortfolioRoute: typeof PortfolioRoute
   SettingsRoute: typeof SettingsRoute
+  AssetTickerRoute: typeof AssetTickerRoute
   FundIdRoute: typeof FundIdRoute
 }
 
@@ -99,6 +115,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FundIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/asset/$ticker': {
+      id: '/asset/$ticker'
+      path: '/asset/$ticker'
+      fullPath: '/asset/$ticker'
+      preLoaderRoute: typeof AssetTickerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -106,6 +129,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PortfolioRoute: PortfolioRoute,
   SettingsRoute: SettingsRoute,
+  AssetTickerRoute: AssetTickerRoute,
   FundIdRoute: FundIdRoute,
 }
 export const routeTree = rootRouteImport

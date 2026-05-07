@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 import { Delta } from "@/components/ui/delta"
 import { MonoNumber } from "@/components/ui/mono-number"
 import { Skeleton } from "@/components/ui/skeleton"
+import { toTitleCase } from "@/lib/format"
 import type { Vault } from "../api"
 
 export type VaultRowData = {
@@ -108,7 +109,7 @@ export function VaultRow({ row }: { row: VaultRowData }) {
     >
       <div className="flex min-w-0 items-center gap-3">
         <VaultRowLogo vault={vault} />
-        <span className="truncate font-medium text-foreground">{vault.name}</span>
+        <span className="truncate font-medium text-foreground">{toTitleCase(vault.name)}</span>
       </div>
 
       <div className="flex justify-end">

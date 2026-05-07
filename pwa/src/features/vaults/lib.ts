@@ -1,13 +1,12 @@
 import type { Vault } from "./api"
 import type { PriceMap } from "@/hooks/use-jupiter-prices"
-import { getNavSeries } from "@/lib/nav-data"
 import type {
   VaultRowData,
   VaultSortKey,
   VaultSortState,
 } from "./components/vault-row"
 
-export type EnrichedRow = VaultRowData & { spark: number[] }
+export type EnrichedRow = VaultRowData
 
 export function computeVaultNav(vault: Vault, prices: PriceMap) {
   let nav = 0
@@ -33,9 +32,7 @@ export function computeVaultNav(vault: Vault, prices: PriceMap) {
 
 export function buildRowData(vault: Vault, prices: PriceMap): EnrichedRow {
   const { nav, delta24h } = computeVaultNav(vault, prices)
-  const series = getNavSeries(vault.name, 30)
-  const spark = series.length > 0 ? series.map((p) => p.value) : [nav || 100]
-  return { vault, nav, delta24h, spark }
+  return { vault, nav, delta24h }
 }
 
 export function sortRows(rows: EnrichedRow[], sort: VaultSortState): EnrichedRow[] {

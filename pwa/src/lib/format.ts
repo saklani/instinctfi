@@ -30,3 +30,9 @@ export function truncateAddress(address: string, head: number = 4, tail: number 
   if (address.length <= head + tail + 1) return address
   return `${address.slice(0, head)}…${address.slice(-tail)}`
 }
+
+export function toTitleCase(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/\b\p{L}+/gu, (word) => word[0].toUpperCase() + word.slice(1))
+}

@@ -8,7 +8,9 @@ import { Delta } from "@/components/ui/delta"
 import { MonoNumber } from "@/components/ui/mono-number"
 import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
+import { toTitleCase } from "@/lib/format"
 import type { Vault } from "../api"
+import { useVaultNav } from "../hooks/use-vault-nav"
 import { durations, outQuart } from "@/components/motion"
 
 export type FeaturedKind = "trending" | "top-24h" | "newest"
@@ -17,8 +19,6 @@ type FeaturedCardProps = {
   vault: Vault
   nav: number
   delta: number
-  /** 16+ values, ascending in time. Cobalt stroke renders proportional. */
-  spark: number[]
   kind?: FeaturedKind
   className?: string
 }
@@ -27,9 +27,10 @@ export function FeaturedCard({
   vault,
   nav,
   delta,
-  spark,
   className,
 }: FeaturedCardProps) {
+  const { series } = useVaultNav(vault.id, 30)
+  const spark = series.length > 0 ? series.map((p) => p.value) : [nav || 100]
   const holdingCount = vault.compositions?.length ?? 0
   return (
     <Link
@@ -42,18 +43,20 @@ export function FeaturedCard({
     >
       <Card
         interactive
-        className="relative h-full justify-between gap-5 p-6"
+        className="relative h-full justify-between gap-5 pt-0 pb-6"
       >
-        <div className="flex flex-col gap-3">
+        <FeaturedCover vault={vault} />
+
+        <div className="flex flex-col gap-3 px-6">
           <h3 className="line-clamp-2 text-2xl font-semibold tracking-tight font-semibold leading-[1.05] tracking-tight text-foreground">
-            {vault.name}
+            {toTitleCase(vault.name)}
           </h3>
           <HoldingStack vault={vault} count={holdingCount} />
         </div>
 
         <Sparkline values={spark} positive={delta >= 0} />
 
-        <div className="flex items-end justify-between gap-4">
+        <div className="flex items-end justify-between gap-4 px-6">
           <div className="flex flex-col gap-1">
             <span className="text-xs uppercase tracking-wider text-muted-foreground/70">NAV</span>
             <MonoNumber
@@ -122,7 +125,7 @@ function Sparkline({
     [values, width, height],
   )
 
-  const stroke = positive ? "var(--accent)" : "var(--negative)"
+  const stroke = positive ? "var(--positive)" : "var(--destructive)"
 
   if (!linePath) {
     return (
@@ -165,13 +168,46 @@ function Sparkline({
   )
 }
 
+function FeaturedCover({ vault }: { vault: Vault }) {
+  if (vault.imageUrl) {
+    return (
+      <img
+        src={vault.imageUrl}
+        alt={`${vault.name} cover`}
+        loading="lazy"
+        className="aspect-[16/9] w-full object-cover"
+      />
+    )
+  }
+
+  const monogram = vault.name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase()
+
+  return (
+    <div
+      aria-hidden
+      className="relative aspect-[16/9] w-full overflow-hidden bg-secondary"
+    >
+      <span className="absolute inset-0 flex items-center justify-center font-heading text-4xl font-semibold tracking-tight text-muted-foreground/60">
+        {monogram}
+      </span>
+    </div>
+  )
+}
+
 export function FeaturedCardSkeleton({ className }: { className?: string }) {
   return (
     <Card
       data-slot="featured-card-skeleton"
-      className={cn("relative h-full justify-between gap-5 p-6", className)}
+      className={cn("relative h-full justify-between gap-5 pt-0 pb-6", className)}
     >
-      <div className="flex flex-col gap-3">
+      <Skeleton className="aspect-[16/9] w-full rounded-none" />
+      <div className="flex flex-col gap-3 px-6">
         <Skeleton className="h-7 w-3/4 rounded-sm" />
         <Skeleton className="h-5 w-1/2 rounded-sm" />
         <Row className="items-center gap-2">
@@ -187,7 +223,7 @@ export function FeaturedCardSkeleton({ className }: { className?: string }) {
         </Row>
       </div>
       <Skeleton className="h-16 w-full rounded-sm" />
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex items-end justify-between gap-4 px-6">
         <div className="flex flex-col gap-1.5">
           <Skeleton className="h-3 w-8 rounded-sm" />
           <Skeleton className="h-5 w-20 rounded-sm" />

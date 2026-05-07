@@ -23,6 +23,7 @@ import { usePendingOrders, OrderCard } from "@/features/orders"
 import { useWallet } from "@/hooks/use-wallet"
 import { useJupiterPrices } from "@/hooks/use-jupiter-prices"
 import { cn } from "@/lib/utils"
+import { toTitleCase } from "@/lib/format"
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -42,7 +43,7 @@ import {
   NavChartSkeleton,
 } from "@/components/chart/nav-chart"
 import { StickyCta } from "@/components/sticky-cta"
-import { getNavSeries } from "@/lib/nav-data"
+import { useVaultNav } from "@/features/vaults/hooks/use-vault-nav"
 import { Reveal, Ticker } from "@/components/motion"
 
 export const Route = createFileRoute("/fund/$id")({
@@ -53,6 +54,8 @@ const PERIODS = [
   { id: "1W", days: 7 },
   { id: "1M", days: 30 },
   { id: "3M", days: 90 },
+  { id: "6M", days: 180 },
+  { id: "1Y", days: 365 },
 ] as const
 
 type PeriodId = (typeof PERIODS)[number]["id"]
@@ -116,11 +119,35 @@ function FundDetailPage() {
 
   const { navValue, navDelta, prices, loading: pricesLoading } = useVaultPrices(vault)
 
-  const periodDays = PERIODS.find((p) => p.id === period)?.days ?? 30
-  const chartData = React.useMemo(
-    () => (vault ? getNavSeries(vault.name, periodDays) : []),
-    [vault, periodDays],
+  // Fetch the full 1y series once; slice locally per period.
+  const { series: fullSeries } = useVaultNav(vault?.id, 365)
+
+  // Periods only render if the underlying series spans enough days.
+  const availableSpanDays = React.useMemo(() => {
+    if (fullSeries.length < 2) return 0
+    const first = new Date(fullSeries[0].date).getTime()
+    const last = new Date(fullSeries[fullSeries.length - 1].date).getTime()
+    return Math.floor((last - first) / 86_400_000)
+  }, [fullSeries])
+
+  const availablePeriods = React.useMemo(
+    () => PERIODS.filter((p) => p.days <= availableSpanDays || p.id === "1W"),
+    [availableSpanDays],
   )
+
+  // Auto-clamp the selected period if it became unavailable.
+  React.useEffect(() => {
+    if (!availablePeriods.some((p) => p.id === period) && availablePeriods.length > 0) {
+      setPeriod(availablePeriods[availablePeriods.length - 1].id)
+    }
+  }, [availablePeriods, period])
+
+  const chartData = React.useMemo(() => {
+    if (!fullSeries.length) return fullSeries
+    const days = PERIODS.find((p) => p.id === period)?.days ?? 30
+    const cutoffMs = Date.now() - days * 86_400_000
+    return fullSeries.filter((p) => new Date(p.date).getTime() >= cutoffMs)
+  }, [fullSeries, period])
 
   const myPendingOrders = pendingOrders.filter((o) => o.vaultId === id)
 
@@ -163,8 +190,6 @@ function FundDetailPage() {
   return (
     <>
       <Reveal as="div" className="flex flex-col gap-8">
-        <Breadcrumb name={vault.name} />
-
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10">
           {/* LEFT */}
           <div className="flex min-w-0 flex-col gap-8">
@@ -188,7 +213,7 @@ function FundDetailPage() {
                     layoutId="time-pill"
                     className="bg-background"
                   >
-                    {PERIODS.map((p) => (
+                    {availablePeriods.map((p) => (
                       <TabPillItem key={p.id} value={p.id}>
                         {p.id}
                       </TabPillItem>
@@ -242,7 +267,7 @@ function FundDetailPage() {
         >
           <SheetHeader className="p-0">
             <SheetTitle className="text-base font-semibold text-foreground">
-              {vault.name}
+              {toTitleCase(vault.name)}
             </SheetTitle>
             <SheetDescription className="text-xs text-muted-foreground">
               Deposit USDC, queue at next NAV print.
@@ -261,24 +286,6 @@ function FundDetailPage() {
 /*  Sub-components                                                    */
 /* ------------------------------------------------------------------ */
 
-function Breadcrumb({ name }: { name: string }) {
-  return (
-    <nav
-      aria-label="Breadcrumb"
-      className="flex items-center gap-2 text-xs text-muted-foreground"
-    >
-      <Link
-        to="/"
-        className="rounded-sm px-1 hover:text-foreground outline-none focus-visible:text-foreground focus-visible:ring-[3px] focus-visible:ring-accent/30"
-      >
-        Discover
-      </Link>
-      <ChevronRight className="size-3.5 text-muted-foreground/70" aria-hidden />
-      <span className="text-foreground">{name}</span>
-    </nav>
-  )
-}
-
 function AssetHeader({ vault }: { vault: Vault }) {
   const tickerCount = vault.compositions?.length ?? 0
   return (
@@ -287,7 +294,7 @@ function AssetHeader({ vault }: { vault: Vault }) {
         <VaultLogo vault={vault} />
         <div className="flex min-w-0 flex-col gap-3">
           <h1 className="text-2xl font-semibold tracking-tight font-semibold tracking-tight text-foreground md:text-4xl font-semibold tracking-tight">
-            {vault.name}
+            {toTitleCase(vault.name)}
           </h1>
           <div className="flex flex-wrap items-center gap-2">
             <Verified label="Curated" />
