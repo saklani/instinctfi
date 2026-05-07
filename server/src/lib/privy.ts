@@ -1,7 +1,4 @@
 import { PrivyClient } from "@privy-io/node"
-import { db } from "../db/index.js"
-import { wallets } from "../db/schema.js"
-import { eq } from "drizzle-orm"
 
 export const privy = new PrivyClient({
   appId: process.env.PRIVY_APP_ID!,
@@ -25,30 +22,6 @@ export function getTreasuryWallet() {
     walletId: requireEnv("TREASURY_WALLET_ID"),
     address: requireEnv("TREASURY_WALLET_ADDRESS"),
   }
-}
-
-export async function getOrCreateUserWallet(userId: string) {
-  const [existing] = await db
-    .select()
-    .from(wallets)
-    .where(eq(wallets.userId, userId))
-    .limit(1)
-
-  if (existing) {
-    return { walletId: existing.walletId, address: existing.address }
-  }
-
-  const wallet = await privy.wallets().create({
-    chain_type: "solana",
-  })
-
-  await db.insert(wallets).values({
-    userId,
-    walletId: wallet.id,
-    address: wallet.address,
-  })
-
-  return { walletId: wallet.id, address: wallet.address }
 }
 
 export async function signAndSendTransaction(

@@ -108,16 +108,6 @@ export const orders = pgTable("orders", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 })
 
-// ── User Wallets ────────────────────────────────────────
-
-export const wallets = pgTable("wallets", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: text("user_id").notNull().unique(),   // Privy user ID
-  walletId: text("wallet_id").notNull(),         // Privy server wallet ID
-  address: text("address").notNull(),            // Solana address
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-})
-
 // ── Positions ───────────────────────────────────────────
 
 export const positions = pgTable("positions", {
