@@ -7,3 +7,4 @@
 - Where can you use `div`? When a primitive is not defined — `Grid` is a good example.
 - Prop drilling should be avoided. We use React Query, so always fetch data within the component presenting it.
 - Avoid overriding text styles. Use `h1`, `h2`, `h3`, `p` directly.
+- Avoid default HTML elements when a component-library version exists. `<button>` is almost never correct — use `Button`.

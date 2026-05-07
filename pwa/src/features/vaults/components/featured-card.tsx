@@ -33,48 +33,47 @@ export function FeaturedCard({ vaultId, className }: FeaturedCardProps) {
   const nav = vault.nav ?? 0
   const holdingCount = vault.compositions?.length ?? 0
   return (
-    <Link
-      to="/fund/$id"
-      params={{ id: vaultId }}
-      className={cn(
-        "block h-full rounded-xl outline-none focus-visible:ring-[4px] focus-visible:ring-accent/30",
-        className,
-      )}
-    >
-      <Card interactive className="h-full">
-        <FeaturedCover vault={vault} />
+    <Card interactive className={cn("relative h-full", className)}>
+      <FeaturedCover vault={vault} />
 
-        <CardHeader>
-          <CardTitle className="line-clamp-2">
-            {toTitleCase(vault.name)}
-          </CardTitle>
-          <CardDescription>
-            <HoldingStack vault={vault} count={holdingCount} />
-          </CardDescription>
-          <CardAction>
-            <MonoNumber
-              value={nav}
-              format="usd"
-              precision={2}
-              size="md"
-              className="text-foreground"
-            />
-          </CardAction>
-        </CardHeader>
+      {/* Stretched click overlay — covers the card except where higher-z children intercept. */}
+      <Link
+        to="/fund/$id"
+        params={{ id: vaultId }}
+        aria-label={`View ${toTitleCase(vault.name)}`}
+        className="absolute inset-0 z-10 rounded-xl outline-none focus-visible:ring-[4px] focus-visible:ring-accent/30"
+      />
 
-        <CardContent>
-          <React.Suspense fallback={<NavChartSkeleton />}>
-            <NavChart vaultId={vaultId} fallbackNav={nav} />
-          </React.Suspense>
-        </CardContent>
+      <CardHeader>
+        <CardTitle className="line-clamp-2">
+          {toTitleCase(vault.name)}
+        </CardTitle>
+        <CardDescription>
+          <HoldingStack vault={vault} count={holdingCount} />
+        </CardDescription>
+        <CardAction>
+          <MonoNumber
+            value={nav}
+            format="usd"
+            precision={2}
+            size="md"
+            className="text-foreground"
+          />
+        </CardAction>
+      </CardHeader>
 
-        <CardFooter className="justify-end">
-          <React.Suspense fallback={<DeltaSkeleton />}>
-            <DeltaChip vaultId={vaultId} />
-          </React.Suspense>
-        </CardFooter>
-      </Card>
-    </Link>
+      <CardContent>
+        <React.Suspense fallback={<NavChartSkeleton />}>
+          <NavChart vaultId={vaultId} fallbackNav={nav} />
+        </React.Suspense>
+      </CardContent>
+
+      <CardFooter className="justify-end">
+        <React.Suspense fallback={<DeltaSkeleton />}>
+          <DeltaChip vaultId={vaultId} />
+        </React.Suspense>
+      </CardFooter>
+    </Card>
   )
 }
 
@@ -116,16 +115,23 @@ function HoldingStack({ vault, count }: { vault: Vault; count: number }) {
   const visible = vault.compositions?.slice(0, 6) ?? []
   const overflow = Math.max(0, count - visible.length)
   return (
-    <Row className="gap-0 -space-x-1.5">
+    <Row className="relative z-20 gap-0 -space-x-1.5 transition-all duration-200 has-[a:hover]:space-x-1">
       {visible.map((c) => (
-        <img
+        <Link
           key={c.stock.id}
-          src={c.stock.imageUrl}
-          alt={c.stock.ticker}
+          to="/asset/$ticker"
+          params={{ ticker: c.stock.ticker }}
+          aria-label={c.stock.ticker}
           title={c.stock.ticker}
-          loading="lazy"
-          className="size-6 rounded-full bg-secondary object-cover ring-2 ring-card"
-        />
+          className="block rounded-full outline-none transition-all duration-200 hover:z-30 hover:scale-125 focus-visible:ring-[3px] focus-visible:ring-accent/30"
+        >
+          <img
+            src={c.stock.imageUrl}
+            alt=""
+            loading="lazy"
+            className="size-6 rounded-full bg-secondary object-cover ring-2 ring-card"
+          />
+        </Link>
       ))}
       {overflow > 0 && (
         <span className="z-10 inline-flex size-6 items-center justify-center rounded-full bg-muted text-[10px] font-medium tabular text-muted-foreground ring-2 ring-card">

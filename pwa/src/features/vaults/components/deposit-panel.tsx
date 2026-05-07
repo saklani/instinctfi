@@ -222,10 +222,12 @@ function DepositTab({
                   Amount
                 </label>
                 {authenticated && balance !== undefined && (
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="xs"
                     onClick={handleMax}
-                    className="rounded-sm text-xs text-muted-foreground hover:text-foreground outline-none focus-visible:text-foreground focus-visible:ring-[3px] focus-visible:ring-accent/30"
+                    className="text-muted-foreground"
                   >
                     Balance{" "}
                     <MonoNumber
@@ -234,7 +236,7 @@ function DepositTab({
                       size="sm"
                       className="text-foreground"
                     />
-                  </button>
+                  </Button>
                 )}
               </Row>
 

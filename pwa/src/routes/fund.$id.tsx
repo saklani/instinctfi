@@ -422,20 +422,22 @@ function AboutCard({ description }: { description: string | null }) {
     <Card>
       <h2>About this vault</h2>
       <p className={cn(!expanded && "line-clamp-3")}>{text}</p>
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="xs"
         onClick={() => setExpanded((v) => !v)}
-        className="inline-flex w-fit items-center rounded-sm text-xs text-foreground hover:text-accent outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30"
+        className="w-fit"
       >
         {expanded ? "Show less" : "Read more"}
         <ChevronRight
           aria-hidden
           className={cn(
-            "size-3.5 transition-transform duration-200",
+            "transition-transform duration-200",
             expanded && "rotate-90",
           )}
         />
-      </button>
+      </Button>
     </Card>
   )
 }

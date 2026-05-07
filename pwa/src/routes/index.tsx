@@ -11,7 +11,7 @@ export const Route = createFileRoute("/")({
 
 function DiscoverPage() {
   return (
-    <Column className="gap-6 py-6 px-4">
+    <Column className="gap-12 py-12 px-4">
       <Reveal>
         <h1 className="mb-6">
           Curated stock vaults{" "}

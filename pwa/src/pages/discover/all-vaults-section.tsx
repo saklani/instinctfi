@@ -1,18 +1,17 @@
+import { Column } from "@/components/ui/column"
+import { Section } from "@/components/ui/section"
 import {
   VaultRow,
   VaultTableHeader,
   VaultTableSkeleton,
 } from "@/features/vaults/components/vault-row"
 import { useDiscoverVaults } from "@/features/vaults/hooks/use-enriched-vaults"
-import { Column } from "@/components/ui/column"
-import { Section, SectionHeader } from "@/components/ui/section"
 
 export function AllVaultsSection() {
   const { rows, sort, onSort, loading, error } = useDiscoverVaults()
 
   return (
     <Section>
-      <SectionHeader title="All vaults" />
       <Column role="table" aria-label="All vaults">
         <VaultTableHeader sort={sort} onSortChange={onSort} />
         <Column role="rowgroup" className="divide-y divide-border">

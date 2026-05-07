@@ -115,20 +115,22 @@ function CopyAddress({ address }: { address: string }) {
   }, [address])
 
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="xs"
       onClick={handleCopy}
-      className="group inline-flex items-center rounded-full text-xs text-foreground transition-colors duration-150 hover:bg-secondary outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30"
+      className="rounded-full"
     >
       <span className="font-mono text-xs tabular-nums">
         {truncateAddress(address)}
       </span>
       <Copy
-        className="size-3.5 text-muted-foreground/70 transition-colors group-hover:text-muted-foreground"
+        className="size-3.5 text-muted-foreground/70"
         aria-hidden
       />
       <span className="sr-only">Copy address</span>
-    </button>
+    </Button>
   )
 }
 

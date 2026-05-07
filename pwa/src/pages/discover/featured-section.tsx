@@ -7,7 +7,7 @@ import {
 import { useFeaturedVaults } from "@/features/vaults/hooks/use-enriched-vaults"
 
 const GRID_CLASS =
-  "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+  "grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-3"
 
 export function FeaturedSection() {
   const { rows, loading } = useFeaturedVaults(3)
