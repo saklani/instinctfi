@@ -51,9 +51,9 @@ const TOKENS: Token[] = [
   { ticker: "USDC",   pythSymbol: "Crypto.USDC/USD" },
   { ticker: "BIO",    pythSymbol: "Crypto.BIO/USD" },
   { ticker: "WBTC",   pythSymbol: "Crypto.BTC/USD" },
-  // Commodities — Pyth symbols may need adjustment if Benchmarks rejects them.
-  { ticker: "GLDx",   pythSymbol: "Metal.XAU/USD" },        // tokenized gold → spot XAU
-  { ticker: "BNOon",  pythSymbol: "Equity.US.BNO/USD" },    // United States Brent Oil Fund ETF
+  // Commodities
+  { ticker: "GLDx",   pythSymbol: "Metal.XAU/USD" },         // tokenized gold → spot XAU
+  { ticker: "BNOon",  pythSymbol: "Commodities.UKOILSPOT" }, // Brent ETF → Brent spot (UK oil)
 ]
 
 // ── Vault compositions ─────────────────────────────────────────────
