@@ -84,6 +84,34 @@ app.get("/:id", async (c) => {
   return c.json({ ...vault, compositions: compRows, ...snapshotFromRows(navRows) })
 })
 
+// GET /api/vaults/:id/performance — all-time return computed from `vault_nav`
+// (latest value vs. earliest value).
+app.get("/:id/performance", async (c) => {
+  const id = c.req.param("id")
+
+  const [firstRow, lastRow] = await Promise.all([
+    db
+      .select({ value: vaultNav.value })
+      .from(vaultNav)
+      .where(eq(vaultNav.vaultId, id))
+      .orderBy(asc(vaultNav.date))
+      .limit(1),
+    db
+      .select({ value: vaultNav.value })
+      .from(vaultNav)
+      .where(eq(vaultNav.vaultId, id))
+      .orderBy(desc(vaultNav.date))
+      .limit(1),
+  ])
+
+  const first = firstRow[0] ? Number(firstRow[0].value) : null
+  const last = lastRow[0] ? Number(lastRow[0].value) : null
+  const allTime =
+    first != null && last != null && first !== 0 ? (last - first) / first : null
+
+  return c.json({ allTime })
+})
+
 // GET /api/vaults/:id/nav?days=N — precomputed weighted NAV time series.
 // Source: `vault_nav` table, populated by scripts/compute-vault-nav.ts.
 app.get("/:id/nav", async (c) => {
