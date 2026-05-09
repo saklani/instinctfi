@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router"
 
-import { Delta } from "@/components/ui/delta"
 import { MonoNumber } from "@/components/ui/mono-number"
 import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -20,8 +19,6 @@ export type CompositionItem = {
   logoUrl?: string | null
   /** Weight in basis points. */
   weight: number
-  /** 24h delta as fraction (0.012 = 1.2%). */
-  delta24h?: number | null
 }
 
 export function CompositionList({ items }: { items: CompositionItem[] }) {
@@ -42,7 +39,6 @@ export function CompositionList({ items }: { items: CompositionItem[] }) {
           <TableHead className="w-10">#</TableHead>
           <TableHead>Asset</TableHead>
           <TableHead className="text-right">Weight</TableHead>
-          <TableHead className="text-right">24h</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -91,9 +87,6 @@ function CompositionRow({
           size="md"
         />
       </TableCell>
-      <TableCell className="text-right">
-        <Delta value={item.delta24h ?? null} hideArrow size="sm" />
-      </TableCell>
     </TableRow>
   )
 }
@@ -127,7 +120,6 @@ export function CompositionListSkeleton({ rows = 5 }: { rows?: number }) {
           <TableHead className="w-10">#</TableHead>
           <TableHead>Asset</TableHead>
           <TableHead className="text-right">Weight</TableHead>
-          <TableHead className="text-right">24h</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -144,9 +136,6 @@ export function CompositionListSkeleton({ rows = 5 }: { rows?: number }) {
             </TableCell>
             <TableCell className="text-right">
               <Skeleton className="ml-auto h-4 w-12 rounded-sm" />
-            </TableCell>
-            <TableCell className="text-right">
-              <Skeleton className="ml-auto h-3 w-10 rounded-sm" />
             </TableCell>
           </TableRow>
         ))}

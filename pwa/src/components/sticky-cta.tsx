@@ -27,7 +27,7 @@ export function StickyCta({
     <div
       data-slot="sticky-cta"
       className={cn(
-        "fixed left-4 right-4 z-40 md:hidden",
+        "fixed bottom-20 left-4 right-4 z-40 md:hidden",
         className,
       )}
     >
@@ -37,7 +37,7 @@ export function StickyCta({
         disabled={disabled}
         aria-label={ariaLabel}
         className={cn(
-          "flex h-14 w-full items-center justify-center rounded-full",
+          "flex h-14 w-full items-center justify-center ",
           "bg-primary text-primary-foreground select-none",
           "shadow-md transition-shadow duration-200 hover:shadow-lg",
           "active:translate-y-px active:duration-[80ms]",
@@ -48,12 +48,6 @@ export function StickyCta({
         <span className="font-mono text-sm font-medium uppercase tracking-wider tabular-nums">
           {children}
         </span>
-        {expandable && (
-          <ChevronDown
-            aria-hidden
-            className="size-4"
-          />
-        )}
       </button>
     </div>
   )

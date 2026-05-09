@@ -28,5 +28,5 @@ export function isMarketOpen(now: Date = new Date()): boolean {
 }
 
 export function marketStatusText(now: Date = new Date()): string | null {
-  return isMarketOpen(now) ? null : "US Markets closed"
+  return isMarketOpen(now) ? null : "Trading opens 9:30 AM ET"
 }

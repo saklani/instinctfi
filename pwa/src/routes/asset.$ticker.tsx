@@ -173,7 +173,7 @@ function PriceBlock({
 
   return (
     <Column>
-      <p>Spot price</p>
+      <p className="text-sm">Spot price</p>
       <Row className="flex-wrap items-baseline">
         {loading || value == null ? (
           <Skeleton className="h-10 w-32 rounded-sm" />
@@ -184,7 +184,7 @@ function PriceBlock({
         )}
         <Delta value={change} size="lg" suffix="24h" asPercent />
       </Row>
-      <p>{today}</p>
+      <p className="text-sm">{today}</p>
     </Column>
   )
 }
@@ -315,7 +315,7 @@ function AboutCard({ description }: { description: string | null }) {
         <CardTitle>About</CardTitle>
       </CardHeader>
       <CardContent>
-        <p>{text}</p>
+        <p className="text-sm">{text}</p>
       </CardContent>
     </Card>
   )
@@ -327,31 +327,45 @@ function AboutCard({ description }: { description: string | null }) {
 
 function DetailSkeleton() {
   return (
-    <Column className="gap-12 pt-12 pb-24">
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <Column>
+    <Column className="animate-in fade-in-0 duration-300 gap-12 pt-12 pb-24">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-6">
+        {/* LEFT */}
+        <Column className="min-w-0">
+          {/* AssetHeader */}
           <Row className="items-start">
             <Skeleton className="size-20 rounded-full" />
-            <Column className="flex-1">
+            <Column className="min-w-0 flex-1">
               <Skeleton className="h-9 w-2/3 rounded-sm" />
-              <Skeleton className="h-6 w-1/3 rounded-sm" />
+              <Skeleton className="h-5 w-24 rounded-full" />
             </Column>
           </Row>
-          <Column>
-            <Skeleton className="h-3 w-24 rounded-sm" />
-            <Skeleton className="h-10 w-40 rounded-sm" />
-          </Column>
+          <hr className="border-border" />
+
+          {/* Chart */}
           <NavChartSkeleton height={320} />
-          <div className="grid grid-cols-2 md:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-16 rounded-sm" />
+
+          {/* StatGrid (5 cells) */}
+          <div className="grid grid-cols-2 overflow-hidden rounded-md bg-border md:grid-cols-5">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Column key={i} className="bg-card">
+                <Skeleton className="h-3 w-16 rounded-sm" />
+                <Skeleton className="h-5 w-20 rounded-sm" />
+              </Column>
             ))}
           </div>
-          <Skeleton className="h-32 rounded-md" />
         </Column>
-        <Card className="hidden lg:block">
-          <Skeleton className="h-24 rounded-sm" />
-        </Card>
+
+        {/* RIGHT */}
+        <Column className="hidden lg:flex">
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-5 w-24 rounded-sm" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-16 w-full rounded-sm" />
+            </CardContent>
+          </Card>
+        </Column>
       </div>
     </Column>
   )

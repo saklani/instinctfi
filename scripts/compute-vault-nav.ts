@@ -28,10 +28,11 @@ async function main() {
 
   let totalRows = 0
   for (const v of allVaults) {
-    // Pull every (date, weight, close) for this vault
+    // Pull every (date, stockId, weight, close) for this vault
     const rows = await db
       .select({
         date: stockPrices.date,
+        stockId: compositions.stockId,
         weight: compositions.weight,
         close: stockPrices.close,
       })
@@ -39,33 +40,54 @@ async function main() {
       .innerJoin(stockPrices, eq(stockPrices.stockId, compositions.stockId))
       .where(eq(compositions.vaultId, v.id))
 
-    const tokenCount = await db
-      .select({ stockId: compositions.stockId })
-      .from(compositions)
-      .where(eq(compositions.vaultId, v.id))
-    const expected = tokenCount.length
-    if (expected === 0) {
+    const stockIds = [...new Set(rows.map((r) => r.stockId))]
+    if (stockIds.length === 0) {
       console.log(`  · ${v.name}: no compositions, skipping`)
       continue
     }
 
-    // Aggregate per date; only keep dates with full coverage.
-    const byDate = new Map<string, { sum: number; count: number }>()
+    // Index closes by (stockId, date) and collect weights
+    const closeByStockDate = new Map<string, Map<string, number>>()
+    const weightByStock = new Map<string, number>()
     for (const r of rows) {
-      const slot = byDate.get(r.date) ?? { sum: 0, count: 0 }
-      slot.sum += Number(r.close) * (r.weight / 10_000)
-      slot.count++
-      byDate.set(r.date, slot)
+      let m = closeByStockDate.get(r.stockId)
+      if (!m) {
+        m = new Map()
+        closeByStockDate.set(r.stockId, m)
+      }
+      m.set(r.date, Number(r.close))
+      weightByStock.set(r.stockId, r.weight)
     }
 
-    const series = [...byDate.entries()]
-      .filter(([, x]) => x.count === expected)
-      .map(([date, x]) => ({
-        vaultId: v.id,
-        date,
-        value: x.sum.toFixed(4),
-      }))
-      .sort((a, b) => a.date.localeCompare(b.date))
+    // Common-coverage dates: dates present for every constituent
+    const dateSets = stockIds.map((id) => new Set(closeByStockDate.get(id)!.keys()))
+    const commonDates = [...dateSets[0]]
+      .filter((d) => dateSets.every((s) => s.has(d)))
+      .sort()
+
+    if (!commonDates.length) {
+      console.log(`  – ${v.name}: 0 full-coverage dates`)
+      continue
+    }
+
+    // Rebased market-value index: NAV(t) = 100 · Σ (wᵢ/10000) · priceᵢ(t)/priceᵢ(start)
+    const startDate = commonDates[0]
+    const startPriceByStock = new Map<string, number>()
+    for (const id of stockIds) {
+      startPriceByStock.set(id, closeByStockDate.get(id)!.get(startDate)!)
+    }
+
+    const series = commonDates
+      .map((date) => {
+        let nav = 0
+        for (const id of stockIds) {
+          const w = weightByStock.get(id)! / 10_000
+          const price = closeByStockDate.get(id)!.get(date)!
+          const start = startPriceByStock.get(id)!
+          nav += w * (price / start)
+        }
+        return { vaultId: v.id, date, value: (nav * 100).toFixed(4) }
+      })
 
     if (!series.length) {
       console.log(`  – ${v.name}: 0 full-coverage dates`)

@@ -1,7 +1,5 @@
 import * as React from "react"
 import { Link, createFileRoute } from "@tanstack/react-router"
-import { ChevronRight } from "lucide-react"
-
 import { useVault } from "@/features/vaults"
 import {
   CompositionList,
@@ -13,15 +11,12 @@ import {
 } from "@/features/vaults/components/deposit-panel"
 import type { VaultResponse as Vault } from "@/features/vaults"
 import { useWallet } from "@/hooks/use-wallet"
-import { useJupiterPrices } from "@/hooks/use-jupiter-prices"
-import { cn } from "@/lib/utils"
 import { toTitleCase } from "@/lib/format"
 
 import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -65,28 +60,12 @@ type PeriodId = (typeof PERIODS)[number]["id"]
 /*  Helpers                                                           */
 /* ------------------------------------------------------------------ */
 
-function useCompositionPrices(vault: Vault | null) {
-  const mints = React.useMemo(
-    () => vault?.compositions.map((c) => c.stock.address) ?? [],
-    [vault],
-  )
-  return useJupiterPrices(mints)
-}
-
-/* ------------------------------------------------------------------ */
-/*  Page                                                              */
-/* ------------------------------------------------------------------ */
-
 function FundDetailPage() {
   const { id } = Route.useParams()
   const { vault, loading, error } = useVault(id)
   const { authenticated, login, ready } = useWallet()
   const [sheetOpen, setSheetOpen] = React.useState(false)
   const [period, setPeriod] = React.useState<PeriodId>("1M")
-
-  const { prices, loading: pricesLoading } = useCompositionPrices(vault)
-  const navValue = vault?.nav ?? null
-  const navDelta = vault?.delta24h ?? null
 
   // Fetch the full 1y series once; slice locally per period.
   const { series: fullSeries } = useVaultNav(vault?.id, 1825)
@@ -126,9 +105,8 @@ function FundDetailPage() {
       name: c.stock.name,
       logoUrl: c.stock.imageUrl,
       weight: c.weight,
-      delta24h: prices[c.stock.address]?.priceChange24h ?? null,
     }))
-  }, [vault, prices])
+  }, [vault])
 
   if (loading) return <DetailSkeleton />
 
@@ -220,7 +198,9 @@ function FundDetailPage() {
               Deposit USDC, queue at next NAV print.
             </SheetDescription>
           </SheetHeader>
-          <DepositPanel vault={vault} onDone={() => setSheetOpen(false)} />
+          <Column className="px-6 pb-8">
+            <DepositPanel vault={vault} onDone={() => setSheetOpen(false)} />
+          </Column>
         </SheetContent>
       </Sheet>
     </>
@@ -296,38 +276,6 @@ function tickerSymbolFor(vault: Vault): string | null {
   return VAULT_TICKERS[vault.name.trim().toLowerCase()] ?? null
 }
 
-function NavPriceBlock({
-  value,
-  delta,
-  loading,
-}: {
-  value: number | null
-  delta: number | null
-  loading: boolean
-}) {
-  const today = new Date().toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
-  return (
-    <Column>
-      <p>NAV per share</p>
-      <Row className="flex-wrap items-baseline">
-        {loading || value == null ? (
-          <Skeleton className="h-10 w-32 rounded-sm" />
-        ) : (
-          <h2>
-            <Ticker value={value} decimals={2} prefix="$" />
-          </h2>
-        )}
-        <Delta value={delta} size="lg" suffix="24h" />
-      </Row>
-      <p>{today}</p>
-    </Column>
-  )
-}
-
 function CompositionSection({
   items,
 }: {
@@ -337,14 +285,13 @@ function CompositionSection({
     name: string
     logoUrl?: string | null
     weight: number
-    delta24h?: number | null
   }>
 }) {
   return (
     <Column className="mt-6">
       <Row className="items-baseline justify-between">
         <h2>Composition</h2>
-        <p>{items.length} holdings</p>
+        <p className="text-sm">{items.length} holdings</p>
       </Row>
       <CompositionList items={items} />
     </Column>
@@ -373,26 +320,49 @@ function AboutCard({ description }: { description: string | null }) {
 
 function DetailSkeleton() {
   return (
-    <Column className="gap-12 pt-12 pb-24">
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <Column>
-          <Row className="items-start">
+    <Column className="animate-in fade-in-0 duration-300 gap-12 pt-12 pb-24">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-6">
+        {/* LEFT */}
+        <Column className="min-w-0">
+          {/* AssetHeader */}
+          <Row className="items-center">
             <Skeleton className="size-20 rounded-full" />
-            <Column className="flex-1">
+            <Column className="min-w-0 flex-1">
               <Skeleton className="h-9 w-2/3 rounded-sm" />
-              <Skeleton className="h-6 w-1/3 rounded-sm" />
+              <Skeleton className="h-5 w-24 rounded-full" />
             </Column>
           </Row>
-          <Column>
-            <Skeleton className="h-3 w-24 rounded-sm" />
-            <Skeleton className="h-10 w-40 rounded-sm" />
-          </Column>
+          <hr className="border-border" />
+
+          {/* Chart */}
           <NavChartSkeleton height={320} />
-          <CompositionListSkeleton rows={5} />
+
+          {/* Composition */}
+          <Column className="mt-6">
+            <Row className="items-baseline justify-between">
+              <Skeleton className="h-7 w-32 rounded-sm" />
+              <Skeleton className="h-4 w-20 rounded-sm" />
+            </Row>
+            <CompositionListSkeleton rows={5} />
+          </Column>
         </Column>
-        <Card className="hidden lg:block">
-          <DepositPanelSkeleton />
-        </Card>
+
+        {/* RIGHT */}
+        <Column className="hidden lg:flex">
+          <Card>
+            <CardContent>
+              <DepositPanelSkeleton />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-5 w-32 rounded-sm" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-16 w-full rounded-sm" />
+            </CardContent>
+          </Card>
+        </Column>
       </div>
     </Column>
   )

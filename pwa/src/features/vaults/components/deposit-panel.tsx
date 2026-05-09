@@ -242,10 +242,10 @@ function DepositTab({
             isLoading={isPending}
             disabled={!marketOpen}
           >
-            {marketOpen ? "Deposit USDC" : "Markets closed"}
+            Deposit USDC
           </LoadingButton>
           {!marketOpen && (
-            <p className="text-center text-muted-foreground">
+            <p className="text-center text-sm text-muted-foreground">
               {marketStatusText()}
             </p>
           )}
@@ -389,10 +389,10 @@ function WithdrawTab({
             isLoading={isPending}
             disabled={maxShares === 0 || !marketOpen}
           >
-            {marketOpen ? "Withdraw" : "Markets closed"}
+            Withdraw
           </LoadingButton>
           {!marketOpen && (
-            <p className="text-center text-muted-foreground">
+            <p className="text-center text-sm text-muted-foreground">
               {marketStatusText()}
             </p>
           )}
