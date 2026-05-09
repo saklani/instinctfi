@@ -13,7 +13,7 @@ import type { VaultResponse as Vault } from "../hooks/use-vaults"
 export function VaultCard({ vault }: { vault: Vault }) {
   return (
     <Link to="/fund/$id" params={{ id: vault.id }}>
-      <Card className="transition-all duration-150 hover:bg-accent/50 hover:shadow-md active:scale-[0.98] cursor-pointer">
+      <Card>
         <VaultCover vault={vault} />
 
         <CardHeader>
@@ -56,7 +56,7 @@ function VaultCover({ vault }: { vault: Vault }) {
   return (
     <div
       aria-hidden
-      className="relative aspect-[16/9] w-full bg-secondary"
+      className="relative aspect-square w-full bg-secondary"
     >
       <div className="absolute inset-0 flex items-center justify-center">
         {stocks.length > 0 ? (

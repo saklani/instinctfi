@@ -11,11 +11,11 @@ const desktopLinks = [
 ] as const
 
 export function Header() {
-  const { login, ready } = useWallet()
+  const { ready, authenticated, login, logout } = useWallet()
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
-      <Row className="mx-auto h-16 w-full max-w-6xl items-center px-4 justify-between">
+      <Row className="mx-auto h-16 w-full items-center justify-between max-w-7xl px-4 lg:px-16">
         <Link to="/" aria-label="instinct, home">
           <img src="/logo-black.png" alt="Instinct" className="h-6" />
         </Link>
@@ -31,8 +31,13 @@ export function Header() {
               </Link>
             </Row>
           ))}
-          <Button size="sm" onClick={login} className="ml-6">
-            Sign in
+          <Button
+            size="sm"
+            onClick={authenticated ? logout : login}
+            disabled={!ready}
+            className="ml-6"
+          >
+            {authenticated ? "Sign out" : "Sign in"}
           </Button>
         </nav>
         <InstallButton />

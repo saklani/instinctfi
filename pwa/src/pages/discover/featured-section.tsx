@@ -1,44 +1,31 @@
-import * as React from "react"
-
+import { Column } from "@/components/ui/column"
 import {
   FeaturedCard,
   FeaturedCardSkeleton,
 } from "@/features/vaults/components/featured-card"
 import { useFeaturedVaults } from "@/features/vaults/hooks/use-enriched-vaults"
 
-const GRID_CLASS =
-  "grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-3"
 
 export function FeaturedSection() {
-  const { rows, loading } = useFeaturedVaults(3)
+  const { rows, loading } = useFeaturedVaults()
 
   if (loading) {
     return (
-      <div className={GRID_CLASS}>
+      <Column className="lg:flex-row  gap-6">
         {Array.from({ length: 3 }).map((_, i) => (
           <FeaturedCardSkeleton key={i} />
         ))}
-      </div>
+      </Column>
     )
   }
 
   if (!rows.length) return null
 
   return (
-    <React.Suspense
-      fallback={
-        <div className={GRID_CLASS}>
-          {Array.from({ length: rows.length }).map((_, i) => (
-            <FeaturedCardSkeleton key={i} />
-          ))}
-        </div>
-      }
-    >
-      <div className={GRID_CLASS}>
-        {rows.map((row) => (
-          <FeaturedCard key={row.vault.id} vaultId={row.vault.id} />
-        ))}
-      </div>
-    </React.Suspense>
+    <Column className="lg:flex-row gap-6">
+      {rows.map((row) => (
+        <FeaturedCard key={row.vault.id} vault={row.vault} />
+      ))}
+    </Column>
   )
 }

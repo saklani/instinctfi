@@ -8,6 +8,7 @@ export type VaultResponse = Vault & {
   compositions: VaultComposition[]
   nav: number | null
   delta24h: number | null
+  allTime: number | null
 }
 
 export function useVaults() {

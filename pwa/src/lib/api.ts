@@ -42,13 +42,3 @@ export function authenticate(address: string): Promise<AuthResponse> {
     body: JSON.stringify({ address }),
   })
 }
-
-// ── Treasury ────────────────────────────────────────────
-
-export interface Treasury {
-  address: string
-}
-
-export function getTreasury(): Promise<Treasury> {
-  return request("/api/treasury")
-}

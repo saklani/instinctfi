@@ -7,6 +7,3 @@ export {
 } from "./hooks/use-vault-nav"
 export type { Vault, Stock } from "@/db/schema"
 export { VaultCard } from "./components/vault-card"
-export { DepositForm } from "./components/deposit-form"
-export { MobileDepositButton } from "./components/mobile-deposit-button"
-export { DesktopDepositButton } from "./components/desktop-deposit-button"

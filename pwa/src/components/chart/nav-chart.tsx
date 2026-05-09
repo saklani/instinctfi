@@ -104,12 +104,12 @@ function ActiveDot({ cx, cy }: { cx?: number; cy?: number }) {
   if (cx == null || cy == null) return null
   return (
     <g pointerEvents="none">
-      <circle cx={cx} cy={cy} r={10} fill="var(--accent)" fillOpacity={0.18} />
+      <circle cx={cx} cy={cy} r={10} fill="var(--foreground)" fillOpacity={0.1} />
       <circle
         cx={cx}
         cy={cy}
         r={4}
-        fill="var(--accent)"
+        fill="var(--foreground)"
         stroke="var(--card)"
         strokeWidth={1.5}
       />
@@ -141,8 +141,8 @@ export function NavChart({
           >
             <defs>
               <linearGradient id="nav-chart-area" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.24} />
-                <stop offset="80%" stopColor="var(--accent)" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--foreground)" stopOpacity={0.08} />
+                <stop offset="80%" stopColor="var(--foreground)" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid
@@ -206,8 +206,8 @@ export function NavChart({
             <Line
               type="monotone"
               dataKey="value"
-              stroke="var(--accent)"
-              strokeWidth={2.25}
+              stroke="var(--foreground)"
+              strokeWidth={1.75}
               strokeLinecap="round"
               strokeLinejoin="round"
               dot={false}

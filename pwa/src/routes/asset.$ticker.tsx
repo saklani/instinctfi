@@ -1,28 +1,32 @@
 import * as React from "react"
 import { Link, createFileRoute } from "@tanstack/react-router"
-import { ShieldAlert, ShieldCheck, Lock } from "lucide-react"
+import { ShieldAlert, Lock } from "lucide-react"
 
 import { useStockByTicker, useStockPrices } from "@/features/stocks"
 import type { StockPricePoint } from "@/features/stocks"
 import { useJupiterTokens } from "@/hooks/use-jupiter-tokens"
 import type { JupiterTokenInfo } from "@/hooks/use-jupiter-tokens"
-import { cn } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Column } from "@/components/ui/column"
 import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Ticker as TickerPill, Verified } from "@/components/ui/pill"
 import { Delta } from "@/components/ui/delta"
 import { MonoNumber } from "@/components/ui/mono-number"
-import { TabPill, TabPillItem } from "@/components/ui/tab-pill"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   NavChart,
   NavChartSkeleton,
   type ChartPoint,
 } from "@/components/chart/nav-chart"
-import { Reveal, Ticker } from "@/components/motion"
+import { Ticker } from "@/components/motion"
 
 export const Route = createFileRoute("/asset/$ticker")({
   component: AssetDetailPage,
@@ -33,6 +37,7 @@ const PERIODS = [
   { id: "1M", days: 30 },
   { id: "3M", days: 90 },
   { id: "1Y", days: 365 },
+  { id: "5Y", days: 1825 },
 ] as const
 
 type PeriodId = (typeof PERIODS)[number]["id"]
@@ -67,14 +72,12 @@ function AssetDetailPage() {
   }
 
   return (
-    <Reveal as="div" className="flex flex-col">
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px]">
+    <Column className="animate-in fade-in-0 duration-300 gap-12 pt-12 pb-24">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-6">
         {/* LEFT */}
         <Column className="min-w-0">
           <AssetHeader stock={stock} token={token} />
           <hr className="border-border" />
-
-          <PriceBlock token={token} loading={tokensLoading} />
 
           <PriceChart
             prices={prices}
@@ -85,8 +88,6 @@ function AssetDetailPage() {
 
           <StatGrid token={token} />
 
-          <TrustSection token={token} loading={tokensLoading} />
-
           {/* Mobile-only About */}
           <Column className="lg:hidden">
             <AboutCard description={stock.description} />
@@ -94,11 +95,11 @@ function AssetDetailPage() {
         </Column>
 
         {/* RIGHT */}
-        <aside className="hidden flex-col lg:flex">
+        <Column className="hidden lg:flex">
           <AboutCard description={stock.description} />
-        </aside>
+        </Column>
       </div>
-    </Reveal>
+    </Column>
   )
 }
 
@@ -114,42 +115,40 @@ function AssetHeader({
   token: JupiterTokenInfo | undefined
 }) {
   return (
-    <header className="flex flex-col md:flex-row md:items-start md:justify-between">
-      <Row className="items-start">
-        <img
-          src={stock.imageUrl}
-          alt={`${stock.name} logo`}
-          className="size-20 rounded-full bg-secondary object-cover md:size-20"
-          loading="eager"
-        />
-        <Column className="min-w-0">
-          <h1>{stock.name}</h1>
-          <Row className="flex-wrap items-center">
-            <TickerPill symbol={stock.ticker.toUpperCase()} />
-            {token?.isVerified && <Verified label="Jupiter verified" />}
-            {token && !token.freezeAuthority && (
-              <span
-                data-slot="trust-pill"
-                className="inline-flex h-5 items-center rounded-full bg-secondary text-xs font-medium text-foreground"
-                title="Mint authority cannot freeze your tokens"
-              >
-                <Lock className="size-3 text-accent" aria-hidden />
-                <span className="uppercase tracking-wider">Mint locked</span>
-              </span>
-            )}
-            {token?.audit.isSus && (
-              <span
-                data-slot="trust-pill"
-                className="inline-flex h-5 items-center rounded-full bg-destructive/10 text-xs font-medium text-destructive"
-              >
-                <ShieldAlert className="size-3" aria-hidden />
-                <span className="uppercase tracking-wider">Flagged</span>
-              </span>
-            )}
-          </Row>
-        </Column>
-      </Row>
-    </header>
+    <Row className="items-start">
+      <img
+        src={stock.imageUrl}
+        alt={`${stock.name} logo`}
+        className="size-20 rounded-full bg-secondary object-cover md:size-20"
+        loading="eager"
+      />
+      <Column className="min-w-0">
+        <h1>{stock.name}</h1>
+        <Row className="flex-wrap items-center">
+          <TickerPill symbol={stock.ticker.toUpperCase()} />
+          {token?.isVerified && <Verified label="Jupiter verified" />}
+          {token && !token.freezeAuthority && (
+            <span
+              data-slot="trust-pill"
+              className="inline-flex h-5 items-center rounded-full bg-secondary text-xs font-medium text-foreground"
+              title="Mint authority cannot freeze your tokens"
+            >
+              <Lock className="size-3 text-accent" aria-hidden />
+              <span className="uppercase tracking-wider">Mint locked</span>
+            </span>
+          )}
+          {token?.audit.isSus && (
+            <span
+              data-slot="trust-pill"
+              className="inline-flex h-5 items-center rounded-full bg-destructive/10 text-xs font-medium text-destructive"
+            >
+              <ShieldAlert className="size-3" aria-hidden />
+              <span className="uppercase tracking-wider">Flagged</span>
+            </span>
+          )}
+        </Row>
+      </Column>
+    </Row>
   )
 }
 
@@ -174,23 +173,18 @@ function PriceBlock({
 
   return (
     <Column>
-      <span className="text-xs text-muted-foreground">Spot price</span>
+      <p>Spot price</p>
       <Row className="flex-wrap items-baseline">
         {loading || value == null ? (
           <Skeleton className="h-10 w-32 rounded-sm" />
         ) : (
-          <Ticker
-            value={value}
-            decimals={2}
-            prefix="$"
-            className="font-mono text-2xl tabular-nums font-medium text-foreground"
-          />
+          <h2>
+            <Ticker value={value} decimals={2} prefix="$" />
+          </h2>
         )}
         <Delta value={change} size="lg" suffix="24h" asPercent />
       </Row>
-      <span className="font-mono text-xs tabular-nums text-muted-foreground/70">
-        {today}
-      </span>
+      <p>{today}</p>
     </Column>
   )
 }
@@ -220,18 +214,18 @@ function PriceChart({
   )
 
   const selector = (
-    <TabPill
+    <Tabs
       value={period}
       onValueChange={(v) => onPeriodChange(v as PeriodId)}
-      layoutId="asset-time-pill"
-      className="bg-background"
     >
-      {PERIODS.map((p) => (
-        <TabPillItem key={p.id} value={p.id}>
-          {p.id}
-        </TabPillItem>
-      ))}
-    </TabPill>
+      <TabsList variant="line">
+        {PERIODS.map((p) => (
+          <TabsTrigger key={p.id} value={p.id}>
+            {p.id}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
   )
 
   if (loading && !data.length) {
@@ -241,13 +235,13 @@ function PriceChart({
   if (!data.length) {
     return (
       <Column>
-        <div
-          className="flex items-center justify-center rounded-md border border-dashed border-border text-xs text-muted-foreground"
+        <Row
+          className="items-center justify-center rounded-md border border-dashed border-border text-xs text-muted-foreground"
           style={{ height: 320 }}
         >
           Chart unavailable
-        </div>
-        <div className="flex">{selector}</div>
+        </Row>
+        <Row>{selector}</Row>
       </Column>
     )
   }
@@ -272,12 +266,13 @@ function StatGrid({ token }: { token: JupiterTokenInfo | undefined }) {
       : null
 
   return (
-    <section className="grid grid-cols-2 overflow-hidden rounded-md bg-border md:grid-cols-4">
+    <div className="grid grid-cols-2 overflow-hidden rounded-md bg-border md:grid-cols-5">
+      <Stat label="Spot price" value={token?.usdPrice ?? null} format="usd" />
       <Stat label="Liquidity" value={token?.liquidity ?? null} format="usd" compact />
       <Stat label="Holders" value={token?.holderCount ?? null} format="count" compact />
       <Stat label="24h Volume" value={volume24h} format="usd" compact />
       <Stat label="Market Cap" value={token?.mcap ?? null} format="usd" compact />
-    </section>
+    </div>
   )
 }
 
@@ -309,178 +304,6 @@ function Stat({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Trust section                                                     */
-/* ------------------------------------------------------------------ */
-
-function TrustSection({
-  token,
-  loading,
-}: {
-  token: JupiterTokenInfo | undefined
-  loading: boolean
-}) {
-  if (loading && !token) {
-    return (
-      <section className="flex flex-col">
-        <h2>On-chain trust</h2>
-        <Skeleton className="h-24 rounded-md" />
-      </section>
-    )
-  }
-
-  if (!token) return null
-
-  return (
-    <section className="flex flex-col">
-      <Row className="items-baseline justify-between">
-        <h2>On-chain trust</h2>
-        <span className="font-mono text-xs tabular-nums text-muted-foreground/70">
-          via Jupiter
-        </span>
-      </Row>
-
-      <Column className="rounded-md border border-border bg-card">
-        <ScoreBar score={token.organicScore} label={token.organicScoreLabel} />
-
-        <hr className="border-border" />
-
-        <AuditRow token={token} />
-
-        {token.tags.length > 0 && (
-          <>
-            <hr className="border-border" />
-            <TagRow tags={token.tags} />
-          </>
-        )}
-      </Column>
-    </section>
-  )
-}
-
-function ScoreBar({
-  score,
-  label,
-}: {
-  score: number
-  label: "low" | "medium" | "high"
-}) {
-  const pct = Math.max(0, Math.min(100, score))
-  const tone =
-    label === "high"
-      ? "bg-positive"
-      : label === "medium"
-        ? "bg-amber-500"
-        : "bg-destructive"
-
-  return (
-    <Column>
-      <Row className="items-baseline justify-between">
-        <span className="text-xs text-muted-foreground">Organic score</span>
-        <Row className="items-baseline">
-          <MonoNumber value={score} format="raw" precision={0} size="md" />
-          <span
-            className={cn(
-              "rounded-full text-[10px] uppercase tracking-wider",
-              label === "high" && "bg-positive/10 text-positive",
-              label === "medium" && "bg-amber-500/10 text-amber-600",
-              label === "low" && "bg-destructive/10 text-destructive",
-            )}
-          >
-            {label}
-          </span>
-        </Row>
-      </Row>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-        <div className={cn("h-full rounded-full", tone)} style={{ width: `${pct}%` }} />
-      </div>
-      <span className="text-[11px] text-muted-foreground/70">
-        Filters bot activity and wash trading. Higher is better.
-      </span>
-    </Column>
-  )
-}
-
-function AuditRow({ token }: { token: JupiterTokenInfo }) {
-  const items: Array<{ key: string; label: string; value: React.ReactNode }> = []
-
-  if (token.audit.topHoldersPercentage != null) {
-    items.push({
-      key: "topHolders",
-      label: "Top holders",
-      value: (
-        <MonoNumber
-          value={token.audit.topHoldersPercentage}
-          format="pct"
-          precision={1}
-          size="sm"
-        />
-      ),
-    })
-  }
-
-  if (token.audit.devBalancePercentage != null) {
-    items.push({
-      key: "devBalance",
-      label: "Dev balance",
-      value: (
-        <MonoNumber
-          value={token.audit.devBalancePercentage}
-          format="pct"
-          precision={2}
-          size="sm"
-        />
-      ),
-    })
-  }
-
-  if (token.audit.devMints != null) {
-    items.push({
-      key: "devMints",
-      label: "Dev mints",
-      value: (
-        <MonoNumber value={token.audit.devMints} format="count" size="sm" />
-      ),
-    })
-  }
-
-  if (!items.length) return null
-
-  return (
-    <Column>
-      <Row className="items-center">
-        <ShieldCheck className="size-3.5 text-muted-foreground" aria-hidden />
-        <span className="text-xs text-muted-foreground">Audit</span>
-      </Row>
-      <dl className="grid grid-cols-3">
-        {items.map((it) => (
-          <Column key={it.key}>
-            <dt className="text-[10px] uppercase tracking-wider text-muted-foreground/70">
-              {it.label}
-            </dt>
-            <dd>{it.value}</dd>
-          </Column>
-        ))}
-      </dl>
-    </Column>
-  )
-}
-
-function TagRow({ tags }: { tags: string[] }) {
-  return (
-    <Row className="flex-wrap">
-      {tags.map((tag) => (
-        <span
-          key={tag}
-          className="inline-flex h-5 items-center rounded-full bg-secondary text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
-        >
-          {tag}
-        </span>
-      ))}
-    </Row>
-  )
-}
-
-/* ------------------------------------------------------------------ */
 /*  About                                                             */
 /* ------------------------------------------------------------------ */
 
@@ -488,8 +311,12 @@ function AboutCard({ description }: { description: string | null }) {
   const text = description ?? "No description available."
   return (
     <Card>
-      <h2>About</h2>
-      <p>{text}</p>
+      <CardHeader>
+        <CardTitle>About</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p>{text}</p>
+      </CardContent>
     </Card>
   )
 }
@@ -500,7 +327,7 @@ function AboutCard({ description }: { description: string | null }) {
 
 function DetailSkeleton() {
   return (
-    <Column>
+    <Column className="gap-12 pt-12 pb-24">
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px]">
         <Column>
           <Row className="items-start">

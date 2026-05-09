@@ -16,8 +16,8 @@ function RootLayout() {
     <ApiProvider>
       <div className="min-h-screen bg-background text-foreground">
         <Header />
-        <main className="mx-auto max-w-6xl">
-          <div key={location.pathname} className="animate-in fade-in-0 duration-200">
+        <main className="mx-auto flex w-full items-center justify-center">
+          <div key={location.pathname} className="w-full max-w-7xl px-6 lg:px-16">
             <Outlet />
           </div>
         </main>

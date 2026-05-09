@@ -10,8 +10,7 @@ export type EnrichedRow = VaultRowData
 export function buildRowData(vault: Vault): EnrichedRow {
   return {
     vault,
-    nav: vault.nav ?? 0,
-    delta24h: vault.delta24h ?? 0,
+    allTime: vault.allTime ?? null,
   }
 }
 
@@ -22,10 +21,15 @@ export function sortRows(rows: EnrichedRow[], sort: VaultSortState): EnrichedRow
     switch (sort.key) {
       case "name":
         return a.vault.name.localeCompare(b.vault.name) * factor
-      case "nav":
-        return (a.nav - b.nav) * factor
-      case "delta24h":
-        return (a.delta24h - b.delta24h) * factor
+      case "allTime": {
+        // Nulls always sink — independent of sort direction.
+        const av = a.allTime
+        const bv = b.allTime
+        if (av == null && bv == null) return 0
+        if (av == null) return 1
+        if (bv == null) return -1
+        return (av - bv) * factor
+      }
       default:
         return 0
     }

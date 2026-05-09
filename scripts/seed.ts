@@ -106,7 +106,7 @@ const VAULTS: VaultDef[] = [
     mint: "9TUeXbEgrS4ohSkEUjnRbRuSQv3zaryYMWs64M6cCeD",
     weights: {
       AMZNx: 3100,
-      COINx: 2700,
+      CRCLx: 2700,
       MSFTx: 2200,
       GLXYx: 2000,
     },

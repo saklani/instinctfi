@@ -1,13 +1,6 @@
 import * as React from "react"
 import { Link, createFileRoute } from "@tanstack/react-router"
-import {
-  Bookmark,
-  ChevronRight,
-  MessageCircle,
-  MoreHorizontal,
-  Search,
-  Share2,
-} from "lucide-react"
+import { ChevronRight } from "lucide-react"
 
 import { useVault } from "@/features/vaults"
 import {
@@ -19,20 +12,25 @@ import {
   DepositPanelSkeleton,
 } from "@/features/vaults/components/deposit-panel"
 import type { VaultResponse as Vault } from "@/features/vaults"
-import { usePendingOrders, OrderCard } from "@/features/orders"
 import { useWallet } from "@/hooks/use-wallet"
 import { useJupiterPrices } from "@/hooks/use-jupiter-prices"
 import { cn } from "@/lib/utils"
 import { toTitleCase } from "@/lib/format"
 
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Column } from "@/components/ui/column"
 import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Ticker as TickerPill, Count, Verified } from "@/components/ui/pill"
+import { Ticker as TickerPill } from "@/components/ui/pill"
 import { Delta } from "@/components/ui/delta"
-import { TabPill, TabPillItem } from "@/components/ui/tab-pill"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Sheet,
   SheetContent,
@@ -46,7 +44,7 @@ import {
 } from "@/components/chart/nav-chart"
 import { StickyCta } from "@/components/sticky-cta"
 import { useVaultNav } from "@/features/vaults/hooks/use-vault-nav"
-import { Reveal, Ticker } from "@/components/motion"
+import { Ticker } from "@/components/motion"
 
 export const Route = createFileRoute("/fund/$id")({
   component: FundDetailPage,
@@ -58,6 +56,7 @@ const PERIODS = [
   { id: "3M", days: 90 },
   { id: "6M", days: 180 },
   { id: "1Y", days: 365 },
+  { id: "5Y", days: 1825 },
 ] as const
 
 type PeriodId = (typeof PERIODS)[number]["id"]
@@ -82,7 +81,6 @@ function FundDetailPage() {
   const { id } = Route.useParams()
   const { vault, loading, error } = useVault(id)
   const { authenticated, login, ready } = useWallet()
-  const { orders: pendingOrders } = usePendingOrders()
   const [sheetOpen, setSheetOpen] = React.useState(false)
   const [period, setPeriod] = React.useState<PeriodId>("1M")
 
@@ -91,7 +89,7 @@ function FundDetailPage() {
   const navDelta = vault?.delta24h ?? null
 
   // Fetch the full 1y series once; slice locally per period.
-  const { series: fullSeries } = useVaultNav(vault?.id, 365)
+  const { series: fullSeries } = useVaultNav(vault?.id, 1825)
 
   // Periods only render if the underlying series spans enough days.
   const availableSpanDays = React.useMemo(() => {
@@ -119,8 +117,6 @@ function FundDetailPage() {
     const cutoffMs = Date.now() - days * 86_400_000
     return fullSeries.filter((p) => new Date(p.date).getTime() >= cutoffMs)
   }, [fullSeries, period])
-
-  const myPendingOrders = pendingOrders.filter((o) => o.vaultId === id)
 
   const compositionItems = React.useMemo(() => {
     if (!vault) return []
@@ -158,50 +154,35 @@ function FundDetailPage() {
 
   return (
     <>
-      <Reveal as="div" className="flex flex-col">
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <Column className="animate-in fade-in-0 duration-300 gap-12 pt-12 pb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-6">
           {/* LEFT */}
           <Column className="min-w-0">
             <AssetHeader vault={vault} />
             <hr className="border-border" />
-
-            <NavPriceBlock
-              value={navValue}
-              delta={navDelta}
-              loading={pricesLoading}
-            />
 
             {chartData.length > 0 && (
               <NavChart
                 data={chartData}
                 periodKey={period}
                 periodSelector={
-                  <TabPill
+                  <Tabs
                     value={period}
                     onValueChange={(v) => setPeriod(v as PeriodId)}
-                    layoutId="time-pill"
-                    className="bg-background"
                   >
-                    {availablePeriods.map((p) => (
-                      <TabPillItem key={p.id} value={p.id}>
-                        {p.id}
-                      </TabPillItem>
-                    ))}
-                  </TabPill>
+                    <TabsList variant="line">
+                      {availablePeriods.map((p) => (
+                        <TabsTrigger key={p.id} value={p.id}>
+                          {p.id}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </Tabs>
                 }
               />
             )}
 
             <CompositionSection items={compositionItems} />
-
-            {authenticated && myPendingOrders.length > 0 && (
-              <section className="flex flex-col">
-                <h2>Open orders</h2>
-                {myPendingOrders.map((order) => (
-                  <OrderCard key={order.id} order={order} />
-                ))}
-              </section>
-            )}
 
             {/* Mobile-only About */}
             <Column className="lg:hidden">
@@ -210,16 +191,18 @@ function FundDetailPage() {
           </Column>
 
           {/* RIGHT */}
-          <aside className="hidden flex-col lg:flex">
+          <Column className="hidden lg:flex">
             <div className="lg:sticky lg:top-24">
               <Card>
-                <DepositPanel vault={vault} />
+                <CardContent>
+                  <DepositPanel vault={vault} />
+                </CardContent>
               </Card>
             </div>
             <AboutCard description={vault.description} />
-          </aside>
+          </Column>
         </div>
-      </Reveal>
+      </Column>
 
       {/* MOBILE sticky CTA + Sheet */}
       <StickyCta onClick={handleStickyCta} expandable>
@@ -232,16 +215,12 @@ function FundDetailPage() {
           className="rounded-t-xl border-t border-border bg-background"
         >
           <SheetHeader>
-            <SheetTitle className="text-base font-semibold text-foreground">
-              {toTitleCase(vault.name)}
-            </SheetTitle>
-            <SheetDescription className="text-xs text-muted-foreground">
+            <SheetTitle>{toTitleCase(vault.name)}</SheetTitle>
+            <SheetDescription>
               Deposit USDC, queue at next NAV print.
             </SheetDescription>
           </SheetHeader>
-          <div>
-            <DepositPanel vault={vault} onDone={() => setSheetOpen(false)} />
-          </div>
+          <DepositPanel vault={vault} onDone={() => setSheetOpen(false)} />
         </SheetContent>
       </Sheet>
     </>
@@ -253,26 +232,19 @@ function FundDetailPage() {
 /* ------------------------------------------------------------------ */
 
 function AssetHeader({ vault }: { vault: Vault }) {
-  const tickerCount = vault.compositions?.length ?? 0
+  const ticker = tickerSymbolFor(vault)
   return (
-    <header className="flex flex-col md:flex-row md:items-start md:justify-between">
-      <Row className="items-start">
-        <VaultLogo vault={vault} />
-        <Column className="min-w-0">
-          <h1>{toTitleCase(vault.name)}</h1>
+    <Row className="items-center">
+      <VaultLogo vault={vault} />
+      <Column className="min-w-0">
+        <h1>{toTitleCase(vault.name)}</h1>
+        {ticker && (
           <Row className="flex-wrap items-center">
-            <Verified label="Curated" />
-            {tickerSymbolFor(vault) && (
-              <TickerPill symbol={tickerSymbolFor(vault)!} />
-            )}
-            {tickerCount > 0 && (
-              <Count interactive>{tickerCount} HOLDINGS</Count>
-            )}
+            <TickerPill symbol={ticker} />
           </Row>
-        </Column>
-      </Row>
-      <HeaderActions />
-    </header>
+        )}
+      </Column>
+    </Row>
   )
 }
 
@@ -315,33 +287,6 @@ function VaultLogo({ vault }: { vault: Vault }) {
   )
 }
 
-function HeaderActions() {
-  return (
-    <Row className="items-center">
-      <Button variant="ghost" size="icon-sm" aria-label="Search vault detail">
-        <Search />
-      </Button>
-      <Button variant="ghost" size="icon-sm" aria-label="Share vault">
-        <Share2 />
-      </Button>
-      <Button variant="ghost" size="icon-sm" aria-label="Comments">
-        <MessageCircle />
-      </Button>
-      <Button variant="ghost" size="icon-sm" aria-label="Save vault">
-        <Bookmark />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label="More actions"
-        className="md:hidden"
-      >
-        <MoreHorizontal />
-      </Button>
-    </Row>
-  )
-}
-
 const VAULT_TICKERS: Record<string, string> = {
   "pelosi tracker": "PELO",
   "anti finance finance club": "AFFC",
@@ -367,23 +312,18 @@ function NavPriceBlock({
   })
   return (
     <Column>
-      <span className="text-xs text-muted-foreground">NAV per share</span>
+      <p>NAV per share</p>
       <Row className="flex-wrap items-baseline">
         {loading || value == null ? (
           <Skeleton className="h-10 w-32 rounded-sm" />
         ) : (
-          <Ticker
-            value={value}
-            decimals={2}
-            prefix="$"
-            className="font-mono text-2xl tabular-nums font-medium text-foreground"
-          />
+          <h2>
+            <Ticker value={value} decimals={2} prefix="$" />
+          </h2>
         )}
         <Delta value={delta} size="lg" suffix="24h" />
       </Row>
-      <span className="font-mono text-xs tabular-nums text-muted-foreground/70">
-        {today}
-      </span>
+      <p>{today}</p>
     </Column>
   )
 }
@@ -401,43 +341,28 @@ function CompositionSection({
   }>
 }) {
   return (
-    <section className="flex flex-col">
+    <Column className="mt-6">
       <Row className="items-baseline justify-between">
         <h2>Composition</h2>
-        <span className="font-mono text-xs tabular-nums text-muted-foreground/70">
-          {items.length} holdings
-        </span>
+        <p>{items.length} holdings</p>
       </Row>
       <CompositionList items={items} />
-    </section>
+    </Column>
   )
 }
 
 function AboutCard({ description }: { description: string | null }) {
-  const [expanded, setExpanded] = React.useState(false)
   const text =
     description ??
     "A curated basket of tokenized equities, weighted by conviction and rebalanced on a deterministic schedule."
   return (
     <Card>
-      <h2>About this vault</h2>
-      <p className={cn(!expanded && "line-clamp-3")}>{text}</p>
-      <Button
-        type="button"
-        variant="ghost"
-        size="xs"
-        onClick={() => setExpanded((v) => !v)}
-        className="w-fit"
-      >
-        {expanded ? "Show less" : "Read more"}
-        <ChevronRight
-          aria-hidden
-          className={cn(
-            "transition-transform duration-200",
-            expanded && "rotate-90",
-          )}
-        />
-      </Button>
+      <CardHeader>
+        <CardTitle>About this vault</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm">{text}</p>
+      </CardContent>
     </Card>
   )
 }
@@ -448,8 +373,7 @@ function AboutCard({ description }: { description: string | null }) {
 
 function DetailSkeleton() {
   return (
-    <Column>
-      <Skeleton className="h-4 w-40 rounded-sm" />
+    <Column className="gap-12 pt-12 pb-24">
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px]">
         <Column>
           <Row className="items-start">
