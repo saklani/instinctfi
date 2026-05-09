@@ -18,7 +18,6 @@ import { Column } from "@/components/ui/column"
 import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Ticker as TickerPill, Verified } from "@/components/ui/pill"
-import { Delta } from "@/components/ui/delta"
 import { MonoNumber } from "@/components/ui/mono-number"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -26,7 +25,6 @@ import {
   NavChartSkeleton,
   type ChartPoint,
 } from "@/components/chart/nav-chart"
-import { Ticker } from "@/components/motion"
 
 export const Route = createFileRoute("/asset/$ticker")({
   component: AssetDetailPage,
@@ -55,7 +53,7 @@ function AssetDetailPage() {
   const { prices, loading: pricesLoading } = useStockPrices(stock?.id, days)
 
   const mints = React.useMemo(() => (stock ? [stock.address] : []), [stock])
-  const { tokens, loading: tokensLoading } = useJupiterTokens(mints)
+  const { tokens } = useJupiterTokens(mints)
   const token = stock ? tokens[stock.address] : undefined
 
   if (stockLoading) return <DetailSkeleton />
@@ -149,43 +147,6 @@ function AssetHeader({
         </Row>
       </Column>
     </Row>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Price block                                                       */
-/* ------------------------------------------------------------------ */
-
-function PriceBlock({
-  token,
-  loading,
-}: {
-  token: JupiterTokenInfo | undefined
-  loading: boolean
-}) {
-  const today = new Date().toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
-  const value = token?.usdPrice ?? null
-  const change = token?.stats24h?.priceChange ?? null
-
-  return (
-    <Column>
-      <p className="text-sm">Spot price</p>
-      <Row className="flex-wrap items-baseline">
-        {loading || value == null ? (
-          <Skeleton className="h-10 w-32 rounded-sm" />
-        ) : (
-          <h2>
-            <Ticker value={value} decimals={2} prefix="$" />
-          </h2>
-        )}
-        <Delta value={change} size="lg" suffix="24h" asPercent />
-      </Row>
-      <p className="text-sm">{today}</p>
-    </Column>
   )
 }
 

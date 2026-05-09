@@ -1,13 +1,10 @@
 import * as React from "react"
-import { ChevronDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
 type StickyCtaProps = {
   /** Click handler (typically opens a Sheet). */
   onClick?: () => void
-  /** Render a chevron-down to signal it expands a sheet. */
-  expandable?: boolean
   disabled?: boolean
   className?: string
   ariaLabel?: string
@@ -17,7 +14,6 @@ type StickyCtaProps = {
 /** Mobile-only fixed bottom CTA. Inset above the bottom tab bar + safe-area. */
 export function StickyCta({
   onClick,
-  expandable = false,
   disabled = false,
   className,
   ariaLabel,

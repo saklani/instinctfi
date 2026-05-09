@@ -24,7 +24,6 @@ import { Column } from "@/components/ui/column"
 import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Ticker as TickerPill } from "@/components/ui/pill"
-import { Delta } from "@/components/ui/delta"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Sheet,
@@ -39,7 +38,6 @@ import {
 } from "@/components/chart/nav-chart"
 import { StickyCta } from "@/components/sticky-cta"
 import { useVaultNav } from "@/features/vaults/hooks/use-vault-nav"
-import { Ticker } from "@/components/motion"
 
 export const Route = createFileRoute("/fund/$id")({
   component: FundDetailPage,
@@ -183,7 +181,7 @@ function FundDetailPage() {
       </Column>
 
       {/* MOBILE sticky CTA + Sheet */}
-      <StickyCta onClick={handleStickyCta} expandable>
+      <StickyCta onClick={handleStickyCta}>
         {!ready ? "Loading…" : !authenticated ? "Connect wallet" : "Deposit USDC"}
       </StickyCta>
 

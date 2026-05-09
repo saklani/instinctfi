@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Column } from "@/components/ui/column"
+import { Row } from "@/components/ui/row"
 import { PathDraw } from "@/components/motion"
 
 type PortfolioEmptyProps = {
@@ -27,12 +28,9 @@ export function PortfolioEmpty({
   ctaLabel = "Discover vaults",
 }: PortfolioEmptyProps) {
   return (
-    <section
+    <Column
       data-slot="portfolio-empty"
-      className={cn(
-        "flex flex-col items-center text-center",
-        className,
-      )}
+      className={cn("items-center text-center", className)}
     >
       <Illustration />
       <Column>
@@ -48,19 +46,16 @@ export function PortfolioEmpty({
           />
         </Link>
       </Button>
-    </section>
+    </Column>
   )
 }
 
 function Illustration() {
   // Editorial placeholder: a Cobalt arc + ascending stroke. Path draws on mount.
   return (
-    <div
+    <Row
       aria-hidden
-      className={cn(
-        "relative flex size-32 items-center justify-center rounded-full",
-        "bg-muted/60",
-      )}
+      className="relative size-32 items-center justify-center rounded-full bg-muted/60"
     >
       <span
         aria-hidden
@@ -89,6 +84,6 @@ function Illustration() {
           delay={0.18}
         />
       </svg>
-    </div>
+    </Row>
   )
 }
