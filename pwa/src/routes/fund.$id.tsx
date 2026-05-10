@@ -193,7 +193,7 @@ function FundDetailPage() {
           <SheetHeader>
             <SheetTitle>{toTitleCase(vault.name)}</SheetTitle>
             <SheetDescription>
-              Deposit USDC, queue at next NAV print.
+              Deposit USDC
             </SheetDescription>
           </SheetHeader>
           <Column className="px-6 pb-8">
