@@ -135,7 +135,13 @@ function VaultBodyRow({ row }: { row: VaultRowData }) {
   )
 
   return (
-    <TableRow>
+    <TableRow
+      className={cn(
+        "transition-colors duration-300 ease-out",
+        live &&
+          "hover:bg-primary/4 hover:shadow-[inset_0_0_0_1px_rgba(2,76,199,0.12)]",
+      )}
+    >
       <TableCell>
         {live ? (
           <Link

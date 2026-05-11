@@ -19,7 +19,8 @@ function Card({
       data-interactive={interactive ? "true" : undefined}
       className={cn(
         "group/card flex flex-col gap-6 overflow-hidden bg-card py-6 text-sm text-card-foreground shadow-sm ring-1 ring-foreground/10 has-[>img:first-child]:pt-0 data-[size=sm]:gap-4 data-[size=sm]:py-4 *:[img:first-child]:rounded-t-xs *:[img:last-child]:rounded-b-xs",
-        interactive && "cursor-pointer transition-shadow hover:shadow-md",
+        interactive &&
+          "cursor-pointer transition-all duration-300 ease-out hover:-translate-y-0.5 hover:ring-primary/30 hover:shadow-[0_12px_32px_-16px_rgba(2,76,199,0.25)]",
         className,
       )}
       {...props}
