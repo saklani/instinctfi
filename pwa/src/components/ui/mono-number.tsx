@@ -18,9 +18,9 @@ type MonoNumberProps = Omit<React.ComponentProps<"span">, "children"> & {
 }
 
 const SIZE_CLASS: Record<NonNullable<MonoNumberProps["size"]>, string> = {
-  xl: "text-2xl",
-  md: "text-sm",
-  sm: "text-xs",
+  xl: "text-mono-xl",
+  md: "text-mono-md",
+  sm: "text-mono-sm",
 }
 
 function defaultPrecision(format: MonoFormat) {
@@ -32,7 +32,7 @@ function formatValue(
   value: number,
   format: MonoFormat,
   precision: number,
-  compact: boolean,
+  compact: boolean
 ) {
   if (format === "usd") {
     return new Intl.NumberFormat("en-US", {
@@ -82,16 +82,16 @@ function MonoNumber({
       data-slot="mono-number"
       data-format={format}
       className={cn(
-        "font-mono tabular-nums",
+        "tabular font-mono",
         size && SIZE_CLASS[size],
-        isMissing && "text-muted-foreground/70",
-        className,
+        isMissing && "text-ink-faint",
+        className
       )}
       {...props}
     >
       {formatted}
       {unit && !isMissing && (
-        <span className="ml-1 text-xs text-muted-foreground/70">{unit}</span>
+        <span className="ml-1 text-mono-sm text-ink-faint">{unit}</span>
       )}
     </span>
   )

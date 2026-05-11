@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Lockfile policy: bun.lock is authoritative; ignore alt-tool lockfiles
+pnpm-lock.yaml
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

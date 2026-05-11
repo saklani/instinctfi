@@ -23,9 +23,9 @@ const ARROW_UP = "▲"
 const ARROW_DOWN = "▼"
 
 const SIZE_MAP: Record<NonNullable<DeltaProps["size"]>, string> = {
-  sm: "text-xs gap-0.5",
-  md: "text-xs gap-1",
-  lg: "text-sm gap-1",
+  sm: "text-mono-sm gap-0.5",
+  md: "text-mono-sm gap-1",
+  lg: "text-mono-md gap-1",
 }
 
 function Delta({
@@ -45,9 +45,9 @@ function Delta({
         data-slot="delta"
         data-tone="neutral"
         className={cn(
-          "inline-flex items-center font-mono tabular-nums text-muted-foreground/70",
+          "inline-flex items-center text-ink-faint tabular",
           SIZE_MAP[size],
-          className,
+          className
         )}
         {...props}
       >
@@ -67,12 +67,12 @@ function Delta({
       data-slot="delta"
       data-tone={tone}
       className={cn(
-        "inline-flex items-center font-mono tabular-nums",
+        "inline-flex items-center tabular",
         tone === "positive" && "text-positive",
-        tone === "negative" && "text-destructive",
-        tone === "neutral" && "text-muted-foreground",
+        tone === "negative" && "text-negative",
+        tone === "neutral" && "text-ink-muted",
         SIZE_MAP[size],
-        className,
+        className
       )}
       {...props}
     >
@@ -83,7 +83,7 @@ function Delta({
       )}
       <span>{formatted}</span>
       {suffix && (
-        <span className="ml-0.5 font-sans text-muted-foreground/70">
+        <span className="text-ink-faint font-sans not-tabular ml-0.5">
           {suffix}
         </span>
       )}

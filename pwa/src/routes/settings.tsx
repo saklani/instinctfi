@@ -31,8 +31,8 @@ function SettingsPage() {
 
   if (!authenticated) {
     return (
-
-      <Column className="gap-12 pt-12 pb-24">
+      <Column className="gap-6">
+        <Header />
         <Card>
           <CardHeader>
             <CardTitle>Not connected</CardTitle>
@@ -51,6 +51,8 @@ function SettingsPage() {
   }
 
   return (
+    <Column className="gap-6">
+      <Header />
 
     <Column className="gap-12 pt-12 pb-24">
       <Card>
@@ -61,24 +63,24 @@ function SettingsPage() {
         <CardContent>
           <Column>
             <Row className="items-center justify-between">
-              <span className="text-xs text-muted-foreground">Status</span>
-              <span className="text-xs font-medium text-positive">
+              <span className="text-body-sm text-ink-muted">Status</span>
+              <span className="text-body-sm font-medium text-positive">
                 Connected
               </span>
             </Row>
             <Separator />
-            <Row className="items-center justify-between">
-              <span className="text-xs text-muted-foreground">Address</span>
+            <Row className="items-center justify-between gap-3">
+              <span className="text-body-sm text-ink-muted">Address</span>
               {walletAddress ? (
                 <CopyAddress address={walletAddress} />
               ) : (
-                <span className="text-xs text-muted-foreground">—</span>
+                <span className="text-body-sm text-ink-muted">—</span>
               )}
             </Row>
             <Separator />
             <Row className="items-center justify-between">
-              <span className="text-xs text-muted-foreground">Network</span>
-              <span className="text-xs font-medium text-foreground">
+              <span className="text-body-sm text-ink-muted">Network</span>
+              <span className="text-body-sm font-medium text-ink">
                 Solana Mainnet
               </span>
             </Row>
@@ -94,6 +96,17 @@ function SettingsPage() {
   )
 }
 
+function Header() {
+  return (
+    <Column className="gap-1">
+      <h1 className="text-display-md font-semibold tracking-tight text-ink">
+        Settings
+      </h1>
+      <p className="text-body text-ink-muted">Manage your account.</p>
+    </Column>
+  )
+}
+
 function CopyAddress({ address }: { address: string }) {
   const handleCopy = React.useCallback(async () => {
     try {
@@ -105,35 +118,37 @@ function CopyAddress({ address }: { address: string }) {
   }, [address])
 
   return (
-    <Button
+    <button
       type="button"
-      variant="ghost"
-      size="xs"
       onClick={handleCopy}
-      className="rounded-full"
+      className="group inline-flex items-center gap-1.5 rounded-pill px-2 py-1 text-body-sm text-ink transition-colors duration-150 hover:bg-secondary outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30"
     >
-      <span className="font-mono text-xs tabular-nums">
+      <span className="font-mono tabular text-mono-sm">
         {truncateAddress(address)}
       </span>
       <Copy
-        className="size-3.5 text-muted-foreground/70"
+        className="size-3.5 text-ink-faint transition-colors group-hover:text-ink-muted"
         aria-hidden
       />
       <span className="sr-only">Copy address</span>
-    </Button>
+    </button>
   )
 }
 
 function SettingsSkeleton() {
   return (
-    <Column className="gap-12 pt-12 pb-24">
+    <Column className="gap-6">
+      <Column className="gap-1">
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-4 w-44" />
+      </Column>
       <Card>
         <CardHeader>
           <Skeleton className="h-5 w-20" />
           <Skeleton className="h-4 w-48" />
         </CardHeader>
         <CardContent>
-          <Column>
+          <Column className="gap-4">
             <Row className="items-center justify-between">
               <Skeleton className="h-4 w-16" />
               <Skeleton className="h-4 w-20" />
@@ -151,7 +166,7 @@ function SettingsSkeleton() {
           </Column>
         </CardContent>
       </Card>
-      <Skeleton className="h-10 w-full rounded-full" />
+      <Skeleton className="h-10 w-full rounded-pill" />
     </Column>
   )
 }

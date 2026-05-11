@@ -1,112 +1,225 @@
+import * as React from "react"
 import { Link } from "@tanstack/react-router"
+import { motion, useReducedMotion } from "framer-motion"
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { cn } from "@/lib/utils"
+import { Card } from "@/components/ui/card"
 import { Delta } from "@/components/ui/delta"
+import { MonoNumber } from "@/components/ui/mono-number"
 import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
-import { toTitleCase } from "@/lib/format"
-import type { VaultResponse as Vault } from "../hooks/use-vaults"
+import { durations, outQuart } from "@/components/motion/easings"
+import type { Vault } from "../api"
+
+export type FeaturedKind = "trending" | "top-24h" | "newest"
 
 type FeaturedCardProps = {
   vault: Vault
+  nav: number
+  delta: number
+  /** 16+ values, ascending in time. Cobalt stroke renders proportional. */
+  spark: number[]
+  kind?: FeaturedKind
   className?: string
 }
 
-export function FeaturedCard({ vault }: FeaturedCardProps) {
+export function FeaturedCard({
+  vault,
+  nav,
+  delta,
+  spark,
+  className,
+}: FeaturedCardProps) {
   const holdingCount = vault.compositions?.length ?? 0
   return (
-    <Card interactive className="relative w-full">
-      <img
-        src={vault.imageUrl}
-        alt={`${vault.name} cover`}
-        loading="lazy"
-        className="aspect-square w-full object-cover"
-      />
+    <Link
+      to="/fund/$id"
+      params={{ id: vault.id }}
+      className={cn(
+        "block h-full rounded-card outline-none focus-visible:ring-[4px] focus-visible:ring-accent/30",
+        className,
+      )}
+    >
+      <Card
+        interactive
+        className="relative h-full justify-between gap-5 p-6"
+      >
+        <div className="flex flex-col gap-3">
+          <h3 className="line-clamp-2 text-display-md font-semibold leading-[1.05] tracking-tight text-ink">
+            {vault.name}
+          </h3>
+          <HoldingStack vault={vault} count={holdingCount} />
+        </div>
 
-      {/* Stretched click overlay — sits below HoldingStack (z-20) so inner asset links keep working. */}
-      <Link
-        to="/fund/$id"
-        params={{ id: vault.id }}
-        aria-label={`View ${toTitleCase(vault.name)}`}
-        className="absolute inset-0 z-10 rounded-xl outline-none focus-visible:ring-[4px] focus-visible:ring-accent/30"
-      />
+        <Sparkline values={spark} positive={delta >= 0} />
 
-      <CardHeader>
-        <CardTitle>{toTitleCase(vault.name)}</CardTitle>
-        <CardDescription className="h-16">
-          {vault.description}
-        </CardDescription>
-      </CardHeader>
-      <CardContent />
-      <CardFooter className="justify-between">
-        <HoldingStack vault={vault} count={holdingCount} />
-        <Delta value={vault.allTime} size="lg" />
-      </CardFooter>
-    </Card>
+        <div className="flex items-end justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <span className="text-pill text-ink-faint">NAV</span>
+            <MonoNumber
+              value={nav}
+              format="usd"
+              precision={2}
+              size="md"
+              className="text-ink"
+            />
+          </div>
+          <Delta value={delta} size="lg" suffix="24h" />
+        </div>
+      </Card>
+    </Link>
   )
 }
 
 function HoldingStack({ vault, count }: { vault: Vault; count: number }) {
-  const visible = vault.compositions?.slice(0, 5) ?? []
+  const visible = vault.compositions?.slice(0, 6) ?? []
   const overflow = Math.max(0, count - visible.length)
   return (
-    <Row className="relative z-20 gap-0 -space-x-1.5 transition-all duration-200 has-[a:hover]:space-x-2">
-      {visible.map((c) => (
-        <Link
-          key={c.stock.id}
-          to="/asset/$ticker"
-          params={{ ticker: c.stock.ticker }}
-          aria-label={c.stock.ticker}
-          title={c.stock.ticker}
-          className="block rounded-full outline-none transition-all duration-200 hover:z-30 hover:scale-125 focus-visible:ring-[3px] focus-visible:ring-accent/30"
-        >
+    <div className="flex items-center gap-2">
+      <Row className="gap-0 -space-x-1.5">
+        {visible.map((c) => (
           <img
+            key={c.stock.id}
             src={c.stock.imageUrl}
-            alt=""
+            alt={c.stock.ticker}
+            title={c.stock.ticker}
             loading="lazy"
-            className="size-6 rounded-full bg-secondary object-cover ring-2 ring-card"
+            className="size-6 rounded-full bg-secondary object-cover ring-2 ring-surface"
           />
-        </Link>
-      ))}
-      {overflow > 0 && (
-        <span className="z-10 inline-flex size-6 items-center justify-center rounded-full bg-muted text-[10px] font-medium tabular text-muted-foreground ring-2 ring-card">
-          +{overflow}
-        </span>
-      )}
-    </Row>
+        ))}
+        {overflow > 0 && (
+          <span className="z-10 inline-flex size-6 items-center justify-center rounded-full bg-surface-muted text-[10px] font-medium tabular text-ink-muted ring-2 ring-surface">
+            +{overflow}
+          </span>
+        )}
+      </Row>
+      <span className="text-body-sm text-ink-faint">
+        {count} holdings
+      </span>
+    </div>
   )
 }
 
-export function FeaturedCardSkeleton() {
+type SparklineProps = {
+  values: number[]
+  positive?: boolean
+  width?: number
+  height?: number
+}
+
+function Sparkline({
+  values,
+  positive = true,
+  width = 320,
+  height = 64,
+}: SparklineProps) {
+  const reduce = useReducedMotion()
+  const id = React.useId()
+  const gradId = `spark-fill-${id}`
+
+  const { linePath, areaPath } = React.useMemo(
+    () => buildSparkPaths(values, width, height),
+    [values, width, height],
+  )
+
+  const stroke = positive ? "var(--accent)" : "var(--negative)"
+
+  if (!linePath) {
+    return (
+      <div
+        aria-hidden
+        className="h-16 w-full rounded-tag bg-surface-muted/40"
+      />
+    )
+  }
+
   return (
-    <Card data-slot="featured-card-skeleton" className="w-full">
-      <Skeleton className="aspect-square w-full rounded-none" />
-      <CardHeader>
-        <CardTitle>
-          <Skeleton className="h-7 w-3/4 rounded-sm" />
-        </CardTitle>
-        <CardDescription>
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="none"
+      className="block h-16 w-full"
+      aria-hidden
+    >
+      <defs>
+        <linearGradient id={gradId} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor={stroke} stopOpacity={0.22} />
+          <stop offset="100%" stopColor={stroke} stopOpacity={0} />
+        </linearGradient>
+      </defs>
+      <path d={areaPath} fill={`url(#${gradId})`} />
+      <motion.path
+        d={linePath}
+        fill="none"
+        stroke={stroke}
+        strokeWidth={1.75}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        initial={reduce ? false : { pathLength: 0, opacity: 0 }}
+        animate={reduce ? undefined : { pathLength: 1, opacity: 1 }}
+        transition={{
+          pathLength: { duration: durations.chartLine, ease: outQuart },
+          opacity: { duration: 0.18 },
+        }}
+      />
+    </svg>
+  )
+}
+
+export function FeaturedCardSkeleton({ className }: { className?: string }) {
+  return (
+    <Card
+      data-slot="featured-card-skeleton"
+      className={cn("relative h-full justify-between gap-5 p-6", className)}
+    >
+      <div className="flex flex-col gap-3">
+        <Skeleton className="h-7 w-3/4 rounded-tag" />
+        <Skeleton className="h-5 w-1/2 rounded-tag" />
+        <Row className="items-center gap-2">
           <Row className="gap-0 -space-x-1.5">
             {Array.from({ length: 4 }).map((_, i) => (
               <Skeleton
                 key={i}
-                className="size-6 rounded-full ring-2 ring-card"
+                className="size-6 rounded-full ring-2 ring-surface"
               />
             ))}
           </Row>
-        </CardDescription>
-      </CardHeader>
-      <CardFooter className="justify-between">
-        <Skeleton className="h-5 w-16 rounded-sm" />
-        <Skeleton className="h-6 w-16 rounded-full" />
-      </CardFooter>
+          <Skeleton className="h-3 w-20 rounded-tag" />
+        </Row>
+      </div>
+      <Skeleton className="h-16 w-full rounded-tag" />
+      <div className="flex items-end justify-between gap-4">
+        <div className="flex flex-col gap-1.5">
+          <Skeleton className="h-3 w-8 rounded-tag" />
+          <Skeleton className="h-5 w-20 rounded-tag" />
+        </div>
+        <Skeleton className="h-6 w-16 rounded-pill" />
+      </div>
     </Card>
   )
+}
+
+function buildSparkPaths(values: number[], width: number, height: number) {
+  if (!values.length) return { linePath: "", areaPath: "" }
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const span = max - min || 1
+  const padY = 4
+  const usableH = height - padY * 2
+  const stepX = values.length > 1 ? width / (values.length - 1) : width
+
+  const points = values.map((v, i) => {
+    const x = i * stepX
+    const y = padY + (1 - (v - min) / span) * usableH
+    return [x, y] as const
+  })
+
+  const linePath = points
+    .map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`)
+    .join(" ")
+
+  const areaPath =
+    `${linePath} L${points[points.length - 1][0].toFixed(2)} ${height} ` +
+    `L${points[0][0].toFixed(2)} ${height} Z`
+
+  return { linePath, areaPath }
 }

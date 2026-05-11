@@ -3,9 +3,7 @@ import { ArrowRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Column } from "@/components/ui/column"
-import { Row } from "@/components/ui/row"
-import { PathDraw } from "@/components/motion"
+import { PathDraw } from "@/components/motion/path-draw"
 
 type PortfolioEmptyProps = {
   className?: string
@@ -28,16 +26,21 @@ export function PortfolioEmpty({
   ctaLabel = "Discover vaults",
 }: PortfolioEmptyProps) {
   return (
-    <Column
+    <section
       data-slot="portfolio-empty"
-      className={cn("items-center text-center", className)}
+      className={cn(
+        "flex flex-col items-center gap-6 px-4 py-12 text-center md:py-20",
+        className,
+      )}
     >
       <Illustration />
-      <Column>
-        <h2 className="max-w-md">{title}</h2>
-        <p className="max-w-md">{subtitle}</p>
-      </Column>
-      <Button asChild variant="default" size="lg">
+      <div className="flex flex-col gap-3">
+        <h2 className="max-w-md text-display-md font-semibold tracking-tight text-ink">
+          {title}
+        </h2>
+        <p className="max-w-md text-body text-ink-muted">{subtitle}</p>
+      </div>
+      <Button asChild variant="primary-accent" size="lg">
         <Link to="/" className="group/empty-cta">
           {ctaLabel}
           <ArrowRight
@@ -46,20 +49,23 @@ export function PortfolioEmpty({
           />
         </Link>
       </Button>
-    </Column>
+    </section>
   )
 }
 
 function Illustration() {
   // Editorial placeholder: a Cobalt arc + ascending stroke. Path draws on mount.
   return (
-    <Row
+    <div
       aria-hidden
-      className="relative size-32 items-center justify-center rounded-full bg-muted/60"
+      className={cn(
+        "relative flex size-32 items-center justify-center rounded-full",
+        "bg-surface-muted/60",
+      )}
     >
       <span
         aria-hidden
-        className="absolute inset-0 rounded-full border border-dashed border-border"
+        className="absolute inset-3 rounded-full border border-dashed border-hairline"
       />
       <svg
         viewBox="0 0 80 80"
@@ -84,6 +90,6 @@ function Illustration() {
           delay={0.18}
         />
       </svg>
-    </Row>
+    </div>
   )
 }

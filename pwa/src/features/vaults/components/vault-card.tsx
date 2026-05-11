@@ -13,9 +13,7 @@ import type { VaultResponse as Vault } from "../hooks/use-vaults"
 export function VaultCard({ vault }: { vault: Vault }) {
   return (
     <Link to="/fund/$id" params={{ id: vault.id }}>
-      <Card>
-        <VaultCover vault={vault} />
-
+      <Card interactive>
         <CardHeader>
           <CardTitle className="text-lg">{toTitleCase(vault.name)}</CardTitle>
           <CardDescription>{vault.description}</CardDescription>

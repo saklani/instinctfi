@@ -19,13 +19,13 @@ const PLACEHOLDERS = [
 
 async function main() {
   const rows = await db.select().from(vaults)
-  const stale = rows.filter((r) => PLACEHOLDERS.includes(r.address))
+  const stale = rows.filter((r) => PLACEHOLDERS.includes(r.vaultAddress))
   if (!stale.length) {
     console.log("No stale rows.")
     return
   }
   console.log("Deleting stale vaults:")
-  for (const r of stale) console.log(`  ${r.name} (${r.id}) — ${r.address}`)
+  for (const r of stale) console.log(`  ${r.name} (${r.id}) — ${r.vaultAddress}`)
   const ids = stale.map((r) => r.id)
   await db.delete(compositions).where(inArray(compositions.vaultId, ids))
   await db.delete(vaults).where(inArray(vaults.id, ids))
