@@ -29,6 +29,8 @@ type NavChartProps = {
   className?: string
   /** Override container height. Defaults to 320 (md) / 280 (sm). */
   height?: number
+  /** Stroke/fill color for the line, area gradient, and active dot. */
+  accentColor?: string
 }
 
 const usdFormatter = new Intl.NumberFormat("en-US", {
@@ -100,16 +102,24 @@ function NavChartTooltip({
   )
 }
 
-function ActiveDot({ cx, cy }: { cx?: number; cy?: number }) {
+function ActiveDot({
+  cx,
+  cy,
+  color,
+}: {
+  cx?: number
+  cy?: number
+  color: string
+}) {
   if (cx == null || cy == null) return null
   return (
     <g pointerEvents="none">
-      <circle cx={cx} cy={cy} r={10} fill="var(--foreground)" fillOpacity={0.1} />
+      <circle cx={cx} cy={cy} r={10} fill={color} fillOpacity={0.1} />
       <circle
         cx={cx}
         cy={cy}
         r={4}
-        fill="var(--foreground)"
+        fill={color}
         stroke="var(--card)"
         strokeWidth={1.5}
       />
@@ -126,7 +136,9 @@ export function NavChart({
   formatDate = defaultFormatTooltipDate,
   className,
   height,
+  accentColor = "var(--foreground)",
 }: NavChartProps) {
+  const gradientId = React.useId()
   return (
     <div className={cn("flex w-full flex-col", className)}>
       <div
@@ -140,9 +152,9 @@ export function NavChart({
             margin={{ top: 8, right: 0, bottom: 0, left: 0 }}
           >
             <defs>
-              <linearGradient id="nav-chart-area" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--foreground)" stopOpacity={0.08} />
-                <stop offset="80%" stopColor="var(--foreground)" stopOpacity={0} />
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={accentColor} stopOpacity={0.08} />
+                <stop offset="80%" stopColor={accentColor} stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid
@@ -200,18 +212,18 @@ export function NavChart({
               type="monotone"
               dataKey="value"
               stroke="none"
-              fill="url(#nav-chart-area)"
+              fill={`url(#${gradientId})`}
               activeDot={false}
             />
             <Line
               type="monotone"
               dataKey="value"
-              stroke="var(--foreground)"
+              stroke={accentColor}
               strokeWidth={1.75}
               strokeLinecap="round"
               strokeLinejoin="round"
               dot={false}
-              activeDot={<ActiveDot />}
+              activeDot={<ActiveDot color={accentColor} />}
             />
           </ComposedChart>
         </ResponsiveContainer>

@@ -143,6 +143,7 @@ function FundDetailPage() {
               <NavChart
                 data={chartData}
                 periodKey={period}
+                accentColor="var(--primary)"
                 periodSelector={
                   <Tabs
                     value={period}
