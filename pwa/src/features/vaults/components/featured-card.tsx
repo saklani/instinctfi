@@ -13,6 +13,8 @@ import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toTitleCase } from "@/lib/format"
 import type { VaultResponse as Vault } from "../hooks/use-vaults"
+import { isLiveVault } from "../lib"
+import { VaultStatusBadge } from "./vault-status-badge"
 
 type FeaturedCardProps = {
   vault: Vault
@@ -21,8 +23,9 @@ type FeaturedCardProps = {
 
 export function FeaturedCard({ vault }: FeaturedCardProps) {
   const holdingCount = vault.compositions?.length ?? 0
+  const live = isLiveVault(vault.id)
   return (
-    <Card interactive className="relative w-full">
+    <Card interactive={live} className="relative w-full">
       <img
         src={vault.imageUrl}
         alt={`${vault.name} cover`}
@@ -30,13 +33,19 @@ export function FeaturedCard({ vault }: FeaturedCardProps) {
         className="aspect-square w-full object-cover"
       />
 
+      <div className="absolute right-3 top-3 z-30">
+        <VaultStatusBadge live={live} />
+      </div>
+
       {/* Stretched click overlay — sits below HoldingStack (z-20) so inner asset links keep working. */}
-      <Link
-        to="/fund/$id"
-        params={{ id: vault.id }}
-        aria-label={`View ${toTitleCase(vault.name)}`}
-        className="absolute inset-0 z-10 rounded-xl outline-none focus-visible:ring-[4px] focus-visible:ring-accent/30"
-      />
+      {live && (
+        <Link
+          to="/fund/$id"
+          params={{ id: vault.id }}
+          aria-label={`View ${toTitleCase(vault.name)}`}
+          className="absolute inset-0 z-10 rounded-xl outline-none focus-visible:ring-[4px] focus-visible:ring-accent/30"
+        />
+      )}
 
       <CardHeader>
         <CardTitle>{toTitleCase(vault.name)}</CardTitle>

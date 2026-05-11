@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/table"
 import { toTitleCase } from "@/lib/format"
 import type { VaultResponse as Vault } from "../hooks/use-vaults"
+import { isLiveVault } from "../lib"
+import { VaultStatusBadge } from "./vault-status-badge"
 
 export type VaultRowData = {
   vault: Vault
@@ -120,21 +122,32 @@ function SortHead({
 
 function VaultBodyRow({ row }: { row: VaultRowData }) {
   const { vault, allTime } = row
+  const live = isLiveVault(vault.id)
+
+  const inner = (
+    <Row className="min-w-0 items-center">
+      <VaultRowLogo vault={vault} />
+      <span className="min-w-0 flex-1 truncate font-medium text-foreground">
+        {toTitleCase(vault.name)}
+      </span>
+      <VaultStatusBadge live={live} compact />
+    </Row>
+  )
+
   return (
     <TableRow>
       <TableCell>
-        <Link
-          to="/fund/$id"
-          params={{ id: vault.id }}
-          className="outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30 rounded-sm"
-        >
-          <Row className="min-w-0 items-center">
-            <VaultRowLogo vault={vault} />
-            <span className="truncate font-medium text-foreground">
-              {toTitleCase(vault.name)}
-            </span>
-          </Row>
-        </Link>
+        {live ? (
+          <Link
+            to="/fund/$id"
+            params={{ id: vault.id }}
+            className="outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30 rounded-sm"
+          >
+            {inner}
+          </Link>
+        ) : (
+          inner
+        )}
       </TableCell>
       <TableCell className="text-right">
         <Delta value={allTime} hideArrow size="md" />
