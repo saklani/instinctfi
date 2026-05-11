@@ -3,6 +3,7 @@ import { Outlet, createRootRoute, useRouterState } from "@tanstack/react-router"
 import { Toaster } from "@/components/ui/sonner"
 import { Nav } from "@/components/nav"
 import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
 import { ApiProvider } from "@/components/api-provider"
 
 export const Route = createRootRoute({
@@ -21,6 +22,7 @@ function RootLayout() {
             <Outlet />
           </div>
         </main>
+        <Footer />
         <Toaster position="top-center" />
         <Nav />
       </div>
