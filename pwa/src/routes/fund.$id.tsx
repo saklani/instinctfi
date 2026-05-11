@@ -1,5 +1,6 @@
 import * as React from "react"
 import { Link, createFileRoute } from "@tanstack/react-router"
+import { ChevronRightIcon } from "lucide-react"
 import { useVault } from "@/features/vaults"
 import {
   CompositionList,
@@ -134,6 +135,7 @@ function FundDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-6">
           {/* LEFT */}
           <Column className="min-w-0">
+            <Breadcrumbs name={vault.name} />
             <AssetHeader vault={vault} />
             <hr className="border-border" />
 
@@ -208,6 +210,21 @@ function FundDetailPage() {
 /* ------------------------------------------------------------------ */
 /*  Sub-components                                                    */
 /* ------------------------------------------------------------------ */
+
+function Breadcrumbs({ name }: { name: string }) {
+  return (
+    <Row className="items-center gap-2">
+      <Link
+        to="/"
+        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        Discover
+      </Link>
+      <ChevronRightIcon className="size-4 text-muted-foreground" />
+      <p className="text-sm">{toTitleCase(name)}</p>
+    </Row>
+  )
+}
 
 function AssetHeader({ vault }: { vault: Vault }) {
   const ticker = tickerSymbolFor(vault)
@@ -322,6 +339,12 @@ function DetailSkeleton() {
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-6">
         {/* LEFT */}
         <Column className="min-w-0">
+          {/* Breadcrumbs */}
+          <Row className="items-center gap-2">
+            <Skeleton className="h-4 w-16 rounded-sm" />
+            <ChevronRightIcon className="size-4 text-muted-foreground" />
+            <Skeleton className="h-4 w-40 rounded-sm" />
+          </Row>
           {/* AssetHeader */}
           <Row className="items-center">
             <Skeleton className="size-20 rounded-full" />
