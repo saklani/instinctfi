@@ -15,12 +15,7 @@ import { useWallet } from "@/hooks/use-wallet"
 import { toTitleCase } from "@/lib/format"
 
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Column } from "@/components/ui/column"
 import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -33,10 +28,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet"
-import {
-  NavChart,
-  NavChartSkeleton,
-} from "@/components/chart/nav-chart"
+import { NavChart, NavChartSkeleton } from "@/components/chart/nav-chart"
 import { StickyCta } from "@/components/sticky-cta"
 import { useVaultNav } from "@/features/vaults/hooks/use-vault-nav"
 
@@ -79,12 +71,15 @@ function FundDetailPage() {
 
   const availablePeriods = React.useMemo(
     () => PERIODS.filter((p) => p.days <= availableSpanDays || p.id === "1W"),
-    [availableSpanDays],
+    [availableSpanDays]
   )
 
   // Auto-clamp the selected period if it became unavailable.
   React.useEffect(() => {
-    if (!availablePeriods.some((p) => p.id === period) && availablePeriods.length > 0) {
+    if (
+      !availablePeriods.some((p) => p.id === period) &&
+      availablePeriods.length > 0
+    ) {
       setPeriod(availablePeriods[availablePeriods.length - 1].id)
     }
   }, [availablePeriods, period])
@@ -131,8 +126,8 @@ function FundDetailPage() {
 
   return (
     <>
-      <Column className="animate-in fade-in-0 duration-300 gap-12 pt-12 pb-24">
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-6">
+      <Column className="animate-in gap-12 pt-12 pb-24 duration-300 fade-in-0">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           {/* LEFT */}
           <Column className="min-w-0">
             <Breadcrumbs name={vault.name} />
@@ -185,7 +180,11 @@ function FundDetailPage() {
 
       {/* MOBILE sticky CTA + Sheet */}
       <StickyCta onClick={handleStickyCta}>
-        {!ready ? "Loading…" : !authenticated ? "Connect wallet" : "Deposit USDC"}
+        {!ready
+          ? "Loading…"
+          : !authenticated
+            ? "Connect wallet"
+            : "Deposit USDC"}
       </StickyCta>
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
@@ -195,9 +194,7 @@ function FundDetailPage() {
         >
           <SheetHeader>
             <SheetTitle>{toTitleCase(vault.name)}</SheetTitle>
-            <SheetDescription>
-              Deposit USDC
-            </SheetDescription>
+            <SheetDescription>Deposit USDC</SheetDescription>
           </SheetHeader>
           <Column className="px-6 pb-8">
             <DepositPanel vault={vault} onDone={() => setSheetOpen(false)} />
@@ -275,7 +272,7 @@ function VaultLogo({ vault }: { vault: Vault }) {
         />
       ))}
       {stocks.length === 0 && (
-        <span className="absolute inset-0 flex items-center justify-center font-mono text-sm tabular-nums text-muted-foreground">
+        <span className="absolute inset-0 flex items-center justify-center font-mono text-sm text-muted-foreground tabular-nums">
           {vault.name.slice(0, 2).toUpperCase()}
         </span>
       )}
@@ -317,7 +314,7 @@ function CompositionSection({
 function AboutCard({ description }: { description: string | null }) {
   const text =
     description ??
-    "A curated basket of tokenized equities, weighted by conviction and rebalanced on a deterministic schedule."
+    "A curated vault of tokenized equities, weighted by conviction and rebalanced on a deterministic schedule."
   return (
     <Card>
       <CardHeader>
@@ -336,8 +333,8 @@ function AboutCard({ description }: { description: string | null }) {
 
 function DetailSkeleton() {
   return (
-    <Column className="animate-in fade-in-0 duration-300 gap-12 pt-12 pb-24">
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-6">
+    <Column className="animate-in gap-12 pt-12 pb-24 duration-300 fade-in-0">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         {/* LEFT */}
         <Column className="min-w-0">
           {/* Breadcrumbs */}

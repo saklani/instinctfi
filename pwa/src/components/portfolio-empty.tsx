@@ -24,7 +24,7 @@ type PortfolioEmptyProps = {
 export function PortfolioEmpty({
   className,
   title = "No holdings yet.",
-  subtitle = "Curated baskets are one click away. Browse and put capital to work.",
+  subtitle = "Curated vaults are one click away. Browse and put capital to work.",
   ctaLabel = "Discover vaults",
 }: PortfolioEmptyProps) {
   return (
@@ -61,11 +61,7 @@ function Illustration() {
         aria-hidden
         className="absolute inset-0 rounded-full border border-dashed border-border"
       />
-      <svg
-        viewBox="0 0 80 80"
-        fill="none"
-        className="size-16 text-accent"
-      >
+      <svg viewBox="0 0 80 80" fill="none" className="size-16 text-accent">
         <PathDraw
           d="M14 56 L30 40 L44 50 L66 22"
           stroke="currentColor"

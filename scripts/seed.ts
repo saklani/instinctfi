@@ -69,7 +69,7 @@ interface VaultDef {
 const VAULTS: VaultDef[] = [
   {
     name: "NOT INSIDER TRADING",
-    description: "Curated basket tracking the highest-conviction recurring holdings across politician disclosure books — large-cap tech compounders.",
+    description: "Curated vault tracking the highest-conviction recurring holdings across politician disclosure books — large-cap tech compounders.",
     imageUrl: "https://ik.imagekit.io/8dj2mc8pj/not_insider_trading.png",
     address: "G54nsrBx9a59YVqiqk2Sg3yX9wQauRz5MEugdWDjvmsf",
     mint: "FXcxe5f3AwkJZRaoYFuGME7rEXS4NmBxZPYKVh3Q4bnD",

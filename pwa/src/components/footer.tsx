@@ -40,19 +40,19 @@ export function Footer() {
   if (standalone) return null
 
   return (
-    <footer className="hidden md:flex mx-auto w-full max-w-7xl flex-col gap-10 px-6 lg:px-16 pt-16 pb-12">
+    <footer className="hidden md:flex mx-auto w-full max-w-7xl flex-col gap-8 px-6 lg:px-16 pt-16 pb-12">
       <div className="h-px w-full bg-gradient-to-r from-transparent via-black/10 to-transparent" />
 
-      <Column className="lg:flex-row lg:justify-between gap-4">
-        <Column className="items-start">
-          <img src="/logo-black.png" alt="Instinct" className="h-6" />
-          <p className="text-sm max-w-sm">
+      <Column className="gap-8 lg:flex-row lg:items-start lg:justify-between lg:gap-4">
+        <Column className="items-start gap-3 max-w-sm">
+          <img src="/instinct_wordmark.svg" alt="Instinct" className="h-5" />
+          <p className="text-sm">
             Curated tokenized stock vaults on Solana, track the smartest money
             through Instinct equity vaults
           </p>
         </Column>
 
-        <Column>
+        <Column className="gap-3">
           <span className="eyebrow">Follow</span>
           <Row className="items-center">
             {SOCIALS.map((s) => (

@@ -20,23 +20,21 @@ export function Header() {
         <Link to="/" aria-label="instinct, home">
           <img src="/logo-black.png" alt="Instinct" className="h-6" />
         </Link>
-        <nav className="hidden md:flex gap-4 items-center w-fit">
+        <nav className="hidden md:flex items-center gap-8">
           {desktopLinks.map(({ to, label }) => (
-            <Row className="w-[80px] items-center justify-center">
-              <Link
-                key={to}
-                to={to}
-                className="text-sm text-center text-muted-foreground transition-colors hover:text-foreground [&.active]:text-foreground [&.active]:font-medium"
-              >
-                {label}
-              </Link>
-            </Row>
+            <Link
+              key={to}
+              to={to}
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground [&.active]:text-foreground [&.active]:font-medium"
+            >
+              {label}
+            </Link>
           ))}
           <Button
             size="sm"
             onClick={authenticated ? logout : login}
             disabled={!ready}
-            className="ml-6"
+            className="ml-4"
           >
             {authenticated ? "Sign out" : "Sign in"}
           </Button>

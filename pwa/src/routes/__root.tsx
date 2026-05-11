@@ -15,9 +15,9 @@ function RootLayout() {
 
   return (
     <ApiProvider>
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-screen flex flex-col bg-background text-foreground">
         <Header />
-        <main className="mx-auto flex w-full items-center justify-center">
+        <main className="flex flex-1 w-full justify-center">
           <div key={location.pathname} className="w-full max-w-7xl px-6 lg:px-16">
             <Outlet />
           </div>
