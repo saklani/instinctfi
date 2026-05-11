@@ -54,13 +54,14 @@ function SettingsPage() {
     <Column className="gap-6">
       <Header />
 
+    <Column className="gap-12 pt-12 pb-24">
       <Card>
         <CardHeader>
           <CardTitle>Wallet</CardTitle>
           <CardDescription>Connected via Privy.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Column className="gap-4">
+          <Column>
             <Row className="items-center justify-between">
               <span className="text-body-sm text-ink-muted">Status</span>
               <span className="text-body-sm font-medium text-positive">

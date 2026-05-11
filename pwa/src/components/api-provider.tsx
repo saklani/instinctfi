@@ -1,25 +1,26 @@
-import { createContext, useContext, useEffect, type ReactNode } from "react"
+import { useEffect, type ReactNode } from "react"
+import { useMutation } from "@tanstack/react-query"
 import { usePrivy } from "@privy-io/react-auth"
-import { setAccessTokenGetter } from "@/lib/api"
-import { useAuth } from "@/hooks/use-auth"
-
-const WalletContext = createContext<string | null>(null)
-
-export function useServerWallet() {
-  return useContext(WalletContext)
-}
+import { authenticate, setAccessTokenGetter } from "@/lib/api"
+import { useWallet } from "@/hooks/use-wallet"
 
 export function ApiProvider({ children }: { children: ReactNode }) {
   const { getAccessToken } = usePrivy()
-  const { treasuryWalletAddress } = useAuth()
+  const { authenticated, walletAddress } = useWallet()
 
   useEffect(() => {
     setAccessTokenGetter(getAccessToken)
   }, [getAccessToken])
 
-  return (
-    <WalletContext.Provider value={treasuryWalletAddress}>
-      {children}
-    </WalletContext.Provider>
-  )
+  const { mutate: registerWallet } = useMutation({
+    mutationFn: authenticate,
+  })
+
+  useEffect(() => {
+    if (authenticated && walletAddress) {
+      registerWallet(walletAddress)
+    }
+  }, [authenticated, walletAddress, registerWallet])
+
+  return <>{children}</>
 }

@@ -26,6 +26,14 @@ import { Stagger } from "@/components/motion/stagger"
 import { Ticker } from "@/components/motion/ticker"
 import { PortfolioEmpty } from "@/components/portfolio-empty"
 
+import { useHoldings, HoldingsTable } from "@/features/holdings"
+import { useWallet } from "@/hooks/use-wallet"
+
+import { Button } from "@/components/ui/button"
+import { Column } from "@/components/ui/column"
+import { Skeleton } from "@/components/ui/skeleton"
+import { PortfolioEmpty } from "@/components/portfolio-empty"
+
 export const Route = createFileRoute("/portfolio")({
   component: PortfolioPage,
 })

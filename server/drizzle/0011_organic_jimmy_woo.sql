@@ -1,0 +1,1 @@
+ALTER TABLE "vaults" ALTER COLUMN "image_url" SET NOT NULL;

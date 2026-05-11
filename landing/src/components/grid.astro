@@ -1,0 +1,46 @@
+---
+import { GRID, BARS } from "@/lib/grid-data"
+
+// Map of "col,row" -> color, where row=0 is the BOTTOM of the chart.
+const colorAt = new Map<string, "red" | "green">()
+for (const bar of BARS) {
+  for (let h = 0; h < bar.height; h++) {
+    colorAt.set(`${bar.col},${bar.row + h}`, bar.color)
+  }
+}
+
+const total = GRID.cols * GRID.rows
+
+const cells = Array.from({ length: total }, (_, i) => {
+  const col = i % GRID.cols
+  // visual row 0 = bottom; CSS grid row 0 = top → invert.
+  const visualRow = GRID.rows - 1 - Math.floor(i / GRID.cols)
+  const c = colorAt.get(`${col},${visualRow}`)
+  const bg =
+    c === "red"
+      ? "var(--color-bar-red)"
+      : c === "green"
+        ? "var(--color-bar-green)"
+        : "rgba(0,0,0,0.07)"
+  return { i, bg }
+})
+---
+
+<div class="w-full rounded-2xl bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_10px_30px_rgba(0,0,0,0.06)] border border-black/5 overflow-hidden">
+  <div class="flex items-center gap-1.5 px-4 py-3 border-b border-black/5">
+    <span class="size-2.5 rounded-full bg-[#ff5f57]"></span>
+    <span class="size-2.5 rounded-full bg-[#febc2e]"></span>
+    <span class="size-2.5 rounded-full bg-[#28c840]"></span>
+  </div>
+
+  <div class="px-3 py-3 md:px-4 md:py-4 lg:px-5 lg:py-5 xl:px-6 xl:py-6">
+    <div
+      class="grid w-full"
+      style={`grid-template-columns: repeat(${GRID.cols}, minmax(0, 1fr)); aspect-ratio: ${GRID.cols} / ${GRID.rows}; gap: clamp(1px, 0.32%, 3px);`}
+    >
+      {cells.map((cell) => (
+        <div style={`background:${cell.bg}; border-radius:18%;`}></div>
+      ))}
+    </div>
+  </div>
+</div>

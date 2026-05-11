@@ -123,7 +123,8 @@ function FundDetailPage() {
     [vault, periodDays],
   )
 
-  const myPendingOrders = pendingOrders.filter((o) => o.vaultId === id)
+  // Fetch the full 1y series once; slice locally per period.
+  const { series: fullSeries } = useVaultNav(vault?.id, 1825)
 
   const compositionItems = React.useMemo(() => {
     if (!vault) return []

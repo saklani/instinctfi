@@ -1,50 +1,208 @@
 import { Hono } from "hono"
+import { z } from "zod"
 import { db } from "../db/index.js"
-import { vaults, compositions, stocks } from "../db/schema.js"
-import { eq } from "drizzle-orm"
+import { vaults, compositions, stocks, vaultNav } from "../db/schema.js"
+import { and, asc, desc, eq, gte, sql } from "drizzle-orm"
+import type { VaultComposition } from "../lib/types.js"
+import { buildBuyVaultTxs, buildSellVaultTxs } from "../lib/symmetry.js"
 
 const app = new Hono()
 
+/** Latest two `vault_nav` rows → headline NAV + 24h delta. */
+function snapshotFromRows(rows: { value: string }[]) {
+  const nav = rows[0] ? Number(rows[0].value) : null
+  const prev = rows[1] ? Number(rows[1].value) : null
+  const delta24h =
+    nav != null && prev != null && prev !== 0 ? (nav - prev) / prev : null
+  return { nav, delta24h }
+}
+
+// ── Routes ──────────────────────────────────────────────
+
 app.get("/", async (c) => {
-  const allVaults = await db.select().from(vaults)
+  const [allVaults, compRows, navRows, firstNavRows] = await Promise.all([
+    db.select().from(vaults),
+    db
+      .select({
+        vaultId: compositions.vaultId,
+        weight: compositions.weight,
+        stock: stocks,
+      })
+      .from(compositions)
+      .innerJoin(stocks, eq(compositions.stockId, stocks.id)),
+    // Latest two NAV rows per vault via window function
+    db.execute<{ vault_id: string; value: string }>(sql`
+      SELECT vault_id, value FROM (
+        SELECT vault_id, value, date,
+          ROW_NUMBER() OVER (PARTITION BY vault_id ORDER BY date DESC) AS rn
+        FROM vault_nav
+      ) t WHERE rn <= 2 ORDER BY vault_id, date DESC
+    `),
+    // Earliest NAV row per vault (for all-time return).
+    db.execute<{ vault_id: string; value: string }>(sql`
+      SELECT vault_id, value FROM (
+        SELECT vault_id, value, date,
+          ROW_NUMBER() OVER (PARTITION BY vault_id ORDER BY date ASC) AS rn
+        FROM vault_nav
+      ) t WHERE rn = 1
+    `),
+  ])
 
-  const result = await Promise.all(
-    allVaults.map(async (vault) => {
-      const comp = await db
-        .select({
-          weightBps: compositions.weightBps,
-          stock: stocks,
-        })
-        .from(compositions)
-        .innerJoin(stocks, eq(compositions.stockId, stocks.id))
-        .where(eq(compositions.vaultId, vault.id))
+  const compsByVault = new Map<string, VaultComposition[]>()
+  for (const r of compRows) {
+    const arr = compsByVault.get(r.vaultId) ?? []
+    arr.push({ weight: r.weight, stock: r.stock })
+    compsByVault.set(r.vaultId, arr)
+  }
 
-      return { ...vault, compositions: comp }
+  const navByVault = new Map<string, { value: string }[]>()
+  for (const r of navRows.rows) {
+    const arr = navByVault.get(r.vault_id) ?? []
+    arr.push({ value: r.value })
+    navByVault.set(r.vault_id, arr)
+  }
+
+  const firstNavByVault = new Map<string, string>()
+  for (const r of firstNavRows.rows) firstNavByVault.set(r.vault_id, r.value)
+
+  return c.json(
+    allVaults.map((v) => {
+      const snap = snapshotFromRows(navByVault.get(v.id) ?? [])
+      const first = firstNavByVault.has(v.id)
+        ? Number(firstNavByVault.get(v.id))
+        : null
+      const allTime =
+        snap.nav != null && first != null && first !== 0
+          ? (snap.nav - first) / first
+          : null
+      return {
+        ...v,
+        compositions: compsByVault.get(v.id) ?? [],
+        ...snap,
+        allTime,
+      }
     }),
   )
-
-  return c.json(result)
 })
 
 app.get("/:id", async (c) => {
-  const [vault] = await db
-    .select()
-    .from(vaults)
-    .where(eq(vaults.id, c.req.param("id")))
-    .limit(1)
+  const id = c.req.param("id")
+  const [vault] = await db.select().from(vaults).where(eq(vaults.id, id)).limit(1)
 
   if (!vault) return c.json({ error: "Vault not found" }, 404)
 
-  const comp = await db
-    .select({
-      weightBps: compositions.weightBps,
-      stock: stocks,
-    })
-    .from(compositions)
-    .innerJoin(stocks, eq(compositions.stockId, stocks.id))
-    .where(eq(compositions.vaultId, vault.id))
+  const [compRows, navRows, firstNav] = await Promise.all([
+    db
+      .select({ weight: compositions.weight, stock: stocks })
+      .from(compositions)
+      .innerJoin(stocks, eq(compositions.stockId, stocks.id))
+      .where(eq(compositions.vaultId, id)),
+    db
+      .select({ value: vaultNav.value })
+      .from(vaultNav)
+      .where(eq(vaultNav.vaultId, id))
+      .orderBy(desc(vaultNav.date))
+      .limit(2),
+    db
+      .select({ value: vaultNav.value })
+      .from(vaultNav)
+      .where(eq(vaultNav.vaultId, id))
+      .orderBy(asc(vaultNav.date))
+      .limit(1),
+  ])
 
-  return c.json({ ...vault, compositions: comp })
+  const snap = snapshotFromRows(navRows)
+  const first = firstNav[0] ? Number(firstNav[0].value) : null
+  const allTime =
+    snap.nav != null && first != null && first !== 0
+      ? (snap.nav - first) / first
+      : null
+
+  return c.json({
+    ...vault,
+    compositions: compRows,
+    ...snap,
+    allTime,
+  })
+})
+
+// POST /api/vaults/:id/deposit/build — returns unsigned Symmetry buyVault +
+// lockDeposits transactions (base64) for the user to sign client-side.
+const depositBuildSchema = z.object({
+  walletAddress: z.string().min(1),
+  amountLamports: z.number().int().positive(),
+})
+
+app.post("/:id/deposit/build", async (c) => {
+  const id = c.req.param("id")
+  const parsed = depositBuildSchema.safeParse(await c.req.json())
+  if (!parsed.success) {
+    return c.json({ error: parsed.error.issues[0].message }, 400)
+  }
+
+  const [vault] = await db
+    .select({ mint: vaults.mint })
+    .from(vaults)
+    .where(eq(vaults.id, id))
+    .limit(1)
+  if (!vault?.mint) {
+    return c.json({ error: "Vault not deployed" }, 404)
+  }
+
+  const transactions = await buildBuyVaultTxs({
+    walletAddress: parsed.data.walletAddress,
+    vaultMint: vault.mint,
+    amountLamports: parsed.data.amountLamports,
+  })
+  return c.json({ transactions })
+})
+
+// POST /api/vaults/:id/withdraw/build — returns unsigned Symmetry sellVault
+// transactions (base64) for the user to sign client-side.
+const withdrawBuildSchema = z.object({
+  walletAddress: z.string().min(1),
+  shares: z.number().positive(),
+})
+
+app.post("/:id/withdraw/build", async (c) => {
+  const id = c.req.param("id")
+  const parsed = withdrawBuildSchema.safeParse(await c.req.json())
+  if (!parsed.success) {
+    return c.json({ error: parsed.error.issues[0].message }, 400)
+  }
+
+  const [vault] = await db
+    .select({ mint: vaults.mint })
+    .from(vaults)
+    .where(eq(vaults.id, id))
+    .limit(1)
+  if (!vault?.mint) {
+    return c.json({ error: "Vault not deployed" }, 404)
+  }
+
+  const transactions = await buildSellVaultTxs({
+    walletAddress: parsed.data.walletAddress,
+    vaultMint: vault.mint,
+    shares: parsed.data.shares,
+  })
+  return c.json({ transactions })
+})
+
+// GET /api/vaults/:id/nav?days=N — precomputed weighted NAV time series.
+// Source: `vault_nav` table, populated by scripts/compute-vault-nav.ts.
+app.get("/:id/nav", async (c) => {
+  const id = c.req.param("id")
+  const daysParam = Number(c.req.query("days") ?? 365)
+  const days = Math.min(Math.max(Number.isFinite(daysParam) ? daysParam : 365, 1), 1825)
+  const cutoff = new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10)
+
+  const rows = await db
+    .select({ date: vaultNav.date, value: vaultNav.value })
+    .from(vaultNav)
+    .where(and(eq(vaultNav.vaultId, id), gte(vaultNav.date, cutoff)))
+    .orderBy(asc(vaultNav.date))
+
+  return c.json(rows.map((r) => ({ date: r.date, value: Number(r.value) })))
 })
 
 export default app

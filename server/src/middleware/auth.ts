@@ -1,11 +1,6 @@
 import { createMiddleware } from "hono/factory"
 import { privy } from "../lib/privy.js"
-
-type AuthEnv = {
-  Variables: {
-    userId: string
-  }
-}
+import type { AuthEnv } from "../lib/types.js"
 
 export const authMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
   const token = c.req.header("Authorization")?.replace("Bearer ", "")

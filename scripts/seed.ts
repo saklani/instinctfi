@@ -7,6 +7,7 @@
 
 import { neon } from "@neondatabase/serverless"
 import { drizzle } from "drizzle-orm/neon-http"
+import { eq, inArray } from "drizzle-orm"
 import { stocks, vaults, compositions } from "../server/src/db/schema"
 
 const sql = neon(process.env.DATABASE_URL!)
@@ -108,14 +109,22 @@ async function main() {
   console.log("Seeding stocks...")
   const stockIds: Record<string, string> = {}
 
+  // Pull existing rows by address so we can skip already-seeded stocks.
+  const existing = await db
+    .select({ id: stocks.id, ticker: stocks.ticker, address: stocks.address })
+    .from(stocks)
+    .where(inArray(stocks.address, STOCKS.map((s) => s.address)))
+
+  const existingByAddress = new Map(existing.map((r) => [r.address, r]))
+
+  const toInsert = STOCKS.filter((s) => !existingByAddress.has(s.address))
+
   for (const stock of STOCKS) {
-    const [row] = await db
-      .insert(stocks)
-      .values(stock)
-      .onConflictDoUpdate({ target: stocks.address, set: { name: stock.name, ticker: stock.ticker, description: stock.description, imageUrl: stock.imageUrl } })
-      .returning()
-    stockIds[stock.ticker] = row.id
-    console.log(`  ${stock.ticker}: ${row.id}`)
+    const ex = existingByAddress.get(stock.address)
+    if (ex) {
+      stockIds[stock.ticker] = ex.id
+      console.log(`  · ${stock.ticker}: ${ex.id} (existing)`)
+    }
   }
 
   for (const vault of VAULTS) {

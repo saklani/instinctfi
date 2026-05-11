@@ -1,26 +1,17 @@
-import { useQuery } from "@tanstack/react-query"
-import { fetchVaults, fetchVault } from "../api"
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
+import { request } from "@/lib/api"
+import type { VaultResponse } from "./use-vaults"
 
-export function useVaults() {
+const vaultQuery = (id: string) => ({
+  queryKey: ["vault", id] as const,
+  queryFn: () => request<VaultResponse>(`/api/vaults/${id}`),
+  staleTime: 30_000,
+})
+
+export function useVault(id: string | undefined) {
   const { data, isLoading, error } = useQuery({
-    queryKey: ["vaults"],
-    queryFn: fetchVaults,
-    staleTime: 30_000,
-  })
-
-  return {
-    vaults: data ?? [],
-    loading: isLoading,
-    error: error?.message ?? null,
-  }
-}
-
-export function useVault(id: string) {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["vault", id],
-    queryFn: () => fetchVault(id),
+    ...vaultQuery(id ?? ""),
     enabled: !!id,
-    staleTime: 30_000,
   })
 
   return {
@@ -30,8 +21,7 @@ export function useVault(id: string) {
   }
 }
 
-export function useVaultById(id: string) {
-  const { vaults, loading } = useVaults()
-  const vault = vaults.find((v) => v.id === id) ?? null
-  return { vault, loading }
+export function useSuspenseVault(id: string) {
+  const { data } = useSuspenseQuery(vaultQuery(id))
+  return data
 }

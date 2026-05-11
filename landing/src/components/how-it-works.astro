@@ -1,0 +1,101 @@
+---
+import Column from "./ui/column.astro"
+import Section from "./ui/section.astro"
+import { VaultPreview } from "./previews/vault-preview"
+import { DepositPreview } from "./previews/deposit-preview"
+import { NavChartPreview } from "./previews/nav-chart-preview"
+
+const STEPS = [
+  {
+    title: "Pick an instinct",
+    body: "Choose the trend, idea, or cycle you think grows next",
+  },
+  {
+    title: "Invest instantly",
+    body: "Buy tokenized exposure to multiple assets, stocks, ETFs, Solana tokens, in one transaction",
+  },
+  {
+    title: "Ride the momentum",
+    body: "Vaults rebalance automatically as Instincts evolve",
+  },
+]
+
+const STARTING_INVESTMENT = 1_000_000
+
+// Pelosi Tracker — quarterly portfolio value of $1,000,000 invested ~mid-2016.
+// 10-year return of +879%, ending at $9.79M.
+// Inflection points reflect 2018-Q4 dip, 2020 COVID crash, 2022 bear, 2023-2025 AI rally.
+const PELOSI_10YR: number[] = [
+  1_000_000, 1_030_000, 1_080_000, 1_120_000, 1_180_000, 1_250_000, 1_310_000, 1_340_000,
+  1_380_000, 1_240_000, 1_320_000, 1_380_000, 1_450_000, 1_530_000, 1_280_000, 1_500_000,
+  1_700_000, 1_850_000, 1_990_000, 2_120_000, 2_250_000, 2_400_000, 2_280_000, 2_050_000,
+  1_900_000, 2_070_000, 2_300_000, 2_580_000, 2_820_000, 3_150_000, 3_550_000, 3_950_000,
+  4_500_000, 5_200_000, 6_100_000, 7_000_000, 7_900_000, 8_800_000, 9_400_000, 9_790_000,
+]
+
+const API_URL = "https://api.instinctfi.com"
+// Order matches the VAULTS array in vault-preview.tsx (front, peek1, peek2)
+const VAULT_NAMES = ["NOT INSIDER TRADING", "REVERSE CHAMATH", "Peptidemaxxing"] as const
+type NavPoint = { date: string; value: number }
+
+let vaultDeltas: (number | undefined)[] = VAULT_NAMES.map(() => undefined)
+try {
+  const list: { id: string; name: string }[] = await fetch(`${API_URL}/api/vaults`).then((r) => r.json())
+  vaultDeltas = await Promise.all(
+    VAULT_NAMES.map(async (name) => {
+      const v = list.find((x) => x.name === name)
+      if (!v) return undefined
+      try {
+        const series: NavPoint[] = await fetch(`${API_URL}/api/vaults/${v.id}/nav?days=5000`).then((r) => r.json())
+        if (series.length === 0) return undefined
+        const first = series[0].value
+        const latest = series[series.length - 1].value
+        return first > 0 ? ((latest - first) / first) * 100 : undefined
+      } catch (e) {
+        console.warn(`[how-it-works] nav fetch failed for ${name}:`, e)
+        return undefined
+      }
+    }),
+  )
+} catch (e) {
+  console.warn("[how-it-works] vault list fetch failed, using preview defaults:", e)
+}
+---
+
+<Section>
+  <Column class="py-16 lg:py-36 gap-16 lg:gap-24">
+    <h2 class="text-center">Three steps to riding the next Instinct</h2>
+    <ol class="relative flex flex-col gap-16 lg:gap-24">
+      <span
+        aria-hidden="true"
+        class="pointer-events-none absolute left-3 top-2 bottom-2 -z-[1] w-0.5 rounded-full bg-gradient-to-b from-primary/70 via-primary/40 to-primary/10 md:left-1/2 md:-translate-x-1/2"
+      ></span>
+
+      {STEPS.map((step, i) => (
+        <li class={`grid items-center gap-8 md:grid-cols-2 md:gap-16 ${i % 2 === 1 ? "md:[&>*:first-child]:order-2" : ""}`}>
+          <Column class={`pl-8 md:pl-0 ${i % 2 === 0 ? "md:items-end md:text-right" : "md:items-start md:text-left"}`}>
+            <span class="font-heading text-2xl tracking-tight text-primary tabular-nums">
+              0{i + 1}
+            </span>
+            <h3 class="text-foreground">{step.title}</h3>
+            <p>{step.body}</p>
+          </Column>
+
+          <div class="w-full">
+            {i === 0 && <VaultPreview deltas={vaultDeltas} client:load />}
+            {i === 1 && <DepositPreview client:load />}
+            {i === 2 && (
+              <NavChartPreview
+                values={PELOSI_10YR}
+                latestNav={PELOSI_10YR[PELOSI_10YR.length - 1]}
+                periodLabel="10Y"
+                startInvestment={STARTING_INVESTMENT}
+                client:load
+              />
+            )}
+          </div>
+        </li>
+      ))}
+    </ol>
+  </Column>
+</Section>

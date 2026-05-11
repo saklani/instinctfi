@@ -22,6 +22,10 @@ import { Reveal } from "@/components/motion/reveal"
 import { Stagger } from "@/components/motion/stagger"
 import { durations } from "@/components/motion/easings"
 
+import { Column } from "@/components/ui/column"
+import { FeaturedSection } from "@/pages/discover/featured-section"
+import { AllVaultsSection } from "@/pages/discover/all-vaults-section"
+
 export const Route = createFileRoute("/")({
   component: DiscoverPage,
 })

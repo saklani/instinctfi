@@ -1,0 +1,31 @@
+---
+import { Button } from "@/components/ui/button"
+import Column from "./ui/column.astro"
+---
+
+<Column
+   class="relative flex flex-col items-center w-full bg-foreground py-16 lg:py-36 gap-4 text-center text-white px-4"
+  >
+      <div
+        aria-hidden="true"
+        class="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(circle_at_50%_0%,rgba(2,76,199,0.45),transparent_60%)]"
+      />
+      <div
+        aria-hidden="true"
+        class="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.08)_1px,transparent_0)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_70%_50%_at_50%_50%,black_40%,transparent_100%)]"
+      />
+      <Column class="relative z-10 items-center gap-4 mb-6">
+        <h2 class="text-white">
+          The next trend is already moving
+        </h2>
+        <p class="max-w-xl text-white/65">
+          Join the alpha and ride tokenized Instincts in one click
+        </p>
+      </Column>
+
+      <Button size={"lg"} className="relative z-10 mt-2 bg-white text-foreground hover:bg-white/90 px-8 text-base">
+        <a href={"https://t.me/+zYR_6cl-wa03N2M1"} target="_blank" rel="noreferrer noopener">
+          Request an Invite →
+        </a>
+      </Button>
+</Column>
