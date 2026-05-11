@@ -4,6 +4,7 @@ import {
   uuid,
   timestamp,
   integer,
+  numeric,
   uniqueIndex,
 } from "drizzle-orm/pg-core"
 
@@ -84,3 +85,21 @@ export const wallets = pgTable("wallets", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 })
+
+// ── Wallet balances (leaderboard snapshot) ──────────────
+
+export const walletBalances = pgTable(
+  "wallet_balances",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    address: text("address").notNull(),                 // Solana pubkey base58
+    vaultId: uuid("vault_id")
+      .notNull()
+      .references(() => vaults.id, { onDelete: "cascade" }),
+    balance: text("balance").notNull(),                  // raw atomic units (string for precision)
+    balanceUi: numeric("balance_ui").notNull(),          // human-readable amount
+    valueUsd: numeric("value_usd").notNull(),            // balance_ui × Symmetry SDK price at snapshot time
+    snapshotAt: timestamp("snapshot_at").defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("uniq_wallet_vault").on(t.address, t.vaultId)],
+)

@@ -8,6 +8,7 @@ import { Row } from "./ui/row"
 const desktopLinks = [
   { to: "/", label: "Discover" },
   { to: "/portfolio", label: "Portfolio" },
+  { to: "/leaderboard", label: "Leaderboard" },
 ] as const
 
 export function Header() {

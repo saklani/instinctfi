@@ -5,6 +5,7 @@ import {
   uuid,
   timestamp,
   integer,
+  numeric,
   uniqueIndex,
 } from "drizzle-orm/pg-core"
 
@@ -86,6 +87,24 @@ export const wallets = pgTable("wallets", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 })
 
+// ── Wallet balances (leaderboard snapshot) ──────────────
+
+export const walletBalances = pgTable(
+  "wallet_balances",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    address: text("address").notNull(),
+    vaultId: uuid("vault_id")
+      .notNull()
+      .references(() => vaults.id, { onDelete: "cascade" }),
+    balance: text("balance").notNull(),
+    balanceUi: numeric("balance_ui").notNull(),
+    valueUsd: numeric("value_usd").notNull(),
+    snapshotAt: timestamp("snapshot_at").defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("uniq_wallet_vault").on(t.address, t.vaultId)],
+)
+
 // ── Inferred row types ──────────────────────────────────
 
 export type Stock = typeof stocks.$inferSelect
@@ -94,3 +113,4 @@ export type Vault = typeof vaults.$inferSelect
 export type Composition = typeof compositions.$inferSelect
 export type VaultNav = typeof vaultNav.$inferSelect
 export type Wallet = typeof wallets.$inferSelect
+export type WalletBalance = typeof walletBalances.$inferSelect

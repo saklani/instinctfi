@@ -58,7 +58,7 @@ export function NavChartPreview({
                 {label}
               </span>
             )}
-            <span className="font-mono text-3xl font-semibold tabular-nums text-foreground">
+            <span className="font-mono text-3xl tabular-nums text-foreground">
               {usdFormatter.format(latest)}
             </span>
             {startInvestment !== undefined && (
@@ -78,7 +78,6 @@ export function NavChartPreview({
             {periodPositive ? "+" : ""}{periodPct.toFixed(2)}%
           </span>
         </div>
-
         <Chart values={series} />
       </div>
     </Card>

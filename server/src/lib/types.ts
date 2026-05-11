@@ -5,6 +5,7 @@ import type {
   compositions,
   vaultNav,
   wallets,
+  walletBalances,
 } from "../db/schema.js"
 
 // ── DB row types ────────────────────────────────────────
@@ -15,6 +16,7 @@ export type Vault = typeof vaults.$inferSelect
 export type Composition = typeof compositions.$inferSelect
 export type VaultNav = typeof vaultNav.$inferSelect
 export type Wallet = typeof wallets.$inferSelect
+export type WalletBalance = typeof walletBalances.$inferSelect
 
 // ── HTTP / Hono ─────────────────────────────────────────
 

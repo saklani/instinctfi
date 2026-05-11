@@ -31,8 +31,8 @@ function SettingsPage() {
 
   if (!authenticated) {
     return (
-      <Column>
-        <Header />
+
+      <Column className="gap-12 pt-12 pb-24">
         <Card>
           <CardHeader>
             <CardTitle>Not connected</CardTitle>
@@ -51,9 +51,8 @@ function SettingsPage() {
   }
 
   return (
-    <Column>
-      <Header />
 
+    <Column className="gap-12 pt-12 pb-24">
       <Card>
         <CardHeader>
           <CardTitle>Wallet</CardTitle>
@@ -95,15 +94,6 @@ function SettingsPage() {
   )
 }
 
-function Header() {
-  return (
-    <Column>
-      <h1>Settings</h1>
-      <p>Manage your account.</p>
-    </Column>
-  )
-}
-
 function CopyAddress({ address }: { address: string }) {
   const handleCopy = React.useCallback(async () => {
     try {
@@ -136,11 +126,7 @@ function CopyAddress({ address }: { address: string }) {
 
 function SettingsSkeleton() {
   return (
-    <Column>
-      <Column>
-        <Skeleton className="h-8 w-32" />
-        <Skeleton className="h-4 w-44" />
-      </Column>
+    <Column className="gap-12 pt-12 pb-24">
       <Card>
         <CardHeader>
           <Skeleton className="h-5 w-20" />

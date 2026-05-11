@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router"
-import { Compass, PieChart, Settings } from "lucide-react"
+import { Compass, PieChart, Settings, Trophy } from "lucide-react"
 
 const tabs = [
   { to: "/", label: "Discover", icon: Compass },
   { to: "/portfolio", label: "Portfolio", icon: PieChart },
+  { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const
 

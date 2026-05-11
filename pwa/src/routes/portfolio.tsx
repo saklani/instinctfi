@@ -55,7 +55,7 @@ function PortfolioConnect({ onConnect }: { onConnect: () => void }) {
 
 function PortfolioSkeleton() {
   return (
-    <Column className="gap-12 py-12">
+    <Column className="gap-12 pt-12 pb-24">
       <Column>
         <Skeleton className="h-3 w-20 rounded-sm" />
         <Skeleton className="h-9 w-56 rounded-sm" />

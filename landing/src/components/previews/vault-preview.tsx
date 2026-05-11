@@ -88,13 +88,13 @@ export function VaultPreview({ className, deltas, spark }: VaultPreviewProps) {
                   alt=""
                   className="size-10 rounded-full bg-secondary object-cover ring-1 ring-black/5"
                 />
-                <span className="truncate text-lg lg:text-xl font-semibold leading-[1.05] tracking-tight text-foreground">
+                <span className="truncate text-lg lg:text-xl leading-[1.05] tracking-tight text-foreground">
                   {v.name}
                 </span>
               </div>
               <span
                 className={cn(
-                  "inline-flex shrink-0 items-baseline rounded-md px-2 py-1 text-sm font-medium tabular-nums",
+                  "inline-flex shrink-0 items-baseline rounded-md px-2 py-1 text-sm  tabular-nums",
                   v.delta >= 0
                     ? "bg-emerald-500/10 text-emerald-600"
                     : "bg-red-500/10 text-red-600",
@@ -119,7 +119,7 @@ export function VaultPreview({ className, deltas, spark }: VaultPreviewProps) {
                 alt={front.name}
                 className="size-10 rounded-full bg-secondary object-cover ring-1 ring-black/5"
               />
-              <h3 className="line-clamp-2 text-2xl font-semibold leading-[1.05] tracking-tight text-foreground">
+              <h3 className="line-clamp-2 text-2xl leading-[1.05] tracking-tight text-foreground">
                 {front.name}
               </h3>
             </div>
