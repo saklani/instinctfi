@@ -52,7 +52,7 @@ export function Footer() {
           </p>
         </Column>
 
-        <Column className="gap-3">
+        <Column className="gap-3 lg:items-end">
           <span className="eyebrow">Follow</span>
           <Row className="items-center">
             {SOCIALS.map((s) => (
