@@ -11,6 +11,10 @@ export const Route = createFileRoute("/")({
 function DiscoverPage() {
   return (
     <Column className="gap-12 pt-12 pb-24">
+      <Column>
+        <p className="eyebrow">Discover</p>
+        <h1>Pick a vault</h1>
+      </Column>
       <FeaturedSection />
       <AllVaultsSection />
     </Column>
