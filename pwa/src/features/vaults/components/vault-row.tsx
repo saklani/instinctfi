@@ -3,128 +3,162 @@ import { ChevronUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Delta } from "@/components/ui/delta"
-import { MonoNumber } from "@/components/ui/mono-number"
+import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
-import type { Vault } from "../api"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { toTitleCase } from "@/lib/format"
+import type { VaultResponse as Vault } from "../hooks/use-vaults"
+import { isLiveVault } from "../lib"
+import { VaultStatusBadge } from "./vault-status-badge"
 
 export type VaultRowData = {
   vault: Vault
-  nav: number
-  delta24h: number
+  allTime: number | null
 }
 
-const ROW_GRID_CLASS = cn(
-  "grid items-center gap-4",
-  "grid-cols-[minmax(0,1fr)_auto_auto]",
-)
-
-export type VaultSortKey = "name" | "nav" | "delta24h"
+export type VaultSortKey = "name" | "allTime"
 
 export type VaultSortState = {
   key: VaultSortKey
   dir: "asc" | "desc"
 }
 
-type VaultTableHeaderProps = {
-  sort?: VaultSortState
-  onSortChange?: (key: VaultSortKey) => void
+type VaultTableProps = {
+  rows: VaultRowData[]
+  sort: VaultSortState
+  onSort: (key: VaultSortKey) => void
+  loading: boolean
+  error: string | null
 }
 
-const COLUMNS: Array<{
-  key: VaultSortKey
-  label: string
-  align: "left" | "right"
-}> = [
-  { key: "name", label: "Vault", align: "left" },
-  { key: "nav", label: "NAV", align: "right" },
-  { key: "delta24h", label: "24h", align: "right" },
-]
-
-export function VaultTableHeader({ sort, onSortChange }: VaultTableHeaderProps) {
+export function VaultTable({ rows, sort, onSort, loading, error }: VaultTableProps) {
   return (
-    <div
-      role="row"
-      data-slot="vault-table-header"
-      className={cn(
-        ROW_GRID_CLASS,
-        "px-4 pb-3 text-pill text-ink-faint",
-      )}
-    >
-      {COLUMNS.map((col) => {
-        const active = sort?.key === col.key
-        const interactive = !!onSortChange
-        return (
-          <button
-            key={col.key}
-            type="button"
-            role="columnheader"
-            aria-sort={
-              active ? (sort?.dir === "asc" ? "ascending" : "descending") : "none"
-            }
-            disabled={!interactive}
-            onClick={() => onSortChange?.(col.key)}
-            className={cn(
-              "group/col flex items-center gap-1 rounded-tag px-1.5 py-1 outline-none",
-              col.align === "right" && "justify-end",
-              interactive
-                ? "cursor-pointer hover:text-ink focus-visible:text-ink focus-visible:ring-[3px] focus-visible:ring-accent/30"
-                : "cursor-default",
-              active && "text-ink",
-            )}
-          >
-            <span className={cn(interactive && "group-hover/col:underline underline-offset-4")}>
-              {col.label}
-            </span>
-            {active && (
-              <ChevronUp
-                aria-hidden
-                className={cn(
-                  "size-3 transition-transform duration-150",
-                  sort?.dir === "desc" && "rotate-180",
-                )}
-              />
-            )}
-          </button>
-        )
-      })}
-    </div>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <SortHead sortKey="name" label="Vault" sort={sort} onSort={onSort} />
+          <SortHead
+            sortKey="allTime"
+            label="All-time"
+            align="right"
+            sort={sort}
+            onSort={onSort}
+          />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {loading && <SkeletonRows />}
+        {error && (
+          <TableRow>
+            <TableCell colSpan={2} className="text-center text-destructive">
+              {error}
+            </TableCell>
+          </TableRow>
+        )}
+        {!loading && !error && rows.length === 0 && (
+          <TableRow>
+            <TableCell colSpan={2} className="text-center text-muted-foreground">
+              No vaults yet. Check back soon.
+            </TableCell>
+          </TableRow>
+        )}
+        {!loading && !error &&
+          rows.map((row) => <VaultBodyRow key={row.vault.id} row={row} />)}
+      </TableBody>
+    </Table>
   )
 }
 
-export function VaultRow({ row }: { row: VaultRowData }) {
-  const { vault, nav, delta24h } = row
+function SortHead({
+  sortKey,
+  label,
+  align = "left",
+  sort,
+  onSort,
+}: {
+  sortKey: VaultSortKey
+  label: string
+  align?: "left" | "right"
+  sort: VaultSortState
+  onSort: (key: VaultSortKey) => void
+}) {
+  const active = sort.key === sortKey
   return (
-    <Link
-      to="/fund/$id"
-      params={{ id: vault.id }}
-      role="row"
-      data-slot="vault-row"
+    <TableHead className={align === "right" ? "text-right" : undefined}>
+      <button
+        type="button"
+        onClick={() => onSort(sortKey)}
+        className={cn(
+          "group/col inline-flex items-center rounded-sm outline-none",
+          align === "right" && "ml-auto",
+          "cursor-pointer hover:text-foreground focus-visible:text-foreground focus-visible:ring-[3px] focus-visible:ring-accent/30",
+          active && "text-foreground",
+        )}
+        aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+      >
+        <span className="group-hover/col:underline underline-offset-4">
+          {label}
+        </span>
+        {active && (
+          <ChevronUp
+            aria-hidden
+            className={cn(
+              "size-3 transition-transform duration-150",
+              sort.dir === "desc" && "rotate-180",
+            )}
+          />
+        )}
+      </button>
+    </TableHead>
+  )
+}
+
+function VaultBodyRow({ row }: { row: VaultRowData }) {
+  const { vault, allTime } = row
+  const live = isLiveVault(vault.id)
+
+  const inner = (
+    <Row className="min-w-0 items-center">
+      <VaultRowLogo vault={vault} />
+      <span className="min-w-0 flex-1 truncate font-medium text-foreground">
+        {toTitleCase(vault.name)}
+      </span>
+      <VaultStatusBadge live={live} compact />
+    </Row>
+  )
+
+  return (
+    <TableRow
       className={cn(
-        ROW_GRID_CLASS,
-        "rounded-tag px-4 py-4 text-body",
-        "transition-colors duration-150 outline-none",
-        "hover:bg-secondary focus-visible:bg-secondary focus-visible:ring-[3px] focus-visible:ring-accent/30",
+        "transition-colors duration-300 ease-out",
+        live &&
+          "hover:bg-primary/4 hover:shadow-[inset_0_0_0_1px_rgba(2,76,199,0.12)]",
       )}
     >
-      <div className="flex min-w-0 items-center gap-3">
-        <VaultRowLogo vault={vault} />
-        <span className="truncate font-medium text-ink">{vault.name}</span>
-      </div>
-
-      <div className="flex justify-end">
-        <MonoNumber
-          value={nav}
-          format="usd"
-          precision={2}
-          size="md"
-          className="text-ink"
-        />
-      </div>
-
-      <div className="flex justify-end">
-        <Delta value={delta24h} hideArrow size="md" />
-      </div>
-    </Link>
+      <TableCell>
+        {live ? (
+          <Link
+            to="/fund/$id"
+            params={{ id: vault.id }}
+            className="outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30 rounded-sm"
+          >
+            {inner}
+          </Link>
+        ) : (
+          inner
+        )}
+      </TableCell>
+      <TableCell className="text-right">
+        <Delta value={allTime} hideArrow size="md" />
+      </TableCell>
+    </TableRow>
   )
 }
 
@@ -152,7 +186,7 @@ function VaultRowLogo({ vault }: { vault: Vault }) {
             src={c.stock.imageUrl}
             alt=""
             loading="lazy"
-            className="absolute size-4 rounded-full ring-2 ring-canvas"
+            className="absolute size-4 rounded-full ring-2 ring-background"
             style={{
               top: i === 0 ? 2 : i === 1 ? 11 : 7,
               left: i === 0 ? 2 : i === 1 ? 12 : 7,
@@ -161,7 +195,7 @@ function VaultRowLogo({ vault }: { vault: Vault }) {
           />
         ))
       ) : (
-        <span className="font-mono text-[10px] tabular text-ink-muted">
+        <span className="font-mono text-[10px] tabular text-muted-foreground">
           {vault.name.slice(0, 2).toUpperCase()}
         </span>
       )}
@@ -169,36 +203,22 @@ function VaultRowLogo({ vault }: { vault: Vault }) {
   )
 }
 
-export function VaultRowSkeleton() {
+function SkeletonRows({ rows = 5 }: { rows?: number }) {
   return (
-    <div
-      data-slot="vault-row-skeleton"
-      role="row"
-      className={cn(ROW_GRID_CLASS, "px-4 py-4")}
-    >
-      <div className="flex min-w-0 items-center gap-3">
-        <Skeleton className="size-7 shrink-0 rounded-full" />
-        <Skeleton className="h-4 w-full max-w-[220px] rounded-tag" />
-      </div>
-      <div className="flex justify-end">
-        <Skeleton className="h-4 w-16 rounded-tag" />
-      </div>
-      <div className="flex justify-end">
-        <Skeleton className="h-4 w-12 rounded-tag" />
-      </div>
-    </div>
-  )
-}
-
-export function VaultTableSkeleton({ rows = 5 }: { rows?: number }) {
-  return (
-    <div
-      data-slot="vault-table-skeleton"
-      className="flex flex-col divide-y divide-hairline"
-    >
+    <>
       {Array.from({ length: rows }).map((_, i) => (
-        <VaultRowSkeleton key={i} />
+        <TableRow key={i}>
+          <TableCell>
+            <Row className="items-center">
+              <Skeleton className="size-7 shrink-0 rounded-full" />
+              <Skeleton className="h-4 w-full max-w-[220px] rounded-sm" />
+            </Row>
+          </TableCell>
+          <TableCell className="text-right">
+            <Skeleton className="ml-auto h-4 w-16 rounded-sm" />
+          </TableCell>
+        </TableRow>
       ))}
-    </div>
+    </>
   )
 }

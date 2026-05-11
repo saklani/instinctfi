@@ -18,10 +18,6 @@ type BeforeInstallPromptEvent = Event & {
 
 type InstallButtonProps = {
   className?: string
-  /** Force-render in iOS instructions mode — Storybook only. */
-  forceIOS?: boolean
-  /** Force-render the standard install pill — Storybook only. */
-  forceInstallable?: boolean
 }
 
 function detectIOS() {
@@ -39,24 +35,14 @@ function detectStandalone() {
   return (window.navigator as Navigator & { standalone?: boolean }).standalone === true
 }
 
-export function InstallButton({
-  className,
-  forceIOS,
-  forceInstallable,
-}: InstallButtonProps = {}) {
+export function InstallButton({ className }: InstallButtonProps = {}) {
   const [deferredPrompt, setDeferredPrompt] =
     React.useState<BeforeInstallPromptEvent | null>(null)
-  const [standalone, setStandalone] = React.useState(() =>
-    forceIOS || forceInstallable ? false : detectStandalone(),
-  )
-  const [isIOS] = React.useState(() =>
-    forceIOS || forceInstallable ? false : detectIOS(),
-  )
+  const [standalone, setStandalone] = React.useState(detectStandalone)
+  const [isIOS] = React.useState(detectIOS)
   const [iosOpen, setIosOpen] = React.useState(false)
 
   React.useEffect(() => {
-    if (forceIOS || forceInstallable) return
-
     const onBeforeInstall = (e: Event) => {
       e.preventDefault()
       setDeferredPrompt(e as BeforeInstallPromptEvent)
@@ -72,12 +58,12 @@ export function InstallButton({
       window.removeEventListener("beforeinstallprompt", onBeforeInstall)
       window.removeEventListener("appinstalled", onInstalled)
     }
-  }, [forceIOS, forceInstallable])
+  }, [])
 
   if (standalone) return null
 
-  const showIOS = forceIOS ?? (isIOS && !deferredPrompt)
-  const showInstall = forceInstallable ?? !!deferredPrompt
+  const showIOS = isIOS && !deferredPrompt
+  const showInstall = !!deferredPrompt
 
   if (!showIOS && !showInstall) return null
 
@@ -98,7 +84,7 @@ export function InstallButton({
         variant="outline"
         size="sm"
         onClick={handleClick}
-        className={cn("gap-1.5 md:hidden", className)}
+        className={cn("md:hidden", className)}
         aria-label="Install app"
       >
         <Download className="size-4" aria-hidden />
@@ -107,15 +93,15 @@ export function InstallButton({
       <Sheet open={iosOpen} onOpenChange={setIosOpen}>
         <SheetContent
           side="bottom"
-          className="rounded-t-card bg-surface p-0 sm:max-w-lg sm:mx-auto"
+          className="bg-card sm:mx-auto sm:max-w-lg"
         >
-          <SheetHeader className="gap-2 pb-2">
-            <SheetTitle className="text-heading">Install Instinct</SheetTitle>
-            <SheetDescription className="text-body-sm">
-              Add to your Home Screen for full-screen access and push-quick launch.
+          <SheetHeader>
+            <SheetTitle>Install Instinct</SheetTitle>
+            <SheetDescription>
+              Add to your Home Screen for full-screen access and quick launch.
             </SheetDescription>
           </SheetHeader>
-          <ol className="flex flex-col gap-3 px-6 pb-8 text-body-sm text-ink">
+          <ol className="flex flex-col text-sm text-foreground">
             <Step n={1}>
               Tap the <Share className="inline size-4 align-text-bottom" aria-hidden />{" "}
               <span className="font-medium">Share</span> icon in Safari&rsquo;s toolbar.
@@ -138,10 +124,10 @@ export function InstallButton({
 
 function Step({ n, children }: { n: number; children: React.ReactNode }) {
   return (
-    <li className="flex items-start gap-3">
+    <li className="flex items-start">
       <span
         aria-hidden
-        className="mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary font-mono text-mono-sm text-ink"
+        className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary font-mono text-xs tabular-nums text-foreground"
       >
         {n}
       </span>

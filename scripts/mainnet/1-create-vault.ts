@@ -2,22 +2,13 @@
  * Step 1: Create the vault
  *
  * Usage:
- *   PRIVATE_KEY="$(cat ~/.config/solana/id.json)" \
- *     bun run scripts/mainnet/1-create-vault.ts "<Vault Name>" <SYMBOL>
+ *   PRIVATE_KEY="$(cat ~/.config/solana/id.json)" bun run scripts/mainnet/1-create-vault.ts
  */
 
 import { Connection, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js"
 import { SymmetryCore } from "@symmetry-hq/sdk"
 
 const RPC_URL = "https://mainnet.helius-rpc.com/?api-key=7ab8b174-ab40-4c2a-aef7-93a19dbd364c"
-
-const vaultName = process.argv[2]
-const vaultSymbol = process.argv[3]
-
-if (!vaultName || !vaultSymbol) {
-  console.error('Usage: bun run scripts/mainnet/1-create-vault.ts "<Vault Name>" <SYMBOL>')
-  process.exit(1)
-}
 
 function loadKeypair(): Keypair {
   const pk = process.env.PRIVATE_KEY
@@ -50,12 +41,12 @@ async function main() {
 
   const sdk = new SymmetryCore({ connection, network: "mainnet", priorityFee: 100_000 })
 
-  console.log(`\nCreating vault: ${vaultName} (${vaultSymbol})...`)
+  console.log("\nCreating vault: Anti Finance Finance Club (AFFC)...")
   const vaultResult = await sdk.createVaultTx({
     creator: wallet.publicKey.toBase58(),
     start_price: "1.0",
-    name: vaultName,
-    symbol: vaultSymbol,
+    name: "Anti Finance Finance Club",
+    symbol: "AFFC",
     metadata_uri: "https://arweave.net/placeholder",
     host_platform_params: {
       host_pubkey: wallet.publicKey.toBase58(),

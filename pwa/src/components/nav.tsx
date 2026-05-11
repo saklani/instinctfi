@@ -10,18 +10,16 @@ const tabs = [
 
 export function Nav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-hairline bg-canvas/90 backdrop-blur-md pb-[env(safe-area-inset-bottom,0px)] md:hidden">
-      <div className="mx-auto flex h-16 max-w-2xl items-center justify-around px-4">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/80 backdrop-blur-sm md:hidden">
+      <div className="mx-auto flex h-16 max-w-2xl items-center justify-around">
         {tabs.map(({ to, label, icon: Icon }) => (
           <Link
             key={to}
             to={to}
-            className="group inline-flex flex-col items-center gap-1 rounded-pill px-4 py-1 text-ink-muted outline-none transition-colors duration-150 [&.active]:text-ink focus-visible:ring-[3px] focus-visible:ring-accent/30"
+            className="flex flex-col items-center text-muted-foreground transition-colors [&.active]:text-foreground"
           >
-            <Icon className="size-5" />
-            <span className="text-pill font-semibold uppercase tracking-[0.06em] [.group.active_&]:text-ink">
-              {label}
-            </span>
+            <Icon size={20} strokeWidth={1.8} />
+            <span className="text-[10px] font-medium">{label}</span>
           </Link>
         ))}
       </div>

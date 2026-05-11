@@ -2,14 +2,13 @@
  * Step 2: Add a single token to the vault
  *
  * Usage:
- *   PRIVATE_KEY="$(cat ~/.config/solana/id.json)" \
- *     bun run scripts/mainnet/2-add-token.ts <vault_address> <token_mint> <pyth_account> <decimals>
+ *   PRIVATE_KEY="$(cat ~/.config/solana/id.json)" bun run scripts/mainnet/2-add-token.ts <vault_address> <token_mint> <pyth_account>
  *
  * Example:
- *   bun run scripts/mainnet/2-add-token.ts G54nsrBx... Xsc9qvGR... 2w1Tg1XT... 8
+ *   PRIVATE_KEY="$(cat ~/.config/solana/id.json)" bun run scripts/mainnet/2-add-token.ts G54nsrBx... Xsc9qvGR... 2w1Tg1XT...
  */
 
-import { Connection, Keypair } from "@solana/web3.js"
+import { Connection, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js"
 import { SymmetryCore } from "@symmetry-hq/sdk"
 
 const RPC_URL = "https://mainnet.helius-rpc.com/?api-key=7ab8b174-ab40-4c2a-aef7-93a19dbd364c"
@@ -17,10 +16,9 @@ const RPC_URL = "https://mainnet.helius-rpc.com/?api-key=7ab8b174-ab40-4c2a-aef7
 const vaultAddress = process.argv[2]
 const tokenMint = process.argv[3]
 const pythAccount = process.argv[4]
-const decimals = Number(process.argv[5])
 
-if (!vaultAddress || !tokenMint || !pythAccount || !Number.isFinite(decimals)) {
-  console.error("Usage: bun run scripts/mainnet/2-add-token.ts <vault> <mint> <pyth> <decimals>")
+if (!vaultAddress || !tokenMint || !pythAccount) {
+  console.error("Usage: bun run scripts/mainnet/2-add-token.ts <vault> <mint> <pyth>")
   process.exit(1)
 }
 
@@ -54,7 +52,6 @@ async function main() {
   console.log("Vault:", vaultAddress)
   console.log("Token:", tokenMint)
   console.log("Pyth:", pythAccount)
-  console.log("Decimals:", decimals)
 
   const sdk = new SymmetryCore({ connection, network: "mainnet", priorityFee: 100_000 })
 
@@ -85,7 +82,7 @@ async function main() {
         min_liquidity: 0,
         staleness_thresh: 120,
         staleness_conf_rate_bps: 50,
-        token_decimals: decimals,
+        token_decimals: 8,
         twap_seconds_ago: 0,
         twap_secondary_seconds_ago: 0,
         quote_token: "usd" as const,
