@@ -11,10 +11,7 @@ function LeaderboardPage() {
   const { wallets, loading } = useLeaderboard()
   return (
     <Column className="animate-in fade-in-0 duration-300 gap-12 pt-12 pb-24">
-      <Column>
-        <p className="text-sm">Leaderboard</p>
-        <h1>Top Wallets</h1>
-      </Column>
+      <h1>Top Wallets</h1>
       <LeaderboardTable rows={wallets} loading={loading} />
     </Column>
   )

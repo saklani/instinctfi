@@ -28,11 +28,6 @@ function PortfolioPage() {
 
   return (
     <Column className="animate-in fade-in-0 duration-300 gap-12 py-12">
-      <Column>
-        <p className="text-sm">Portfolio</p>
-        <h1>Your holdings</h1>
-      </Column>
-
       <HoldingsTable rows={holdings} loading={loading} />
     </Column>
   )

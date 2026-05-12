@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
 
 import { Column } from "@/components/ui/column"
-import { FeaturedSection } from "@/pages/discover/featured-section"
-import { AllVaultsSection } from "@/pages/discover/all-vaults-section"
+import { FeaturedCards } from "@/features/vaults/components/featured-cards"
+import { AllVaults } from "@/features/vaults/components/all-vaults"
 
 export const Route = createFileRoute("/")({
   component: DiscoverPage,
@@ -11,8 +11,8 @@ export const Route = createFileRoute("/")({
 function DiscoverPage() {
   return (
     <Column className="gap-12 pt-12 pb-24">
-      <FeaturedSection />
-      <AllVaultsSection />
+      <FeaturedCards />
+      <AllVaults />
     </Column>
   )
 }
