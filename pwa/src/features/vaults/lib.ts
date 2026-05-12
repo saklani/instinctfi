@@ -3,7 +3,7 @@ import type {
   VaultRowData,
   VaultSortKey,
   VaultSortState,
-} from "./components/vault-row"
+} from "./components/all-vaults"
 
 export type EnrichedRow = VaultRowData
 

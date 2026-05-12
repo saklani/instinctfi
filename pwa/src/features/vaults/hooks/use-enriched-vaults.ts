@@ -5,7 +5,7 @@ import { buildRowData, nextSortDir, sortRows, type EnrichedRow } from "../lib"
 import type {
   VaultSortKey,
   VaultSortState,
-} from "../components/vault-row"
+} from "../components/all-vaults"
 
 /** Base hook — vaults from API, mapped to enriched rows. NAV/delta are server-computed. */
 export function useEnrichedVaults() {

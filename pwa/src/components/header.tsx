@@ -22,7 +22,7 @@ export function Header() {
         </Link>
         <nav className="hidden md:flex gap-4 items-center w-fit">
           {desktopLinks.map(({ to, label }) => (
-            <Row className="w-[80px] items-center justify-center">
+            <Row className="w-[90px] items-center justify-center">
               <Link
                 key={to}
                 to={to}
@@ -32,6 +32,7 @@ export function Header() {
               </Link>
             </Row>
           ))}
+        </nav>
           <Button
             size="sm"
             onClick={authenticated ? logout : login}
@@ -40,8 +41,6 @@ export function Header() {
           >
             {authenticated ? "Sign out" : "Sign in"}
           </Button>
-        </nav>
-        <InstallButton />
       </Row>
     </header>
   )
