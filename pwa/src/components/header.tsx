@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router"
 
-import { InstallButton } from "@/components/install-button"
 import { Button } from "@/components/ui/button"
 import { useWallet } from "@/hooks/use-wallet"
 import { Row } from "./ui/row"
