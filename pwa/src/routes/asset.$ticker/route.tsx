@@ -2,10 +2,10 @@ import * as React from "react"
 import { Link, createFileRoute } from "@tanstack/react-router"
 import { ShieldAlert, Lock } from "lucide-react"
 
-import { useStockByTicker, useStockPrices } from "@/features/stocks"
-import type { StockPricePoint } from "@/features/stocks"
-import { useJupiterTokens } from "@/hooks/use-jupiter-tokens"
-import type { JupiterTokenInfo } from "@/hooks/use-jupiter-tokens"
+import { useStockByTicker, useStockPrices } from "./-use-stock"
+import type { StockPricePoint } from "./-use-stock"
+import { useJupiterTokens } from "./-use-jupiter-tokens"
+import type { JupiterTokenInfo } from "./-use-jupiter-tokens"
 
 import { Button } from "@/components/ui/button"
 import {
