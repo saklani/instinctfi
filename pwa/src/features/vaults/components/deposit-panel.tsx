@@ -7,7 +7,7 @@ import { toast } from "sonner"
 import { Clock } from "lucide-react"
 
 import { useWallet } from "@/hooks/use-wallet"
-import { useHoldings } from "@/features/holdings"
+import { useHoldings } from "@/hooks/use-holdings"
 import { request } from "@/lib/api"
 import { getUsdcBalance } from "@/lib/transfer"
 import { isMarketOpen, marketStatusText } from "@/lib/market-hours"

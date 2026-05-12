@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { toTitleCase } from "@/lib/format"
-import type { Holding } from "../hooks/use-holdings"
+import type { Holding } from "@/hooks/use-holdings"
 
 type HoldingsTableProps = {
   rows: Holding[]
