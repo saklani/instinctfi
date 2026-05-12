@@ -13,9 +13,9 @@ import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import { toTitleCase } from "@/lib/format"
-import type { VaultResponse as Vault, VaultComposition } from "../hooks/use-vaults"
+import type { VaultResponse as Vault, VaultComposition } from "@/hooks/use-vaults"
 import { Column } from "@/components/ui/column"
-import { useFeaturedVaults } from "@/features/vaults/hooks/use-enriched-vaults"
+import { useFeaturedVaults } from "./-use-enriched-vaults"
 
 
 type FeaturedCardProps = {

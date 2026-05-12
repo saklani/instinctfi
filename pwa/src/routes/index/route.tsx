@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
 
 import { Column } from "@/components/ui/column"
-import { FeaturedCards } from "@/features/vaults/components/featured-cards"
-import { AllVaults } from "@/features/vaults/components/all-vaults"
+import { FeaturedCards } from "./-featured-cards"
+import { AllVaults } from "./-all-vaults"
 
 export const Route = createFileRoute("/")({
   component: DiscoverPage,

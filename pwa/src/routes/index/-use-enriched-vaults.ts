@@ -1,11 +1,8 @@
 import * as React from "react"
 
-import { useVaults } from "./use-vaults"
-import { buildRowData, nextSortDir, sortRows, type EnrichedRow } from "../lib"
-import type {
-  VaultSortKey,
-  VaultSortState,
-} from "../components/all-vaults"
+import { useVaults } from "@/hooks/use-vaults"
+import { buildRowData, nextSortDir, sortRows, type EnrichedRow } from "./-lib"
+import type { VaultSortKey, VaultSortState } from "./-all-vaults"
 
 /** Base hook — vaults from API, mapped to enriched rows. NAV/delta are server-computed. */
 export function useEnrichedVaults() {

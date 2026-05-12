@@ -1,9 +1,9 @@
-import type { VaultResponse as Vault } from "./hooks/use-vaults"
+import type { VaultResponse as Vault } from "@/hooks/use-vaults"
 import type {
   VaultRowData,
   VaultSortKey,
   VaultSortState,
-} from "./components/all-vaults"
+} from "./-all-vaults"
 
 export type EnrichedRow = VaultRowData
 

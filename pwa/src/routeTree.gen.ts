@@ -12,7 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PortfolioRouteRouteImport } from './routes/portfolio/route'
 import { Route as LeaderboardRouteRouteImport } from './routes/leaderboard/route'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as IndexRouteRouteImport } from './routes/index/route'
 import { Route as FundIdRouteRouteImport } from './routes/fund.$id/route'
 import { Route as AssetTickerRouteRouteImport } from './routes/asset.$ticker/route'
 
@@ -31,9 +31,9 @@ const LeaderboardRouteRoute = LeaderboardRouteRouteImport.update({
   path: '/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
+const IndexRouteRoute = IndexRouteRouteImport.update({
   id: '/',
-  path: '/',
+  path: '',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FundIdRouteRoute = FundIdRouteRouteImport.update({
@@ -48,7 +48,7 @@ const AssetTickerRouteRoute = AssetTickerRouteRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof IndexRouteRoute
   '/leaderboard': typeof LeaderboardRouteRoute
   '/portfolio': typeof PortfolioRouteRoute
   '/settings': typeof SettingsRoute
@@ -56,7 +56,7 @@ export interface FileRoutesByFullPath {
   '/fund/$id': typeof FundIdRouteRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/': typeof IndexRouteRoute
   '/leaderboard': typeof LeaderboardRouteRoute
   '/portfolio': typeof PortfolioRouteRoute
   '/settings': typeof SettingsRoute
@@ -65,7 +65,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/': typeof IndexRouteRoute
   '/leaderboard': typeof LeaderboardRouteRoute
   '/portfolio': typeof PortfolioRouteRoute
   '/settings': typeof SettingsRoute
@@ -100,7 +100,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  IndexRouteRoute: typeof IndexRouteRoute
   LeaderboardRouteRoute: typeof LeaderboardRouteRoute
   PortfolioRouteRoute: typeof PortfolioRouteRoute
   SettingsRoute: typeof SettingsRoute
@@ -133,9 +133,9 @@ declare module '@tanstack/react-router' {
     }
     '/': {
       id: '/'
-      path: '/'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof IndexRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/fund/$id': {
@@ -156,7 +156,7 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  IndexRouteRoute: IndexRouteRoute,
   LeaderboardRouteRoute: LeaderboardRouteRoute,
   PortfolioRouteRoute: PortfolioRouteRoute,
   SettingsRoute: SettingsRoute,

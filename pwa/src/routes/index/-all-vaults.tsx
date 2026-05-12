@@ -14,8 +14,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { toTitleCase } from "@/lib/format"
-import type { VaultResponse as Vault } from "../hooks/use-vaults"
-import { useDiscoverVaults } from "@/features/vaults/hooks/use-enriched-vaults"
+import type { VaultResponse as Vault } from "@/hooks/use-vaults"
+import { useDiscoverVaults } from "./-use-enriched-vaults"
 
 export type VaultRowData = {
   vault: Vault
