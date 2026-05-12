@@ -13,7 +13,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as PortfolioRouteRouteImport } from './routes/portfolio/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as FundIdRouteImport } from './routes/fund.$id'
+import { Route as FundIdRouteRouteImport } from './routes/fund.$id/route'
 import { Route as AssetTickerRouteRouteImport } from './routes/asset.$ticker/route'
 
 const SettingsRoute = SettingsRouteImport.update({
@@ -36,7 +36,7 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FundIdRoute = FundIdRouteImport.update({
+const FundIdRouteRoute = FundIdRouteRouteImport.update({
   id: '/fund/$id',
   path: '/fund/$id',
   getParentRoute: () => rootRouteImport,
@@ -53,7 +53,7 @@ export interface FileRoutesByFullPath {
   '/leaderboard': typeof LeaderboardRoute
   '/settings': typeof SettingsRoute
   '/asset/$ticker': typeof AssetTickerRouteRoute
-  '/fund/$id': typeof FundIdRoute
+  '/fund/$id': typeof FundIdRouteRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,7 +61,7 @@ export interface FileRoutesByTo {
   '/leaderboard': typeof LeaderboardRoute
   '/settings': typeof SettingsRoute
   '/asset/$ticker': typeof AssetTickerRouteRoute
-  '/fund/$id': typeof FundIdRoute
+  '/fund/$id': typeof FundIdRouteRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,7 +70,7 @@ export interface FileRoutesById {
   '/leaderboard': typeof LeaderboardRoute
   '/settings': typeof SettingsRoute
   '/asset/$ticker': typeof AssetTickerRouteRoute
-  '/fund/$id': typeof FundIdRoute
+  '/fund/$id': typeof FundIdRouteRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -105,7 +105,7 @@ export interface RootRouteChildren {
   LeaderboardRoute: typeof LeaderboardRoute
   SettingsRoute: typeof SettingsRoute
   AssetTickerRouteRoute: typeof AssetTickerRouteRoute
-  FundIdRoute: typeof FundIdRoute
+  FundIdRouteRoute: typeof FundIdRouteRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -142,7 +142,7 @@ declare module '@tanstack/react-router' {
       id: '/fund/$id'
       path: '/fund/$id'
       fullPath: '/fund/$id'
-      preLoaderRoute: typeof FundIdRouteImport
+      preLoaderRoute: typeof FundIdRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/asset/$ticker': {
@@ -161,7 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   LeaderboardRoute: LeaderboardRoute,
   SettingsRoute: SettingsRoute,
   AssetTickerRouteRoute: AssetTickerRouteRoute,
-  FundIdRoute: FundIdRoute,
+  FundIdRouteRoute: FundIdRouteRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

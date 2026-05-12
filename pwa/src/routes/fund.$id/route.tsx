@@ -1,15 +1,15 @@
 import * as React from "react"
 import { Link, createFileRoute } from "@tanstack/react-router"
-import { useVault } from "@/features/vaults"
+import { useVault } from "./-use-vault"
 import {
   CompositionList,
   CompositionListSkeleton,
-} from "@/features/vaults/components/composition-list"
+} from "./-composition-list"
 import {
   DepositPanel,
   DepositPanelSkeleton,
-} from "@/features/vaults/components/deposit-panel"
-import type { VaultResponse as Vault } from "@/features/vaults"
+} from "./-deposit-panel"
+import type { VaultResponse as Vault } from "@/hooks/use-vaults"
 import { useWallet } from "@/hooks/use-wallet"
 import { toTitleCase } from "@/lib/format"
 
@@ -37,7 +37,7 @@ import {
   NavChartSkeleton,
 } from "@/components/chart/nav-chart"
 import { StickyCta } from "@/components/sticky-cta"
-import { useVaultNav } from "@/features/vaults/hooks/use-vault-nav"
+import { useVaultNav } from "./-use-vault-nav"
 
 export const Route = createFileRoute("/fund/$id")({
   component: FundDetailPage,

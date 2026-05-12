@@ -1,6 +1,6 @@
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { request } from "@/lib/api"
-import type { VaultResponse } from "./use-vaults"
+import type { VaultResponse } from "@/hooks/use-vaults"
 
 const vaultQuery = (id: string) => ({
   queryKey: ["vault", id] as const,

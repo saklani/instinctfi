@@ -3,7 +3,7 @@ import { address, createSolanaRpc } from "@solana/kit"
 import { TOKEN_PROGRAM_ADDRESS } from "@solana-program/token"
 
 import { useWallet } from "@/hooks/use-wallet"
-import { useVaults, type VaultResponse } from "@/features/vaults"
+import { useVaults, type VaultResponse } from "@/hooks/use-vaults"
 
 const RPC_URL =
   import.meta.env.VITE_RPC_URL ?? "https://api.mainnet-beta.solana.com"
