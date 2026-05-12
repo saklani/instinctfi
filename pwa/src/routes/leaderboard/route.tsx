@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 
-import { useLeaderboard, LeaderboardTable } from "@/features/leaderboard"
+import { useLeaderboard } from "./-use-leaderboard"
+import { LeaderboardTable } from "./-leaderboard-table"
 import { Column } from "@/components/ui/column"
 
 export const Route = createFileRoute("/leaderboard")({

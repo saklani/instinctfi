@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import type { LeaderboardEntry } from "../hooks/use-leaderboard"
+import type { LeaderboardEntry } from "./-use-leaderboard"
 
 type LeaderboardTableProps = {
   rows: LeaderboardEntry[]
