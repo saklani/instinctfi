@@ -10,35 +10,30 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import type { LeaderboardEntry } from "./-use-leaderboard"
+import { useLeaderboard, type LeaderboardEntry } from "./-use-leaderboard"
 
-type LeaderboardTableProps = {
-  rows: LeaderboardEntry[]
-  loading?: boolean
-}
-
-export function LeaderboardTable({ rows, loading }: LeaderboardTableProps) {
+export function LeaderboardTable() {
+  const { wallets, loading } = useLeaderboard()
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead className="w-10">#</TableHead>
           <TableHead>Wallet</TableHead>
-          <TableHead className="text-right">Vaults</TableHead>
           <TableHead className="text-right">Holdings</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {loading ? (
           <SkeletonRows />
-        ) : rows.length === 0 ? (
+        ) : wallets.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={4} className="text-center text-muted-foreground">
+            <TableCell colSpan={3} className="text-center text-muted-foreground">
               No on-chain holdings yet.
             </TableCell>
           </TableRow>
         ) : (
-          rows.map((row, i) => (
+          wallets.map((row, i) => (
             <LeaderboardBodyRow key={row.address} row={row} index={i} />
           ))
         )}
@@ -71,10 +66,7 @@ function LeaderboardBodyRow({
         </a>
       </TableCell>
       <TableCell className="text-right">
-        <MonoNumber value={row.vaultCount} format="count" size="md" />
-      </TableCell>
-      <TableCell className="text-right">
-        <MonoNumber value={row.valueUsd} format="usd" precision={0} size="md" />
+        <MonoNumber value={row.valueUsd} format="usd" precision={2} size="md" />
       </TableCell>
     </TableRow>
   )
@@ -89,10 +81,7 @@ function SkeletonRows({ rows = 8 }: { rows?: number }) {
             <Skeleton className="h-3 w-5 rounded-sm" />
           </TableCell>
           <TableCell>
-            <Skeleton className="h-4 w-28 rounded-sm" />
-          </TableCell>
-          <TableCell className="text-right">
-            <Skeleton className="ml-auto h-4 w-8 rounded-sm" />
+            <Skeleton className="h-4 w-44 rounded-sm" />
           </TableCell>
           <TableCell className="text-right">
             <Skeleton className="ml-auto h-4 w-16 rounded-sm" />
@@ -104,5 +93,5 @@ function SkeletonRows({ rows = 8 }: { rows?: number }) {
 }
 
 function shortAddr(a: string) {
-  return `${a.slice(0, 4)}…${a.slice(-4)}`
+  return `${a.slice(0, 8)}…${a.slice(-8)}`
 }

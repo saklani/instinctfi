@@ -13,7 +13,6 @@ app.get("/", async (c) => {
   const rows = await db
     .select({
       address: walletBalances.address,
-      vaultCount: sql<number>`count(distinct ${walletBalances.vaultId})::int`,
       valueUsd: sql<string>`sum(${walletBalances.valueUsd})`,
     })
     .from(walletBalances)
@@ -24,7 +23,6 @@ app.get("/", async (c) => {
   return c.json({
     wallets: rows.map((r) => ({
       address: r.address,
-      vaultCount: r.vaultCount,
       valueUsd: Number(r.valueUsd),
     })),
   })

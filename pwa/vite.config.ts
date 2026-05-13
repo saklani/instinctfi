@@ -5,6 +5,7 @@ import react from "@vitejs/plugin-react";
 import { tanstackRouter } from "@tanstack/router-vite-plugin";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
+import { nodePolyfills } from "vite-plugin-node-polyfills";
 import { fileURLToPath } from 'node:url';
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 import { playwright } from '@vitest/browser-playwright';
@@ -12,7 +13,7 @@ const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(file
 
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
-  plugins: [react(), tailwindcss(), tanstackRouter(), VitePWA({
+  plugins: [react(), tailwindcss(), tanstackRouter(), nodePolyfills({ include: ["buffer", "crypto", "stream", "util"] }), VitePWA({
     registerType: "autoUpdate",
     manifest: {
       name: "Instinct",

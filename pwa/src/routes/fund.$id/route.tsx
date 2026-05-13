@@ -44,7 +44,6 @@ export const Route = createFileRoute("/fund/$id")({
 })
 
 const PERIODS = [
-  { id: "1W", days: 7 },
   { id: "1M", days: 30 },
   { id: "3M", days: 90 },
   { id: "6M", days: 180 },
@@ -77,7 +76,7 @@ function FundDetailPage() {
   }, [fullSeries])
 
   const availablePeriods = React.useMemo(
-    () => PERIODS.filter((p) => p.days <= availableSpanDays || p.id === "1W"),
+    () => PERIODS.filter((p) => p.days <= availableSpanDays),
     [availableSpanDays],
   )
 

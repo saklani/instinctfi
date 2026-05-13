@@ -1,4 +1,4 @@
-# Refactoring Rules
+# Code Rules
 
 - Keep it simple.
 - If you are doing a lot of computation on the frontend, flag it — you are doing it wrong.

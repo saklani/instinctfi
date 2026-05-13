@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Column } from "@/components/ui/column"
 import { Skeleton } from "@/components/ui/skeleton"
 import { HoldingsTable } from "./-holdings-table"
-import { PortfolioEmpty } from "./-portfolio-empty"
 
 export const Route = createFileRoute("/portfolio")({
   component: PortfolioPage,
@@ -19,16 +18,13 @@ function PortfolioPage() {
 
   if (!ready) return <PortfolioSkeleton />
   if (!authenticated) return <PortfolioConnect onConnect={login} />
-  if (!loading && holdings.length === 0) {
-    return (
-      <Column className="animate-in fade-in-0 duration-300 py-12">
-        <PortfolioEmpty />
-      </Column>
-    )
-  }
 
   return (
     <Column className="animate-in fade-in-0 duration-300 gap-12 py-12">
+      <Column>
+        <p className="text-sm text-muted-foreground font-heading">PORTFOLIO</p>
+        <h1>Your Holdings</h1>
+      </Column>
       <HoldingsTable rows={holdings} loading={loading} />
     </Column>
   )

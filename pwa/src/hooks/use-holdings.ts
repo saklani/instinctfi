@@ -4,6 +4,7 @@ import { TOKEN_PROGRAM_ADDRESS } from "@solana-program/token"
 
 import { useWallet } from "@/hooks/use-wallet"
 import { useVaults, type VaultResponse } from "@/hooks/use-vaults"
+import { isLiveVault } from "@/lib/vaults"
 
 const RPC_URL =
   import.meta.env.VITE_RPC_URL ?? "https://api.mainnet-beta.solana.com"
@@ -60,22 +61,24 @@ export function useHoldings() {
     staleTime: 30_000,
   })
 
+  // Show every live vault (zero balance included) so the portfolio renders a
+  // full menu of what the user could hold, not just what they currently do.
+  // Non-live vaults only surface if the wallet actually holds some.
   const holdings: Holding[] = []
-  if (byMint && vaults.length) {
-    for (const vault of vaults) {
-      if (!vault.mint) continue
-      const info = byMint.get(vault.mint)
-      if (!info) continue
-      const balanceRaw = BigInt(info.tokenAmount.amount)
-      if (balanceRaw === 0n) continue
-      holdings.push({
-        vaultId: vault.id,
-        vault,
-        balanceRaw,
-        balanceUi: info.tokenAmount.uiAmount ?? 0,
-        allTime: vault.allTime ?? null,
-      })
-    }
+  for (const vault of vaults) {
+    if (!vault.mint) continue
+    const info = byMint?.get(vault.mint)
+    const balanceRaw = info ? BigInt(info.tokenAmount.amount) : 0n
+    const balanceUi = info?.tokenAmount.uiAmount ?? 0
+    const live = isLiveVault(vault.id)
+    if (!live && balanceRaw === 0n) continue
+    holdings.push({
+      vaultId: vault.id,
+      vault,
+      balanceRaw,
+      balanceUi,
+      allTime: vault.allTime ?? null,
+    })
   }
 
   return {

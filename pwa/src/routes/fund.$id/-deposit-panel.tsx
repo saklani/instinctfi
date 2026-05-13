@@ -8,7 +8,7 @@ import { Clock } from "lucide-react"
 
 import { useWallet } from "@/hooks/use-wallet"
 import { useHoldings } from "@/hooks/use-holdings"
-import { request } from "@/lib/api"
+import { investInVault, redeemFromVault } from "@/lib/symmetry"
 import { getUsdcBalance } from "@/lib/transfer"
 import { isMarketOpen, marketStatusText } from "@/lib/market-hours"
 import { Button } from "@/components/ui/button"
@@ -35,7 +35,7 @@ type AmountFormData = z.infer<typeof amountSchema>
 type DepositPanelTab = "deposit" | "withdraw"
 
 type DepositPanelProps = {
-  vault: Pick<Vault, "id" | "name" | "address">
+  vault: Pick<Vault, "id" | "name" | "address" | "mint">
   className?: string
   /** Called after a successful submit. Use to close a Sheet etc. */
   onDone?: () => void
@@ -48,7 +48,7 @@ export function DepositPanel({
   onDone,
   defaultTab = "deposit",
 }: DepositPanelProps) {
-  const isLive = vault.address != null
+  const isLive = vault.address != null && vault.mint != null
 
   if (!isLive) {
     return (
@@ -94,22 +94,6 @@ function NotDeployed() {
   )
 }
 
-async function signTransactions(
-  transactions: string[],
-  wallet: unknown,
-  signAndSendTransaction: (args: {
-    transaction: Uint8Array
-    wallet: unknown
-  }) => Promise<unknown>,
-) {
-  for (const tx of transactions) {
-    await signAndSendTransaction({
-      transaction: Uint8Array.from(atob(tx), (c) => c.charCodeAt(0)),
-      wallet,
-    })
-  }
-}
-
 function DepositTab({
   vault,
   onDone,
@@ -121,6 +105,26 @@ function DepositTab({
   const { ready, authenticated, login, wallet, walletAddress, signAndSendTransaction } =
     useWallet()
   const [isPending, setIsPending] = React.useState(false)
+
+  const signer = React.useCallback(
+    async (tx: Uint8Array) => {
+      const result = await (
+        signAndSendTransaction as (args: {
+          transaction: Uint8Array
+          wallet: unknown
+          chain?: string
+          options?: { skipPreflight?: boolean }
+        }) => Promise<{ signature: Uint8Array }>
+      )({
+        transaction: tx,
+        wallet,
+        chain: "solana:mainnet",
+        options: { skipPreflight: true },
+      })
+      return result
+    },
+    [signAndSendTransaction, wallet],
+  )
 
   const { data: balance } = useQuery({
     queryKey: ["usdc-balance", walletAddress],
@@ -141,24 +145,17 @@ function DepositTab({
   })
 
   const onSubmit = async (data: AmountFormData) => {
-    if (!wallet || !walletAddress) return
+    if (!wallet || !walletAddress || !vault.mint) return
     setIsPending(true)
 
     try {
       const amountLamports = Math.floor(parseFloat(data.amount) * 1e6)
-      const { transactions } = await request<{ transactions: string[] }>(
-        `/api/vaults/${vault.id}/deposit/build`,
-        {
-          method: "POST",
-          body: JSON.stringify({ walletAddress, amountLamports }),
-        },
-      )
-
-      await signTransactions(
-        transactions,
-        wallet,
-        signAndSendTransaction as (args: { transaction: Uint8Array; wallet: unknown }) => Promise<unknown>,
-      )
+      await investInVault({
+        buyerAddress: walletAddress,
+        vaultMint: vault.mint,
+        amountLamports,
+        signer,
+      })
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["holdings"] }),
@@ -166,7 +163,7 @@ function DepositTab({
       ])
 
       toast.success("Deposit submitted", {
-        description: `Vault tokens minted to your wallet.`,
+        description: `Vault tokens will appear in your portfolio once the on-chain auction settles.`,
       })
       reset()
       onDone?.()
@@ -282,25 +279,41 @@ function WithdrawTab({
     defaultValues: { amount: "" },
   })
 
+  const signer = React.useCallback(
+    async (tx: Uint8Array) => {
+      const result = await (
+        signAndSendTransaction as (args: {
+          transaction: Uint8Array
+          wallet: unknown
+          chain?: string
+          options?: { skipPreflight?: boolean }
+        }) => Promise<{ signature: Uint8Array }>
+      )({
+        transaction: tx,
+        wallet,
+        chain: "solana:mainnet",
+        options: { skipPreflight: true },
+      })
+      return result
+    },
+    [signAndSendTransaction, wallet],
+  )
+
   const onSubmit = async (data: AmountFormData) => {
-    if (!wallet || !walletAddress) return
+    if (!wallet || !walletAddress || !vault.mint) return
     setIsPending(true)
 
     try {
-      const shares = parseFloat(data.amount)
-      const { transactions } = await request<{ transactions: string[] }>(
-        `/api/vaults/${vault.id}/withdraw/build`,
-        {
-          method: "POST",
-          body: JSON.stringify({ walletAddress, shares }),
-        },
-      )
-
-      await signTransactions(
-        transactions,
-        wallet,
-        signAndSendTransaction as (args: { transaction: Uint8Array; wallet: unknown }) => Promise<unknown>,
-      )
+      // Symmetry's sellVaultTx writes `withdraw_amount` straight into the
+      // burn-amount field of the rebalance intent — that's atomic, not UI.
+      // Vault LP decimals = 6.
+      const sharesAtomic = Math.floor(parseFloat(data.amount) * 1e6)
+      await redeemFromVault({
+        sellerAddress: walletAddress,
+        vaultMint: vault.mint,
+        shares: sharesAtomic,
+        signer,
+      })
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["holdings"] }),

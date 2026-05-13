@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router"
 
+import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardContent,
@@ -16,6 +17,7 @@ import { toTitleCase } from "@/lib/format"
 import type { VaultResponse as Vault, VaultComposition } from "@/hooks/use-vaults"
 import { Column } from "@/components/ui/column"
 import { useFeaturedVaults } from "./-use-enriched-vaults"
+import { isLiveVault } from "@/lib/vaults"
 
 
 type FeaturedCardProps = {
@@ -24,24 +26,37 @@ type FeaturedCardProps = {
 }
 
 export function FeaturedCard({ vault }: FeaturedCardProps) {
+  const live = isLiveVault(vault.id)
   return (
-    <Card interactive className="relative w-full">
+    <Card interactive={live} className={cn("relative w-full", !live && "opacity-60")}>
       <img
         src={vault.imageUrl}
         alt={`${vault.name} cover`}
         loading="lazy"
         className={cn(
-          "aspect-square w-full object-cover transition-[filter] duration-200"
+          "aspect-square w-full object-cover transition-[filter] duration-200",
+          !live && "grayscale",
         )}
       />
 
+      {!live && (
+        <Badge
+          variant="secondary"
+          className="absolute right-3 top-3 z-20 uppercase tracking-wider"
+        >
+          Coming soon
+        </Badge>
+      )}
+
       {/* Stretched click overlay — sits below HoldingStack (z-20) so inner asset links keep working. */}
-      <Link
-        to="/fund/$id"
-        params={{ id: vault.id }}
-        aria-label={`View ${toTitleCase(vault.name)}`}
-        className="absolute inset-0 z-10 rounded-xl outline-none focus-visible:ring-[4px] focus-visible:ring-accent/30"
-      />
+      {live && (
+        <Link
+          to="/fund/$id"
+          params={{ id: vault.id }}
+          aria-label={`View ${toTitleCase(vault.name)}`}
+          className="absolute inset-0 z-10 rounded-xl outline-none focus-visible:ring-[4px] focus-visible:ring-accent/30"
+        />
+      )}
 
       <CardHeader>
         <CardTitle>{toTitleCase(vault.name)}</CardTitle>

@@ -4,7 +4,6 @@ import { request } from "@/lib/api"
 
 export type LeaderboardEntry = {
   address: string
-  vaultCount: number
   valueUsd: number
 }
 

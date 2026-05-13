@@ -1,10 +1,8 @@
 import { Hono } from "hono"
-import { z } from "zod"
 import { db } from "../db/index.js"
 import { vaults, compositions, stocks, vaultNav } from "../db/schema.js"
 import { and, asc, desc, eq, gte, sql } from "drizzle-orm"
 import type { VaultComposition } from "../lib/types.js"
-import { buildBuyVaultTxs, buildSellVaultTxs } from "../lib/symmetry.js"
 
 const app = new Hono()
 
@@ -124,68 +122,6 @@ app.get("/:id", async (c) => {
     ...snap,
     allTime,
   })
-})
-
-// POST /api/vaults/:id/deposit/build — returns unsigned Symmetry buyVault +
-// lockDeposits transactions (base64) for the user to sign client-side.
-const depositBuildSchema = z.object({
-  walletAddress: z.string().min(1),
-  amountLamports: z.number().int().positive(),
-})
-
-app.post("/:id/deposit/build", async (c) => {
-  const id = c.req.param("id")
-  const parsed = depositBuildSchema.safeParse(await c.req.json())
-  if (!parsed.success) {
-    return c.json({ error: parsed.error.issues[0].message }, 400)
-  }
-
-  const [vault] = await db
-    .select({ mint: vaults.mint })
-    .from(vaults)
-    .where(eq(vaults.id, id))
-    .limit(1)
-  if (!vault?.mint) {
-    return c.json({ error: "Vault not deployed" }, 404)
-  }
-
-  const transactions = await buildBuyVaultTxs({
-    walletAddress: parsed.data.walletAddress,
-    vaultMint: vault.mint,
-    amountLamports: parsed.data.amountLamports,
-  })
-  return c.json({ transactions })
-})
-
-// POST /api/vaults/:id/withdraw/build — returns unsigned Symmetry sellVault
-// transactions (base64) for the user to sign client-side.
-const withdrawBuildSchema = z.object({
-  walletAddress: z.string().min(1),
-  shares: z.number().positive(),
-})
-
-app.post("/:id/withdraw/build", async (c) => {
-  const id = c.req.param("id")
-  const parsed = withdrawBuildSchema.safeParse(await c.req.json())
-  if (!parsed.success) {
-    return c.json({ error: parsed.error.issues[0].message }, 400)
-  }
-
-  const [vault] = await db
-    .select({ mint: vaults.mint })
-    .from(vaults)
-    .where(eq(vaults.id, id))
-    .limit(1)
-  if (!vault?.mint) {
-    return c.json({ error: "Vault not deployed" }, 404)
-  }
-
-  const transactions = await buildSellVaultTxs({
-    walletAddress: parsed.data.walletAddress,
-    vaultMint: vault.mint,
-    shares: parsed.data.shares,
-  })
-  return c.json({ transactions })
 })
 
 // GET /api/vaults/:id/nav?days=N — precomputed weighted NAV time series.
