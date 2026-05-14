@@ -2,7 +2,14 @@ import { Connection, PublicKey } from "@solana/web3.js"
 import { isNotNull, eq, sql } from "drizzle-orm"
 
 import { db } from "../db/index.js"
-import { stockPrices, stocks, vaults, walletBalances } from "../db/schema.js"
+import {
+  compositions,
+  stockPrices,
+  stocks,
+  vaultNav,
+  vaults,
+  walletBalances,
+} from "../db/schema.js"
 import { fetchVault } from "../lib/symmetry.js"
 import { PYTH_BENCHMARKS_URL, PYTH_SYMBOLS } from "../lib/pyth-symbols.js"
 import { inngest } from "./client.js"
@@ -168,6 +175,96 @@ export const snapshotStockPrices = inngest.createFunction(
               close: sql`excluded.close`,
             },
           })
+      })
+    }
+  },
+)
+
+/**
+ * Daily recompute of the per-vault NAV growth index from `stock_prices`.
+ *
+ * `vault_nav.value` is a growth INDEX (rebased weighted sum), not USD-per-LP:
+ *   NAV(t) = 100 · Σ (wᵢ/10000) · priceᵢ(t) / priceᵢ(start)
+ *
+ * "start" = the earliest date where every constituent has a `stock_prices`
+ * row (full-coverage common date). The whole series is recomputed each day
+ * and upserted — idempotent, self-heals if a prior day's stock price was
+ * missing and later landed. Runs ~15 min after `snapshotStockPrices`.
+ */
+export const snapshotVaultNav = inngest.createFunction(
+  {
+    id: "snapshot-vault-nav",
+    triggers: [{ cron: "15 2 * * *" }],
+  },
+  async ({ step }) => {
+    const allVaults = await step.run("load-vaults", () =>
+      db.select({ id: vaults.id }).from(vaults),
+    )
+
+    for (const v of allVaults) {
+      await step.run(`nav-${v.id}`, async () => {
+        const rows = await db
+          .select({
+            date: stockPrices.date,
+            stockId: compositions.stockId,
+            weight: compositions.weight,
+            close: stockPrices.close,
+          })
+          .from(compositions)
+          .innerJoin(stockPrices, eq(stockPrices.stockId, compositions.stockId))
+          .where(eq(compositions.vaultId, v.id))
+
+        const stockIds = [...new Set(rows.map((r) => r.stockId))]
+        if (!stockIds.length) return
+
+        const closeByStockDate = new Map<string, Map<string, number>>()
+        const weightByStock = new Map<string, number>()
+        for (const r of rows) {
+          let m = closeByStockDate.get(r.stockId)
+          if (!m) {
+            m = new Map()
+            closeByStockDate.set(r.stockId, m)
+          }
+          m.set(r.date, Number(r.close))
+          weightByStock.set(r.stockId, r.weight)
+        }
+
+        // Common-coverage dates: present for every constituent.
+        const dateSets = stockIds.map(
+          (id) => new Set(closeByStockDate.get(id)!.keys()),
+        )
+        const commonDates = [...dateSets[0]]
+          .filter((d) => dateSets.every((s) => s.has(d)))
+          .sort()
+        if (!commonDates.length) return
+
+        const startDate = commonDates[0]
+        const startPriceByStock = new Map<string, number>()
+        for (const id of stockIds) {
+          startPriceByStock.set(id, closeByStockDate.get(id)!.get(startDate)!)
+        }
+
+        const series = commonDates.map((date) => {
+          let nav = 0
+          for (const id of stockIds) {
+            const w = weightByStock.get(id)! / 10_000
+            const price = closeByStockDate.get(id)!.get(date)!
+            const start = startPriceByStock.get(id)!
+            nav += w * (price / start)
+          }
+          return { vaultId: v.id, date, value: (nav * 100).toFixed(4) }
+        })
+
+        const BATCH = 500
+        for (let i = 0; i < series.length; i += BATCH) {
+          await db
+            .insert(vaultNav)
+            .values(series.slice(i, i + BATCH))
+            .onConflictDoUpdate({
+              target: [vaultNav.vaultId, vaultNav.date],
+              set: { value: sql`excluded.value` },
+            })
+        }
       })
     }
   },

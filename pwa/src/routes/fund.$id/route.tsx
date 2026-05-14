@@ -136,7 +136,7 @@ function FundDetailPage() {
             <AssetHeader vault={vault} />
             <hr className="border-border" />
 
-            {chartData.length > 0 && (
+            {chartData.length > 0 ? (
               <NavChart
                 data={chartData}
                 periodKey={period}
@@ -155,6 +155,8 @@ function FundDetailPage() {
                   </Tabs>
                 }
               />
+            ) : (
+              <NavChartSkeleton height={320} />
             )}
 
             <CompositionSection items={compositionItems} />
