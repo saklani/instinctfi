@@ -15,7 +15,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import { toTitleCase } from "@/lib/format"
 import type { VaultResponse as Vault, VaultComposition } from "@/hooks/use-vaults"
-import { Column } from "@/components/ui/column"
 import { useFeaturedVaults } from "./-use-enriched-vaults"
 import { isLiveVault } from "@/lib/vaults"
 
@@ -28,7 +27,7 @@ type FeaturedCardProps = {
 export function FeaturedCard({ vault }: FeaturedCardProps) {
   const live = isLiveVault(vault.id)
   return (
-    <Card interactive={live} className={cn("relative w-full", !live && "opacity-60")}>
+    <Card interactive={live} className={cn("relative shrink-0 w-[85%] snap-start lg:flex-1 lg:w-auto", !live && "opacity-60")}>
       <img
         src={vault.imageUrl}
         alt={`${vault.name} cover`}
@@ -106,7 +105,7 @@ function HoldingStack({ compositions }: { compositions: VaultComposition[]; }) {
 
 export function FeaturedCardSkeleton() {
   return (
-    <Card data-slot="featured-card-skeleton" className="w-full pt-0">
+    <Card data-slot="featured-card-skeleton" className="shrink-0 w-[85%] snap-start lg:flex-1 lg:w-auto pt-0">
       <Skeleton className="aspect-square w-full rounded-none" />
       <CardHeader>
         <CardTitle>
@@ -136,19 +135,19 @@ export function FeaturedCards() {
 
   if (loading) {
     return (
-      <Column className="lg:flex-row gap-8">
+      <Row className="overflow-x-auto gap-8 py-2 -mx-6 px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:overflow-visible lg:mx-0 lg:px-0">
         {Array.from({ length: 3 }).map((_, i) => (
           <FeaturedCardSkeleton key={i} />
         ))}
-      </Column>
+      </Row>
     )
   }
 
   return (
-    <Column className="lg:flex-row gap-8">
+    <Row className="overflow-x-auto gap-8 py-2 -mx-6 px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:overflow-visible lg:mx-0 lg:px-0">
       {rows.map((row) => (
         <FeaturedCard key={row.vault.id} vault={row.vault} />
       ))}
-    </Column>
+    </Row>
   )
 }
