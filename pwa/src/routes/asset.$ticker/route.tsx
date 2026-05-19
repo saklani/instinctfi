@@ -276,7 +276,7 @@ function AboutCard({ description }: { description: string | null }) {
         <CardTitle>About</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm">{text}</p>
+        <p>{text}</p>
       </CardContent>
     </Card>
   )

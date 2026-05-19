@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router"
 
-import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardContent,
@@ -12,50 +11,32 @@ import {
 import { Delta } from "@/components/ui/delta"
 import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
 import { toTitleCase } from "@/lib/format"
 import type { VaultResponse as Vault, VaultComposition } from "@/hooks/use-vaults"
 import { useFeaturedVaults } from "./-use-enriched-vaults"
-import { isLiveVault } from "@/lib/vaults"
 
 
 type FeaturedCardProps = {
   vault: Vault
-  className?: string
 }
 
 export function FeaturedCard({ vault }: FeaturedCardProps) {
-  const live = isLiveVault(vault.id)
   return (
-    <Card interactive={live} className={cn("relative shrink-0 w-[85%] snap-start lg:flex-1 lg:w-auto", !live && "opacity-60")}>
+    <Card interactive className="relative shrink-0 w-[85%] snap-start lg:flex-1 lg:w-auto">
       <img
         src={vault.imageUrl}
         alt={`${vault.name} cover`}
         loading="lazy"
-        className={cn(
-          "aspect-square w-full object-cover transition-[filter] duration-200",
-          !live && "grayscale",
-        )}
+        className="aspect-square w-full object-cover"
       />
 
-      {!live && (
-        <Badge
-          variant="secondary"
-          className="absolute right-3 top-3 z-20 uppercase tracking-wider"
-        >
-          Coming soon
-        </Badge>
-      )}
-
       {/* Stretched click overlay — sits below HoldingStack (z-20) so inner asset links keep working. */}
-      {live && (
-        <Link
-          to="/fund/$id"
-          params={{ id: vault.id }}
-          aria-label={`View ${toTitleCase(vault.name)}`}
-          className="absolute inset-0 z-10 rounded-xl outline-none focus-visible:ring-[4px] focus-visible:ring-accent/30"
-        />
-      )}
+      <Link
+        to="/fund/$id"
+        params={{ id: vault.id }}
+        aria-label={`View ${toTitleCase(vault.name)}`}
+        className="absolute inset-0 z-10 rounded-xl outline-none focus-visible:ring-[4px] focus-visible:ring-accent/30"
+      />
 
       <CardHeader>
         <CardTitle>{toTitleCase(vault.name)}</CardTitle>

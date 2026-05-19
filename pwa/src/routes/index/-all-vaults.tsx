@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router"
 import { ChevronUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import { Delta } from "@/components/ui/delta"
 import { Row } from "@/components/ui/row"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -16,8 +17,6 @@ import {
 import { toTitleCase } from "@/lib/format"
 import type { VaultResponse as Vault } from "@/hooks/use-vaults"
 import { useDiscoverVaults } from "./-use-enriched-vaults"
-import { isLiveVault } from "@/lib/vaults"
-import { Badge } from "@/components/ui/badge"
 
 export type VaultRowData = {
   vault: Vault
@@ -92,17 +91,15 @@ function SortHead({
 }) {
   const active = sort.key === sortKey
   return (
-    <TableHead className={align === "right" ? "text-right" : undefined}>
-      <button
-        type="button"
+    <TableHead
+      className={align === "right" ? "text-right" : undefined}
+      aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+    >
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={() => onSort(sortKey)}
-        className={cn(
-          "group/col inline-flex items-center rounded-sm outline-none",
-          align === "right" && "ml-auto",
-          "cursor-pointer hover:text-foreground focus-visible:text-foreground focus-visible:ring-[3px] focus-visible:ring-accent/30",
-          active && "text-foreground",
-        )}
-        aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+        className={cn("group/col", align === "right" && "ml-auto")}
       >
         <span className="group-hover/col:underline underline-offset-4">
           {label}
@@ -116,56 +113,34 @@ function SortHead({
             )}
           />
         )}
-      </button>
+      </Button>
     </TableHead>
   )
 }
 
 function VaultBodyRow({ row }: { row: VaultRowData }) {
   const { vault, allTime } = row
-  const live = isLiveVault(vault.id)
-
-  const body = (
-    <Row className="min-w-0 items-center py-2">
-      <img
-        src={vault.imageUrl}
-        alt=""
-        loading="lazy"
-        className={cn(
-          "size-11 shrink-0 rounded-full bg-secondary object-cover",
-          !live && "grayscale opacity-60",
-        )}
-      />
-      <span
-        className={cn(
-          "truncate font-medium",
-          live ? "text-foreground" : "text-muted-foreground",
-        )}
-      >
-        {toTitleCase(vault.name)}
-      </span>
-      {!live && (
-        <Badge variant="secondary" className="uppercase tracking-wider">
-          Coming soon
-        </Badge>
-      )}
-    </Row>
-  )
 
   return (
     <TableRow>
       <TableCell>
-        {live ? (
-          <Link
-            to="/fund/$id"
-            params={{ id: vault.id }}
-            className="outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30 rounded-sm"
-          >
-            {body}
-          </Link>
-        ) : (
-          body
-        )}
+        <Link
+          to="/fund/$id"
+          params={{ id: vault.id }}
+          className="outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30 rounded-sm"
+        >
+          <Row className="min-w-0 items-center py-2">
+            <img
+              src={vault.imageUrl}
+              alt=""
+              loading="lazy"
+              className="size-11 shrink-0 rounded-full bg-secondary object-cover"
+            />
+            <span className="truncate font-medium text-foreground">
+              {toTitleCase(vault.name)}
+            </span>
+          </Row>
+        </Link>
       </TableCell>
       <TableCell className="text-right">
         <Delta value={allTime} hideArrow size="md" />

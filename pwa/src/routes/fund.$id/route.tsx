@@ -80,19 +80,18 @@ function FundDetailPage() {
     [availableSpanDays],
   )
 
-  // Auto-clamp the selected period if it became unavailable.
-  React.useEffect(() => {
-    if (!availablePeriods.some((p) => p.id === period) && availablePeriods.length > 0) {
-      setPeriod(availablePeriods[availablePeriods.length - 1].id)
-    }
-  }, [availablePeriods, period])
+  // Clamp the selected period when the underlying span shrinks below it.
+  const effectivePeriod: PeriodId =
+    availablePeriods.some((p) => p.id === period)
+      ? period
+      : availablePeriods[availablePeriods.length - 1]?.id ?? period
 
   const chartData = React.useMemo(() => {
     if (!fullSeries.length) return fullSeries
-    const days = PERIODS.find((p) => p.id === period)?.days ?? 30
+    const days = PERIODS.find((p) => p.id === effectivePeriod)?.days ?? 30
     const cutoffMs = Date.now() - days * 86_400_000
     return fullSeries.filter((p) => new Date(p.date).getTime() >= cutoffMs)
-  }, [fullSeries, period])
+  }, [fullSeries, effectivePeriod])
 
   const compositionItems = React.useMemo(() => {
     if (!vault) return []
@@ -139,10 +138,10 @@ function FundDetailPage() {
             {chartData.length > 0 ? (
               <NavChart
                 data={chartData}
-                periodKey={period}
+                periodKey={effectivePeriod}
                 periodSelector={
                   <Tabs
-                    value={period}
+                    value={effectivePeriod}
                     onValueChange={(v) => setPeriod(v as PeriodId)}
                   >
                     <TabsList variant="line">
@@ -290,7 +289,7 @@ function CompositionSection({
     <Column className="mt-6">
       <Row className="items-baseline justify-between">
         <h2>Composition</h2>
-        <p className="text-sm">{items.length} holdings</p>
+        <p>{items.length} holdings</p>
       </Row>
       <CompositionList items={items} />
     </Column>
@@ -307,7 +306,7 @@ function AboutCard({ description }: { description: string | null }) {
         <CardTitle>About this vault</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm">{text}</p>
+        <p>{text}</p>
       </CardContent>
     </Card>
   )

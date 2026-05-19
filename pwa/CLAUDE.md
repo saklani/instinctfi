@@ -8,3 +8,4 @@
 - Prop drilling should be avoided. We use React Query, so always fetch data within the component presenting it.
 - Avoid overriding text styles. Use `h1`, `h2`, `h3`, `p` directly.
 - Avoid default HTML elements when a component-library version exists. `<button>` is almost never correct — use `Button`.
+- Do we really need `useEffect`? Almost never. Most of what looks like an effect is derived state, an event handler, or a React Query side-effect — reach for those first.

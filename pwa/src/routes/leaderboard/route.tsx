@@ -11,7 +11,7 @@ function LeaderboardPage() {
   return (
     <Column className="animate-in fade-in-0 duration-300 gap-12 pt-12 pb-24">
       <Column className="gap-2">
-        <p className="text-sm text-muted-foreground font-heading">LEADERBOARD</p>
+        <p className="eyebrow">LEADERBOARD</p>
         <h1>Top Wallets</h1>
       </Column>
       <LeaderboardTable />

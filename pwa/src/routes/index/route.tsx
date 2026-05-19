@@ -13,7 +13,7 @@ function DiscoverPage() {
     <Column className="gap-12 pt-12 pb-24">
       <Column>
         <Column className="gap-2">
-          <p className="text-sm text-muted-foreground font-heading">DISCOVER</p>
+          <p className="eyebrow">DISCOVER</p>
           <h1>Pick a Vault</h1>
         </Column>
         <FeaturedCards />

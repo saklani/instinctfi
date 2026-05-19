@@ -1,12 +1,50 @@
 import {
+  pgEnum,
   pgTable,
   text,
   uuid,
   timestamp,
   integer,
   numeric,
+  jsonb,
   uniqueIndex,
 } from "drizzle-orm/pg-core"
+
+// Per-leg execution record persisted on each deposit/withdraw order. Atomic
+// amounts are strings (bigint isn't JSON-serializable). One entry per
+// composition leg the worker attempted.
+export type SwapLegResult =
+  | {
+      mint: string
+      weight: number
+      ok: true
+      signature: string
+      inAtomic: string
+      outAtomic: string
+      maker: string | null
+      router: string
+    }
+  | {
+      mint: string
+      weight: number
+      ok: false
+      reason: string
+      detail: string
+    }
+
+// ── Enums ───────────────────────────────────────────────
+
+export const orderTypeEnum = pgEnum("order_type", ["deposit", "withdraw"])
+
+export const orderStatusEnum = pgEnum("order_status", [
+  "pending",
+  "processing",
+  "executing",
+  "completed",
+  "partial",
+  "failed",
+  "cancelled",
+])
 
 // ── Stocks ──────────────────────────────────────────────
 
@@ -14,9 +52,9 @@ export const stocks = pgTable("stocks", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),              // "Nvidia"
   ticker: text("ticker").notNull(),          // "NVDAx"
-  imageUrl: text("image_url").notNull(),         
+  imageUrl: text("image_url").notNull(),
   description: text("description"),
-  address: text("address").notNull().unique(), // Solana mint / contract address
+  address: text("address").notNull().unique(), // Solana mint
   decimals: integer("decimals").notNull().default(8),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 })
@@ -30,7 +68,7 @@ export const stockPrices = pgTable(
     stockId: uuid("stock_id")
       .notNull()
       .references(() => stocks.id, { onDelete: "cascade" }),
-    date: text("date").notNull(), // YYYY-MM-DD
+    date: text("date").notNull(),
     open: text("open").notNull(),
     high: text("high").notNull(),
     low: text("low").notNull(),
@@ -70,36 +108,69 @@ export const vaultNav = pgTable(
     vaultId: uuid("vault_id")
       .notNull()
       .references(() => vaults.id, { onDelete: "cascade" }),
-    date: text("date").notNull(), // YYYY-MM-DD
+    date: text("date").notNull(),
     value: text("value").notNull(),
   },
   (t) => [uniqueIndex("uniq_vault_nav_date").on(t.vaultId, t.date)],
 )
 
 // ── Wallets ─────────────────────────────────────────────
+//
+// Two-wallet model:
+//   - privyWalletId + address point at the user's INSTINCT wallet (a Privy
+//     server wallet we create on signup; we own/sign it).
+//   - connectedAddress is the user's CONNECTED wallet (what they signed in
+//     with — Phantom for external, auto-Privy-embedded for email). They sign
+//     transfers from there themselves.
+//   - connectedClientType drives withdraw-destination logic.
 
 export const wallets = pgTable("wallets", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: text("user_id").notNull().unique(), // Privy user ID
-  address: text("address").notNull(),         // user's connected Solana wallet
+  userId: text("user_id").notNull().unique(),       // Privy user ID
+  privyWalletId: text("privy_wallet_id"),           // Instinct wallet ID
+  address: text("address").notNull(),               // Instinct wallet address
+  connectedAddress: text("connected_address"),       // user's signing wallet
+  connectedClientType: text("connected_client_type"), // 'privy' | 'external'
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 })
 
-// ── Wallet balances (leaderboard snapshot) ──────────────
+// ── Holdings (materialized position cache) ──────────────
+//
+// Per (user, vault) snapshot of basket tokens + net invested USDC. Updated
+// by the `updateHoldings` Inngest function after every settled deposit or
+// withdraw. /api/portfolio reads from here — O(1) lookups instead of
+// aggregating orders.result on every request.
 
-export const walletBalances = pgTable(
-  "wallet_balances",
+export const holdings = pgTable(
+  "holdings",
   {
-    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
-    address: text("address").notNull(),                 // Solana pubkey base58
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id").notNull(),
     vaultId: uuid("vault_id")
       .notNull()
       .references(() => vaults.id, { onDelete: "cascade" }),
-    balance: text("balance").notNull(),                  // raw atomic units (string for precision)
-    balanceUi: numeric("balance_ui").notNull(),          // human-readable amount
-    valueUsd: numeric("value_usd").notNull(),            // balance_ui × Symmetry SDK price at snapshot time
-    snapshotAt: timestamp("snapshot_at").defaultNow().notNull(),
+    basket: jsonb("basket").$type<Record<string, string>>().notNull().default({}),
+    investedUsdc: numeric("invested_usdc").notNull().default("0"),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
-  (t) => [uniqueIndex("uniq_wallet_vault").on(t.address, t.vaultId)],
+  (t) => [uniqueIndex("uniq_holdings_user_vault").on(t.userId, t.vaultId)],
 )
+
+// ── Orders (deposit / withdraw intents) ─────────────────
+
+export const orders = pgTable("orders", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull(),
+  vaultId: uuid("vault_id").notNull().references(() => vaults.id, { onDelete: "cascade" }),
+  type: orderTypeEnum("type").notNull(),
+  amount: numeric("amount").notNull(),         // USDC atomic units
+  status: orderStatusEnum("status").notNull().default("pending"),
+  signature: text("signature").unique(),       // user-signed USDC transfer tx sig (deposits); unique prevents replay
+  refundSignature: text("refund_signature"),   // server-signed USDC refund tx (Instinct → connected) on partial/failed/cancelled deposits
+  payoutSignature: text("payout_signature"),   // server-signed USDC payout tx for withdrawals (Instinct → connected)
+  result: jsonb("result").$type<SwapLegResult[]>().notNull().default([]),
+  error: text("error"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+})

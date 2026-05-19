@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router"
 
+import { Button } from "@/components/ui/button"
 import { Delta } from "@/components/ui/delta"
 import { MonoNumber } from "@/components/ui/mono-number"
 import { Row } from "@/components/ui/row"
@@ -13,28 +14,44 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { toTitleCase } from "@/lib/format"
-import type { Holding } from "@/hooks/use-holdings"
+import { useHoldings, type Holding } from "@/hooks/use-holdings"
+import { WithdrawDialog } from "./-withdraw-dialog"
 
-type HoldingsTableProps = {
-  rows: Holding[]
-  loading?: boolean
+export function HoldingsTable() {
+  const { holdings, loading } = useHoldings()
+  return <HoldingsTableInner rows={holdings} loading={loading} />
 }
 
-export function HoldingsTable({ rows, loading }: HoldingsTableProps) {
+export function HoldingsTableSkeleton() {
+  return <HoldingsTableInner rows={[]} loading />
+}
+
+function HoldingsTableInner({ rows, loading }: { rows: Holding[]; loading: boolean }) {
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Vault</TableHead>
-          <TableHead className="text-right">Balance</TableHead>
-          <TableHead className="text-right">All-time</TableHead>
+          <TableHead className="text-right">Invested</TableHead>
+          <TableHead className="text-right">Value</TableHead>
+          <TableHead className="text-right">P&amp;L</TableHead>
+          <TableHead></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {loading ? (
           <SkeletonRows />
+        ) : rows.length === 0 ? (
+          <TableRow>
+            <TableCell
+              colSpan={5}
+              className="text-center text-sm text-muted-foreground py-8"
+            >
+              No positions yet.
+            </TableCell>
+          </TableRow>
         ) : (
-          rows.map((row) => <HoldingBodyRow key={row.vaultId} row={row} />)
+          rows.map((row) => <HoldingBodyRow key={row.vault.id} row={row} />)
         )}
       </TableBody>
     </Table>
@@ -42,28 +59,37 @@ export function HoldingsTable({ rows, loading }: HoldingsTableProps) {
 }
 
 function HoldingBodyRow({ row }: { row: Holding }) {
-  const { vault, vaultId, balanceUi, allTime } = row
   return (
     <TableRow>
       <TableCell>
         <Link
           to="/fund/$id"
-          params={{ id: vaultId }}
+          params={{ id: row.vault.id }}
           className="outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30 rounded-sm"
         >
           <Row className="min-w-0 items-center">
-            <HoldingLogo vault={vault} />
+            <HoldingLogo vault={row.vault} />
             <span className="truncate font-medium text-foreground">
-              {toTitleCase(vault.name)}
+              {toTitleCase(row.vault.name)}
             </span>
           </Row>
         </Link>
       </TableCell>
       <TableCell className="text-right">
-        <MonoNumber value={balanceUi} format="raw" precision={4} size="md" />
+        <MonoNumber value={row.investedUsdc} format="usd" size="md" />
       </TableCell>
       <TableCell className="text-right">
-        <Delta value={allTime} hideArrow size="md" />
+        <MonoNumber value={row.currentValueUsdc} format="usd" size="md" />
+      </TableCell>
+      <TableCell className="text-right">
+        <Delta value={row.pnlPct} hideArrow size="md" />
+      </TableCell>
+      <TableCell className="text-right">
+        <WithdrawDialog holding={row}>
+          <Button variant="outline" size="xs">
+            Withdraw
+          </Button>
+        </WithdrawDialog>
       </TableCell>
     </TableRow>
   )
@@ -80,32 +106,14 @@ function HoldingLogo({ vault }: { vault: Holding["vault"] }) {
       />
     )
   }
-  const stocks = vault.compositions?.slice(0, 3) ?? []
   return (
     <div
       aria-hidden
-      className="relative flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary"
+      className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary"
     >
-      {stocks.length > 0 ? (
-        stocks.map((c, i) => (
-          <img
-            key={c.stock.id}
-            src={c.stock.imageUrl}
-            alt=""
-            loading="lazy"
-            className="absolute size-4 rounded-full ring-2 ring-background"
-            style={{
-              top: i === 0 ? 2 : i === 1 ? 11 : 7,
-              left: i === 0 ? 2 : i === 1 ? 12 : 7,
-              zIndex: 3 - i,
-            }}
-          />
-        ))
-      ) : (
-        <span className="font-mono text-[10px] tabular text-muted-foreground">
-          {vault.name.slice(0, 2).toUpperCase()}
-        </span>
-      )}
+      <span className="font-mono text-[10px] tabular text-muted-foreground">
+        {vault.name.slice(0, 2).toUpperCase()}
+      </span>
     </div>
   )
 }
@@ -126,6 +134,12 @@ function SkeletonRows({ rows = 4 }: { rows?: number }) {
           </TableCell>
           <TableCell className="text-right">
             <Skeleton className="ml-auto h-4 w-16 rounded-sm" />
+          </TableCell>
+          <TableCell className="text-right">
+            <Skeleton className="ml-auto h-4 w-16 rounded-sm" />
+          </TableCell>
+          <TableCell className="text-right">
+            <Skeleton className="ml-auto h-7 w-20 rounded-sm" />
           </TableCell>
         </TableRow>
       ))}

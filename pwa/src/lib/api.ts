@@ -41,6 +41,7 @@ export type OrderStatus =
   | "pending"
   | "processing"
   | "completed"
+  | "partial"
   | "failed"
   | "cancelled"
 
@@ -70,6 +71,9 @@ export interface Order {
   type: "deposit" | "withdraw"
   amount: string
   status: OrderStatus
+  signature: string | null
+  refundSignature: string | null
+  payoutSignature: string | null
   result: SwapLegResult[]
   error: string | null
   createdAt: string
@@ -129,8 +133,22 @@ export function depositOrder(params: {
   })
 }
 
+export function withdrawOrder(params: {
+  vaultId: string
+  amountUsdc?: string
+}): Promise<Order> {
+  return request("/api/orders/withdraw", {
+    method: "POST",
+    body: JSON.stringify(params),
+  })
+}
+
 export function getOrder(id: string): Promise<Order> {
   return request(`/api/orders/${id}`)
+}
+
+export function cancelOrder(id: string): Promise<Order> {
+  return request(`/api/orders/${id}/cancel`, { method: "POST" })
 }
 
 export function getOrders(): Promise<Order[]> {

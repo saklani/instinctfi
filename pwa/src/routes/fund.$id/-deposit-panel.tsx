@@ -17,8 +17,24 @@ import {
 } from "@solana/spl-token"
 
 import { useWallet } from "@/hooks/use-wallet"
-import { depositOrder, getOrder, type AuthResponse } from "@/lib/api"
+import { useVaults } from "@/hooks/use-vaults"
+import { useHoldings } from "@/hooks/use-holdings"
+import { depositOrder, withdrawOrder } from "@/lib/api"
 import { getUsdcBalance } from "@/lib/transfer"
+
+const MIN_LEG_USDC = 5
+
+/**
+ * Vault's minimum deposit is dictated by the lowest-weighted leg —
+ * that leg must receive at least MIN_LEG_USDC for Jupiter to route.
+ * Returns null when composition isn't loaded yet.
+ */
+function minDepositUsdc(weightsBps: number[]): number | null {
+  if (weightsBps.length === 0) return null
+  const minWeight = Math.min(...weightsBps)
+  if (minWeight <= 0) return null
+  return (MIN_LEG_USDC * 10000) / minWeight
+}
 import { Button } from "@/components/ui/button"
 import { Column } from "@/components/ui/column"
 import { Row } from "@/components/ui/row"
@@ -76,29 +92,10 @@ export function DepositPanel({
         <DepositTab vault={vault} onDone={onDone} />
       </TabsContent>
       <TabsContent value="withdraw">
-        <WithdrawTab />
+        <WithdrawTab vault={vault} onDone={onDone} />
       </TabsContent>
     </Tabs>
   )
-}
-
-/** Polls /api/orders/:id until completed / failed / cancelled / timeout. */
-async function waitForOrder(id: string, timeoutMs = 60_000) {
-  const start = Date.now()
-  while (Date.now() - start < timeoutMs) {
-    const order = await getOrder(id)
-    if (
-      order.status === "completed" ||
-      order.status === "failed" ||
-      order.status === "cancelled"
-    ) {
-      return order
-    }
-    await new Promise((r) => setTimeout(r, 2000))
-  }
-  // Returns even on timeout — caller decides what to surface. Off-hours orders
-  // can sit in `processing` for hours under the retry loop, so we don't throw.
-  return getOrder(id)
 }
 
 function DepositTab({
@@ -116,11 +113,14 @@ function DepositTab({
     walletAddress,
     signAndSendTransaction,
     wallet,
+    instinctAddress,
   } = useWallet()
 
-  // Instinct wallet address — stashed by api-provider on /api/auth response.
-  const auth = queryClient.getQueryData<AuthResponse>(["auth"])
-  const instinctAddress = auth?.instinctAddress
+  const { vaults: allVaults } = useVaults()
+  const fullVault = allVaults.find((v) => v.id === vault.id)
+  const minDeposit = fullVault
+    ? minDepositUsdc(fullVault.compositions.map((c) => c.weight))
+    : null
 
   const { data: balance } = useQuery({
     queryKey: ["usdc-balance", walletAddress],
@@ -144,6 +144,9 @@ function DepositTab({
     mutationFn: async ({ amount }: AmountFormData) => {
       if (!walletAddress) throw new Error("No wallet connected")
       if (!instinctAddress) throw new Error("Instinct wallet not provisioned yet")
+      if (minDeposit && parseFloat(amount) < minDeposit) {
+        throw new Error(`Minimum deposit for this vault is $${minDeposit.toFixed(2)}`)
+      }
 
       const connection = new Connection(RPC_URL, "confirmed")
       const connectedPk = new PublicKey(walletAddress)
@@ -188,35 +191,18 @@ function DepositTab({
 
       const signature = bs58.encode(sendResult.signature)
 
-      // No client-side confirmation wait — the Inngest worker handles RPC
-      // verification with durable retries.
-      const order = await depositOrder({
+      // Hand off to the server and return immediately. The Inngest worker
+      // verifies on-chain + executes swaps in the background; the user sees
+      // progress in their Activity feed (orders are polled every 15s).
+      return depositOrder({
         vaultId: vault.id,
         signature,
         amountUsdc: amount,
       })
-      const settled = await waitForOrder(order.id)
-
-      if (settled.status === "failed") {
-        throw new Error(settled.error ?? "Deposit failed")
-      }
-      return settled
     },
-    onSuccess: (order) => {
-      if (order.status === "completed") {
-        const filled = order.result.filter((r) => r.ok).length
-        toast.success("Deposit settled", {
-          description: `${filled} swap${filled === 1 ? "" : "s"} filled`,
-        })
-      } else {
-        // Still processing past the 60s poll — off-hours retry loop is running.
-        toast.info("Deposit queued", {
-          description:
-            "Waiting for market makers to quote. Check Activity for status.",
-        })
-      }
+    onSuccess: () => {
+      toast.success("Deposit queued")
       reset()
-      queryClient.invalidateQueries({ queryKey: ["portfolio"] })
       queryClient.invalidateQueries({ queryKey: ["orders"] })
       queryClient.invalidateQueries({ queryKey: ["usdc-balance"] })
       onDone?.()
@@ -271,12 +257,17 @@ function DepositTab({
             type="number"
             step="any"
             inputMode="decimal"
-            placeholder="0.00"
+            placeholder={minDeposit ? `${minDeposit.toFixed(2)} or more` : "0.00"}
             disabled={isPending}
             aria-invalid={!!errors.amount}
             {...register("amount")}
           />
           {errors.amount && <FormError message={errors.amount.message} />}
+          {minDeposit && !errors.amount && (
+            <p className="text-xs text-muted-foreground">
+              Minimum deposit ${minDeposit.toFixed(2)}.
+            </p>
+          )}
         </Column>
 
         <Column>
@@ -295,16 +286,140 @@ function DepositTab({
   )
 }
 
-function WithdrawTab() {
+function WithdrawTab({
+  vault,
+  onDone,
+}: {
+  vault: DepositPanelProps["vault"]
+  onDone?: () => void
+}) {
+  const queryClient = useQueryClient()
+  const { ready, authenticated, login } = useWallet()
+  const { vaults: allVaults } = useVaults()
+  const { holdings } = useHoldings()
+
+  const fullVault = allVaults.find((v) => v.id === vault.id)
+  const minAmount = fullVault
+    ? minDepositUsdc(fullVault.compositions.map((c) => c.weight))
+    : null
+  const holding = holdings.find((h) => h.vault.id === vault.id)
+  const maxAmount = holding?.currentValueUsdc ?? 0
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+    reset,
+  } = useForm<AmountFormData>({
+    resolver: zodResolver(amountSchema),
+    defaultValues: { amount: "" },
+  })
+
+  const { mutate: submit, isPending } = useMutation({
+    mutationFn: async ({ amount }: AmountFormData) => {
+      const value = parseFloat(amount)
+      if (minAmount && value < minAmount) {
+        throw new Error(`Minimum withdraw is $${minAmount.toFixed(2)}`)
+      }
+      if (value > maxAmount + 0.005) {
+        throw new Error(`Maximum withdraw is $${maxAmount.toFixed(2)}`)
+      }
+      return withdrawOrder({ vaultId: vault.id, amountUsdc: amount })
+    },
+    onSuccess: () => {
+      toast.success("Withdrawal queued")
+      reset()
+      queryClient.invalidateQueries({ queryKey: ["orders"] })
+      queryClient.invalidateQueries({ queryKey: ["portfolio"] })
+      queryClient.invalidateQueries({ queryKey: ["usdc-balance"] })
+      onDone?.()
+    },
+    onError: (e: unknown) => {
+      toast.error("Withdraw failed", {
+        description: e instanceof Error ? e.message : "Unknown error",
+      })
+    },
+  })
+
+  if (!ready) {
+    return (
+      <Button size="lg" className="w-full" disabled>
+        Loading…
+      </Button>
+    )
+  }
+  if (!authenticated) {
+    return (
+      <Button size="lg" className="w-full" onClick={() => login()}>
+        Connect wallet
+      </Button>
+    )
+  }
+
+  if (!holding || maxAmount <= 0) {
+    return (
+      <Column className="rounded-sm border border-dashed border-border text-sm text-muted-foreground">
+        <p className="font-medium text-foreground">No position to withdraw</p>
+        <p>Deposit into this vault first.</p>
+      </Column>
+    )
+  }
+
   return (
-    <Column className="rounded-sm border border-dashed border-border text-sm text-muted-foreground">
-      <p className="font-medium text-foreground">Withdrawals coming soon</p>
-      <p>
-        Your basket lives in the Instinct wallet we manage for you. Withdrawal
-        will swap it back to USDC and (for external connected wallets) transfer
-        it home.
-      </p>
-    </Column>
+    <form onSubmit={handleSubmit((d) => submit(d))}>
+      <Column>
+        <Column>
+          <Row className="items-center justify-between">
+            <Label htmlFor="withdraw-amount">Amount (USDC)</Label>
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              onClick={() =>
+                setValue("amount", maxAmount.toFixed(2), {
+                  shouldValidate: true,
+                })
+              }
+            >
+              Position <MonoNumber value={maxAmount} format="usd" size="sm" />
+            </Button>
+          </Row>
+
+          <Input
+            id="withdraw-amount"
+            type="number"
+            step="any"
+            inputMode="decimal"
+            placeholder={
+              minAmount
+                ? `${minAmount.toFixed(2)} – ${maxAmount.toFixed(2)}`
+                : "0.00"
+            }
+            disabled={isPending}
+            aria-invalid={!!errors.amount}
+            {...register("amount")}
+          />
+          {errors.amount && <FormError message={errors.amount.message} />}
+          {minAmount && !errors.amount && (
+            <p className="text-xs text-muted-foreground">
+              Min ${minAmount.toFixed(2)} · Max ${maxAmount.toFixed(2)}
+            </p>
+          )}
+        </Column>
+
+        <Column>
+          <LoadingButton
+            type="submit"
+            size="lg"
+            className="w-full"
+            isLoading={isPending}
+          >
+            Withdraw
+          </LoadingButton>
+        </Column>
+      </Column>
+    </form>
   )
 }
 

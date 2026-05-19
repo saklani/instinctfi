@@ -24,9 +24,7 @@ export type CompositionItem = {
 export function CompositionList({ items }: { items: CompositionItem[] }) {
   if (!items.length) {
     return (
-      <p className="text-center text-muted-foreground">
-        Composition unavailable.
-      </p>
+      <p className="text-center">Composition unavailable.</p>
     )
   }
 

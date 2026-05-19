@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ADD COLUMN "payout_signature" text;

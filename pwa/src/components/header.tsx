@@ -7,6 +7,7 @@ import { Row } from "./ui/row"
 const desktopLinks = [
   { to: "/", label: "Discover" },
   { to: "/portfolio", label: "Portfolio" },
+  { to: "/activity", label: "Activity" },
   { to: "/leaderboard", label: "Leaderboard" },
 ] as const
 
@@ -19,11 +20,10 @@ export function Header() {
         <Link to="/" aria-label="instinct, home">
           <img src="/logo-black.png" alt="Instinct" className="h-6" />
         </Link>
-        <nav className="hidden md:flex gap-4 items-center w-fit">
+        <nav className="hidden md:flex gap-2 items-center w-fit">
           {desktopLinks.map(({ to, label }) => (
-            <Row className="w-[90px] items-center justify-center">
+            <Row key={to} className="w-[110px] h-[40px] items-center justify-center">
               <Link
-                key={to}
                 to={to}
                 className="text-sm text-center text-muted-foreground transition-colors hover:text-foreground [&.active]:text-foreground [&.active]:font-medium"
               >

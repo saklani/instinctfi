@@ -14,6 +14,15 @@ export interface UsdcTransferDetails {
   destination: string
 }
 
+export type TransferVerifyResult =
+  | { ok: true; details: UsdcTransferDetails }
+  | { ok: false; reason: "not_found"; detail: string }
+  | { ok: false; reason: "tx_error"; detail: string }
+  | { ok: false; reason: "no_transfer_match"; detail: string }
+  | { ok: false; reason: "wrong_destination"; detail: string }
+  | { ok: false; reason: "wrong_authority"; detail: string }
+  | { ok: false; reason: "wrong_amount"; detail: string }
+
 export function deriveUsdcAta(owner: string): string {
   const [ata] = PublicKey.findProgramAddressSync(
     [
@@ -27,24 +36,54 @@ export function deriveUsdcAta(owner: string): string {
   return ata.toBase58()
 }
 
-export async function getUsdcTransferDetails(
+function readU64(data: Uint8Array, offset: number): bigint {
+  let value = 0n
+  for (let i = 0; i < 8; i++) {
+    value |= BigInt(data[offset + i]) << BigInt(i * 8)
+  }
+  return value
+}
+
+/**
+ * Single-shot on-chain fetch + parse. Returns structured reason so the caller
+ * (Inngest worker) can distinguish retry-worthy from hard failures. Uses
+ * commitment "confirmed" to match the client's submit-and-confirm level —
+ * getTransaction's default is finalized which lags ~12 slots.
+ */
+export async function verifyUsdcTransfer(
   connection: Connection,
   signature: string,
-): Promise<UsdcTransferDetails | null> {
+  expectedWallet: string,
+  expectedAuthority: string,
+  expectedAmount: bigint,
+): Promise<TransferVerifyResult> {
+  const expectedDestination = deriveUsdcAta(expectedWallet)
+
   const tx = await connection.getTransaction(signature, {
+    commitment: "confirmed",
     maxSupportedTransactionVersion: 0,
   })
 
-  if (!tx || tx.meta?.err) return null
+  if (!tx) {
+    return { ok: false, reason: "not_found", detail: "Transaction not yet on-chain" }
+  }
+  if (tx.meta?.err) {
+    return {
+      ok: false,
+      reason: "tx_error",
+      detail: `On-chain error: ${JSON.stringify(tx.meta.err)}`,
+    }
+  }
 
   const message = tx.transaction.message
   const accountKeys = message.getAccountKeys({
     accountKeysFromLookups: tx.meta?.loadedAddresses,
   })
 
+  let details: UsdcTransferDetails | null = null
+
   for (const ix of message.compiledInstructions) {
     const programId = accountKeys.get(ix.programIdIndex)?.toBase58()
-
     if (programId !== TOKEN_PROGRAM && programId !== TOKEN_2022_PROGRAM) continue
 
     const data = ix.data
@@ -54,55 +93,54 @@ export async function getUsdcTransferDetails(
       const destination = accountKeys.get(ix.accountKeyIndexes[1])?.toBase58()
       const authority = accountKeys.get(ix.accountKeyIndexes[2])?.toBase58()
       const amount = readU64(data, 1)
-
       if (destination && authority) {
-        return { destination, authority, amount }
+        details = { destination, authority, amount }
+        break
       }
     }
 
-    if (disc === TRANSFER_CHECKED_DISC && data.length >= 17) {
+    // TransferChecked layout: 1 disc + 8 amount (u64 LE) + 1 decimals = 10 bytes.
+    if (disc === TRANSFER_CHECKED_DISC && data.length >= 10) {
       const mint = accountKeys.get(ix.accountKeyIndexes[1])?.toBase58()
       const destination = accountKeys.get(ix.accountKeyIndexes[2])?.toBase58()
       const authority = accountKeys.get(ix.accountKeyIndexes[3])?.toBase58()
       const amount = readU64(data, 1)
-
       if (mint === USDC_MINT && destination && authority) {
-        return { destination, authority, amount }
+        details = { destination, authority, amount }
+        break
       }
     }
   }
 
-  return null
-}
-
-export async function verifyUsdcTransfer(
-  connection: Connection,
-  signature: string,
-  expectedWallet: string,
-  expectedAuthority?: string,
-): Promise<{ valid: boolean; error?: string; details?: UsdcTransferDetails }> {
-  const expectedDestination = deriveUsdcAta(expectedWallet)
-  const details = await getUsdcTransferDetails(connection, signature)
-
   if (!details) {
-    return { valid: false, error: "No matching USDC transfer found in transaction" }
+    return {
+      ok: false,
+      reason: "no_transfer_match",
+      detail: "No matching USDC transfer in tx instructions",
+    }
   }
 
   if (details.destination !== expectedDestination) {
-    return { valid: false, error: "Transfer was sent to the wrong destination" }
+    return {
+      ok: false,
+      reason: "wrong_destination",
+      detail: `Expected ${expectedDestination}, got ${details.destination}`,
+    }
+  }
+  if (details.authority !== expectedAuthority) {
+    return {
+      ok: false,
+      reason: "wrong_authority",
+      detail: `Expected ${expectedAuthority}, got ${details.authority}`,
+    }
+  }
+  if (details.amount !== expectedAmount) {
+    return {
+      ok: false,
+      reason: "wrong_amount",
+      detail: `Expected ${expectedAmount.toString()} atomic, got ${details.amount.toString()}`,
+    }
   }
 
-  if (expectedAuthority && details.authority !== expectedAuthority) {
-    return { valid: false, error: "Transfer authority does not match the authenticated wallet" }
-  }
-
-  return { valid: true, details }
-}
-
-function readU64(data: Uint8Array, offset: number): bigint {
-  let value = 0n
-  for (let i = 0; i < 8; i++) {
-    value |= BigInt(data[offset + i]) << BigInt(i * 8)
-  }
-  return value
+  return { ok: true, details }
 }
