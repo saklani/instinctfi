@@ -39,8 +39,8 @@ import {
 import { StickyCta } from "@/components/sticky-cta"
 import { useVaultNav } from "./-use-vault-nav"
 
-export const Route = createFileRoute("/fund/$id")({
-  component: FundDetailPage,
+export const Route = createFileRoute("/discover/$id")({
+  component: DiscoverDetailPage,
 })
 
 const PERIODS = [
@@ -57,7 +57,7 @@ type PeriodId = (typeof PERIODS)[number]["id"]
 /*  Helpers                                                           */
 /* ------------------------------------------------------------------ */
 
-function FundDetailPage() {
+function DiscoverDetailPage() {
   const { id } = Route.useParams()
   const { vault, loading, error } = useVault(id)
   const { authenticated, login, ready } = useWallet()

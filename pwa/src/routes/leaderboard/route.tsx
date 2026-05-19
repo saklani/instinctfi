@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
 
-import { LeaderboardTable } from "./-leaderboard-table"
 import { Column } from "@/components/ui/column"
 
 export const Route = createFileRoute("/leaderboard")({
@@ -14,7 +13,7 @@ function LeaderboardPage() {
         <p className="eyebrow">LEADERBOARD</p>
         <h1>Top Wallets</h1>
       </Column>
-      <LeaderboardTable />
+      <p>Coming soon.</p>
     </Column>
   )
 }

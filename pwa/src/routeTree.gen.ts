@@ -14,7 +14,7 @@ import { Route as PortfolioRouteRouteImport } from './routes/portfolio/route'
 import { Route as LeaderboardRouteRouteImport } from './routes/leaderboard/route'
 import { Route as ActivityRouteRouteImport } from './routes/activity/route'
 import { Route as IndexRouteRouteImport } from './routes/index/route'
-import { Route as FundIdRouteRouteImport } from './routes/fund.$id/route'
+import { Route as DiscoverIdRouteRouteImport } from './routes/discover.$id/route'
 import { Route as AssetTickerRouteRouteImport } from './routes/asset.$ticker/route'
 
 const SettingsRoute = SettingsRouteImport.update({
@@ -42,9 +42,9 @@ const IndexRouteRoute = IndexRouteRouteImport.update({
   path: '',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FundIdRouteRoute = FundIdRouteRouteImport.update({
-  id: '/fund/$id',
-  path: '/fund/$id',
+const DiscoverIdRouteRoute = DiscoverIdRouteRouteImport.update({
+  id: '/discover/$id',
+  path: '/discover/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AssetTickerRouteRoute = AssetTickerRouteRouteImport.update({
@@ -60,7 +60,7 @@ export interface FileRoutesByFullPath {
   '/portfolio': typeof PortfolioRouteRoute
   '/settings': typeof SettingsRoute
   '/asset/$ticker': typeof AssetTickerRouteRoute
-  '/fund/$id': typeof FundIdRouteRoute
+  '/discover/$id': typeof DiscoverIdRouteRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRouteRoute
@@ -69,7 +69,7 @@ export interface FileRoutesByTo {
   '/portfolio': typeof PortfolioRouteRoute
   '/settings': typeof SettingsRoute
   '/asset/$ticker': typeof AssetTickerRouteRoute
-  '/fund/$id': typeof FundIdRouteRoute
+  '/discover/$id': typeof DiscoverIdRouteRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -79,7 +79,7 @@ export interface FileRoutesById {
   '/portfolio': typeof PortfolioRouteRoute
   '/settings': typeof SettingsRoute
   '/asset/$ticker': typeof AssetTickerRouteRoute
-  '/fund/$id': typeof FundIdRouteRoute
+  '/discover/$id': typeof DiscoverIdRouteRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -90,7 +90,7 @@ export interface FileRouteTypes {
     | '/portfolio'
     | '/settings'
     | '/asset/$ticker'
-    | '/fund/$id'
+    | '/discover/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -99,7 +99,7 @@ export interface FileRouteTypes {
     | '/portfolio'
     | '/settings'
     | '/asset/$ticker'
-    | '/fund/$id'
+    | '/discover/$id'
   id:
     | '__root__'
     | '/'
@@ -108,7 +108,7 @@ export interface FileRouteTypes {
     | '/portfolio'
     | '/settings'
     | '/asset/$ticker'
-    | '/fund/$id'
+    | '/discover/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -118,7 +118,7 @@ export interface RootRouteChildren {
   PortfolioRouteRoute: typeof PortfolioRouteRoute
   SettingsRoute: typeof SettingsRoute
   AssetTickerRouteRoute: typeof AssetTickerRouteRoute
-  FundIdRouteRoute: typeof FundIdRouteRoute
+  DiscoverIdRouteRoute: typeof DiscoverIdRouteRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -158,11 +158,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/fund/$id': {
-      id: '/fund/$id'
-      path: '/fund/$id'
-      fullPath: '/fund/$id'
-      preLoaderRoute: typeof FundIdRouteRouteImport
+    '/discover/$id': {
+      id: '/discover/$id'
+      path: '/discover/$id'
+      fullPath: '/discover/$id'
+      preLoaderRoute: typeof DiscoverIdRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/asset/$ticker': {
@@ -182,7 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   PortfolioRouteRoute: PortfolioRouteRoute,
   SettingsRoute: SettingsRoute,
   AssetTickerRouteRoute: AssetTickerRouteRoute,
-  FundIdRouteRoute: FundIdRouteRoute,
+  DiscoverIdRouteRoute: DiscoverIdRouteRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

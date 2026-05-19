@@ -63,7 +63,7 @@ function HoldingBodyRow({ row }: { row: Holding }) {
     <TableRow>
       <TableCell>
         <Link
-          to="/fund/$id"
+          to="/discover/$id"
           params={{ id: row.vault.id }}
           className="outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30 rounded-sm"
         >

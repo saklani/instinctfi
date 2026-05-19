@@ -125,7 +125,7 @@ function VaultBodyRow({ row }: { row: VaultRowData }) {
     <TableRow>
       <TableCell>
         <Link
-          to="/fund/$id"
+          to="/discover/$id"
           params={{ id: vault.id }}
           className="outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30 rounded-sm"
         >

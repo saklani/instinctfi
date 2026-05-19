@@ -32,7 +32,7 @@ export function FeaturedCard({ vault }: FeaturedCardProps) {
 
       {/* Stretched click overlay — sits below HoldingStack (z-20) so inner asset links keep working. */}
       <Link
-        to="/fund/$id"
+        to="/discover/$id"
         params={{ id: vault.id }}
         aria-label={`View ${toTitleCase(vault.name)}`}
         className="absolute inset-0 z-10 rounded-xl outline-none focus-visible:ring-[4px] focus-visible:ring-accent/30"
