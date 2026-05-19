@@ -41,7 +41,7 @@ const connection = new Connection(process.env.RPC_URL!, "confirmed")
 export const verifyOrder = inngest.createFunction(
   {
     id: "verify-order",
-    concurrency: { limit: 25 },
+    concurrency: { limit: 5 },
     triggers: [{ event: "deposit/execute" }],
   },
   async ({ event, step }) => {
@@ -145,7 +145,7 @@ export const verifyOrder = inngest.createFunction(
 export const quoteOrder = inngest.createFunction(
   {
     id: "quote-order",
-    concurrency: { limit: 25 },
+    concurrency: { limit: 5 },
     triggers: [{ event: "deposit/quote" }],
   },
   async ({ event, step }) => {
@@ -260,7 +260,7 @@ export const quoteOrder = inngest.createFunction(
 export const executeQuote = inngest.createFunction(
   {
     id: "execute-quote",
-    concurrency: { limit: 25 },
+    concurrency: { limit: 5 },
     triggers: [{ event: "deposit/swap" }],
   },
   async ({ event, step }) => {
@@ -318,7 +318,7 @@ export const executeQuote = inngest.createFunction(
 export const verifyQuote = inngest.createFunction(
   {
     id: "verify-quote",
-    concurrency: { limit: 25 },
+    concurrency: { limit: 5 },
     triggers: [{ event: "deposit/aggregate" }],
   },
   async ({ event, step }) => {
@@ -418,7 +418,7 @@ export const verifyQuote = inngest.createFunction(
 export const refundDeposit = inngest.createFunction(
   {
     id: "refund-deposit",
-    concurrency: { limit: 25 },
+    concurrency: { limit: 5 },
     triggers: [{ event: "deposit/refund" }],
     retries: 3,
   },
@@ -529,7 +529,7 @@ async function computeBasketAttribution(
 export const verifyWithdraw = inngest.createFunction(
   {
     id: "verify-withdraw",
-    concurrency: { limit: 25 },
+    concurrency: { limit: 5 },
     triggers: [{ event: "withdraw/execute" }],
   },
   async ({ event, step }) => {
@@ -671,7 +671,7 @@ export const verifyWithdraw = inngest.createFunction(
 export const quoteWithdraw = inngest.createFunction(
   {
     id: "quote-withdraw",
-    concurrency: { limit: 25 },
+    concurrency: { limit: 5 },
     triggers: [{ event: "withdraw/quote" }],
   },
   async ({ event, step }) => {
@@ -749,7 +749,7 @@ export const quoteWithdraw = inngest.createFunction(
 export const executeWithdraw = inngest.createFunction(
   {
     id: "execute-withdraw",
-    concurrency: { limit: 25 },
+    concurrency: { limit: 5 },
     triggers: [{ event: "withdraw/swap" }],
   },
   async ({ event, step }) => {
@@ -807,7 +807,7 @@ export const executeWithdraw = inngest.createFunction(
 export const settleWithdraw = inngest.createFunction(
   {
     id: "settle-withdraw",
-    concurrency: { limit: 25 },
+    concurrency: { limit: 5 },
     triggers: [{ event: "withdraw/aggregate" }],
   },
   async ({ event, step }) => {
@@ -901,7 +901,7 @@ export const settleWithdraw = inngest.createFunction(
 export const payoutWithdraw = inngest.createFunction(
   {
     id: "payout-withdraw",
-    concurrency: { limit: 25 },
+    concurrency: { limit: 5 },
     triggers: [{ event: "withdraw/payout" }],
     retries: 3,
   },
@@ -977,7 +977,7 @@ export const payoutWithdraw = inngest.createFunction(
 export const updateHoldings = inngest.createFunction(
   {
     id: "update-holdings",
-    concurrency: { limit: 25 },
+    concurrency: { limit: 5 },
     triggers: [{ event: "holdings/update" }],
     retries: 3,
   },
