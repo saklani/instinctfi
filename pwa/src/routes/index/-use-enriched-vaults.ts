@@ -22,9 +22,9 @@ export function useEnrichedVaults() {
 
 /** Hand-picked featured vaults, rendered in this order. */
 const FEATURED_VAULT_IDS = [
-  "0844e06c-db1b-4803-92ad-63d0c04c41b5",
-  "24b7ef64-15d7-490a-aeb4-b2a05de050f9",
-  "429cbfe8-04a3-4cff-b860-32e68c5aff61",
+  "0844e06c-db1b-4803-92ad-63d0c04c41b5", // Not Insider Trading
+  "429cbfe8-04a3-4cff-b860-32e68c5aff61", // REVERSE CHAMATH
+  "24b7ef64-15d7-490a-aeb4-b2a05de050f9", // Bald Founder Index
 ] as const
 
 export function useFeaturedVaults() {
