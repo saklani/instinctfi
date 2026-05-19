@@ -29,16 +29,114 @@ export async function request<T>(
   return res.json()
 }
 
-// ── Auth ────────────────────────────────────────────────
+// ── Types ───────────────────────────────────────────────
 
 export interface AuthResponse {
   userId: string
-  address: string
+  instinctAddress: string
+  connectedAddress: string
 }
 
-export function authenticate(address: string): Promise<AuthResponse> {
+export type OrderStatus =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "failed"
+  | "cancelled"
+
+export type SwapLegResult =
+  | {
+      mint: string
+      weight: number
+      ok: true
+      signature: string
+      inAtomic: string
+      outAtomic: string
+      maker: string | null
+      router: string
+    }
+  | {
+      mint: string
+      weight: number
+      ok: false
+      reason: string
+      detail: string
+    }
+
+export interface Order {
+  id: string
+  userId: string
+  vaultId: string
+  type: "deposit" | "withdraw"
+  amount: string
+  status: OrderStatus
+  result: SwapLegResult[]
+  error: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PortfolioBasketRow {
+  mint: string
+  ticker: string | null
+  atomic: string
+  uiAmount: number
+  usdPrice: number | null
+  usdValue: number
+}
+
+export interface PortfolioVaultPosition {
+  vault: {
+    id: string
+    name: string
+    description: string | null
+    imageUrl: string
+  }
+  investedUsdc: number
+  currentValueUsdc: number
+  pnlUsdc: number
+  pnlPct: number
+  basket: PortfolioBasketRow[]
+}
+
+export interface Portfolio {
+  totalInvestedUsdc: number
+  totalCurrentValueUsdc: number
+  totalPnlUsdc: number
+  vaults: PortfolioVaultPosition[]
+}
+
+// ── Calls ───────────────────────────────────────────────
+
+export function authenticate(params: {
+  connectedAddress: string
+  connectedClientType: "privy" | "external"
+}): Promise<AuthResponse> {
   return request("/api/auth", {
     method: "POST",
-    body: JSON.stringify({ address }),
+    body: JSON.stringify(params),
   })
+}
+
+export function depositOrder(params: {
+  vaultId: string
+  signature: string
+  amountUsdc: string
+}): Promise<Order> {
+  return request("/api/orders/deposit", {
+    method: "POST",
+    body: JSON.stringify(params),
+  })
+}
+
+export function getOrder(id: string): Promise<Order> {
+  return request(`/api/orders/${id}`)
+}
+
+export function getOrders(): Promise<Order[]> {
+  return request(`/api/orders`)
+}
+
+export function getPortfolio(): Promise<Portfolio> {
+  return request(`/api/portfolio`)
 }
