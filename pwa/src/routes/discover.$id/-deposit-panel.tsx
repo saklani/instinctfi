@@ -221,14 +221,14 @@ function DepositTab({
 
   if (!ready) {
     return (
-      <Button size="lg" className="w-full" disabled>
+      <Button size="lg" className="w-full mt-6" disabled>
         Loading…
       </Button>
     )
   }
   if (!authenticated) {
     return (
-      <Button size="lg" className="w-full" onClick={() => login()}>
+      <Button size="lg" className="w-full mt-6" onClick={() => login()}>
         Connect wallet
       </Button>
     )
