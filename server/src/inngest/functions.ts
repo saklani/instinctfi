@@ -23,6 +23,7 @@ import {
 } from "../lib/router.js"
 import { verifyUsdcTransfer } from "../lib/verify-transfer.js"
 import { fetchTokenInfo } from "../lib/jupiter-prices.js"
+import { isUsMarketOpen, nextUsMarketOpen } from "../lib/market-hours.js"
 import { PYTH_BENCHMARKS_URL, PYTH_SYMBOLS } from "../lib/pyth-symbols.js"
 import { inngest } from "./client.js"
 import type { SwapLegResult } from "../db/schema.js"
@@ -157,6 +158,10 @@ export const quoteOrder = inngest.createFunction(
     if (!order) throw new Error(`Order ${orderId} not found`)
     if (order.status === "cancelled" || order.status === "failed") {
       return { orderId, skipped: order.status }
+    }
+
+    if (!isUsMarketOpen()) {
+      await step.sleepUntil("wait-for-market-open", nextUsMarketOpen())
     }
 
     const [userWallet] = await step.run("load-wallet", () =>
@@ -686,6 +691,10 @@ export const quoteWithdraw = inngest.createFunction(
     if (!order) throw new Error(`Order ${orderId} not found`)
     if (order.status === "cancelled" || order.status === "failed") {
       return { orderId, skipped: order.status }
+    }
+
+    if (!isUsMarketOpen()) {
+      await step.sleepUntil("wait-for-market-open", nextUsMarketOpen())
     }
 
     const [userWallet] = await step.run("load-wallet", () =>

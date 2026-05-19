@@ -67,7 +67,7 @@ export function ActivityList() {
 
   if (loading) return <ActivitySkeleton />
   if (orders.length === 0) {
-    return <p className="text-center">No deposits yet.</p>
+    return <p className="text-center">No orders yet.</p>
   }
 
   const vaultsById = new Map(vaults.map((v) => [v.id, v]))

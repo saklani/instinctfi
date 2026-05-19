@@ -16,10 +16,9 @@ const authSchema = z.object({
   connectedClientType: z.enum(["privy", "external"]),
 })
 
-// POST /api/auth — idempotent. On first sight of a user, provisions an Instinct
-// wallet (Privy server wallet we own) and records both the user's connected
-// signing wallet and the Instinct wallet in the wallets row. Returns the
-// Instinct address so the PWA can build USDC transfers into it.
+// POST /api/auth — insert-if-missing. On first sight of a user, provisions an
+// Instinct wallet (Privy server wallet we own) and inserts the wallets row.
+// If the row already exists, no writes — just returns the stored values.
 app.post("/", async (c) => {
   const userId = c.get("userId")
   const parsed = authSchema.safeParse(await c.req.json())
@@ -30,54 +29,30 @@ app.post("/", async (c) => {
 
   const [existing] = await db
     .select({
-      privyWalletId: wallets.privyWalletId,
       address: wallets.address,
+      connectedAddress: wallets.connectedAddress,
     })
     .from(wallets)
     .where(eq(wallets.userId, userId))
     .limit(1)
 
-  // Fully provisioned: just touch connected info and return.
-  if (existing?.privyWalletId) {
-    await db
-      .update(wallets)
-      .set({
-        connectedAddress,
-        connectedClientType,
-        updatedAt: new Date(),
-      })
-      .where(eq(wallets.userId, userId))
-
+  if (existing) {
     return c.json({
       userId,
       instinctAddress: existing.address,
-      connectedAddress,
+      connectedAddress: existing.connectedAddress ?? connectedAddress,
     })
   }
 
-  // Either no row, or a legacy row without an Instinct wallet → provision now.
   const instinct = await privy.wallets().create({ chain_type: "solana" })
 
-  if (existing) {
-    await db
-      .update(wallets)
-      .set({
-        privyWalletId: instinct.id,
-        address: instinct.address,
-        connectedAddress,
-        connectedClientType,
-        updatedAt: new Date(),
-      })
-      .where(eq(wallets.userId, userId))
-  } else {
-    await db.insert(wallets).values({
-      userId,
-      privyWalletId: instinct.id,
-      address: instinct.address,
-      connectedAddress,
-      connectedClientType,
-    })
-  }
+  await db.insert(wallets).values({
+    userId,
+    privyWalletId: instinct.id,
+    address: instinct.address,
+    connectedAddress,
+    connectedClientType,
+  })
 
   return c.json({
     userId,

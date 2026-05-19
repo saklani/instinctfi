@@ -21,7 +21,7 @@ function ActivityPage() {
     <Column className="animate-in fade-in-0 duration-300 gap-12 py-12">
       <Column className="gap-2">
         <p className="eyebrow">ACTIVITY</p>
-        <h1>Recent Deposits</h1>
+        <h1>Recent Orders</h1>
       </Column>
       <ActivityList />
     </Column>
