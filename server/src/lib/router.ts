@@ -108,6 +108,9 @@ export async function quoteSwap(params: QuoteParams): Promise<QuoteResult> {
   orderUrl.searchParams.set("outputMint", params.outputMint)
   orderUrl.searchParams.set("amount", params.amount.toString())
   orderUrl.searchParams.set("taker", params.walletAddress)
+  // Force RFQ. The aggregator path returns "Failed to get quotes" for tokenized
+  // equity mints below ~$5/leg; RFQ market makers quote at any size.
+  orderUrl.searchParams.set("swapType", "rfq")
   if (treasuryAddress) {
     orderUrl.searchParams.set("payer", treasuryAddress)
   }
