@@ -18,6 +18,7 @@ import {
   quoteSwap,
   executeQuoted,
   transferUsdc,
+  ensureInstinctSolBalance,
   type Quote,
   type ExecuteResult,
 } from "../lib/router.js"
@@ -202,6 +203,27 @@ export const quoteOrder = inngest.createFunction(
         allocationStr: ((totalAtomic * BigInt(c.weight)) / 10_000n).toString(),
       }))
       .filter((l) => BigInt(l.allocationStr) > 0n)
+
+    const solDrip = await step.run("ensure-sol", () =>
+      ensureInstinctSolBalance(userWallet.instinctAddress),
+    )
+    if (!solDrip.ok) {
+      await step.run("fail-no-sol", () =>
+        db
+          .update(orders)
+          .set({
+            status: "failed",
+            error: `SOL drip failed: ${solDrip.detail}`,
+            updatedAt: new Date(),
+          })
+          .where(eq(orders.id, orderId)),
+      )
+      await step.sendEvent("queue-refund", {
+        name: "deposit/refund",
+        data: { orderId, amountAtomic: order.amount },
+      })
+      return { orderId, status: "failed", stage: "quote-order" }
+    }
 
     const quotes = await step.run("quote-all", () =>
       Promise.all(
@@ -705,6 +727,23 @@ export const quoteWithdraw = inngest.createFunction(
         .limit(1),
     )
     if (!userWallet) throw new Error("wallet missing")
+
+    const solDrip = await step.run("ensure-sol", () =>
+      ensureInstinctSolBalance(userWallet.instinctAddress),
+    )
+    if (!solDrip.ok) {
+      await step.run("fail-no-sol", () =>
+        db
+          .update(orders)
+          .set({
+            status: "failed",
+            error: `SOL drip failed: ${solDrip.detail}`,
+            updatedAt: new Date(),
+          })
+          .where(eq(orders.id, orderId)),
+      )
+      return { orderId, status: "failed", stage: "quote-withdraw" }
+    }
 
     const quotes = await step.run("quote-all", () =>
       Promise.all(

@@ -1,6 +1,7 @@
 import {
   Connection,
   PublicKey,
+  SystemProgram,
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js"
@@ -101,19 +102,18 @@ export async function getTreasuryAddress(): Promise<string | null> {
  * or execute. Returned `Quote` is passed to `executeQuoted` later.
  */
 export async function quoteSwap(params: QuoteParams): Promise<QuoteResult> {
-  const treasuryAddress = await getTreasuryAddress()
-
   const orderUrl = new URL(`${JUPITER_URL}/order`)
   orderUrl.searchParams.set("inputMint", params.inputMint)
   orderUrl.searchParams.set("outputMint", params.outputMint)
   orderUrl.searchParams.set("amount", params.amount.toString())
   orderUrl.searchParams.set("taker", params.walletAddress)
-  // Force RFQ. The aggregator path returns "Failed to get quotes" for tokenized
-  // equity mints below ~$5/leg; RFQ market makers quote at any size.
+  // Force RFQ + omit `payer`. Ondo tokenized-stock mints only have RFQ
+  // liquidity; the default route falls back to "Quote not available from
+  // market maker" at sub-$5 sizes. RFQ MMs sign a 2-party tx with taker
+  // as fee payer — there's no slot for a third-party subsidizer, so we
+  // drip-fund Instinct wallets with SOL from treasury upstream
+  // (see ensureInstinctSolBalance + the "ensure-sol" Inngest step).
   orderUrl.searchParams.set("swapType", "rfq")
-  if (treasuryAddress) {
-    orderUrl.searchParams.set("payer", treasuryAddress)
-  }
 
   const orderRes = await fetch(orderUrl, {
     headers: { "x-api-key": apiKey() },
@@ -299,6 +299,69 @@ export async function transferUsdc(params: {
     )
     await connection.confirmTransaction(sig, "confirmed")
     return { ok: true, signature: sig }
+  } catch (e) {
+    return {
+      ok: false,
+      detail: e instanceof Error ? e.message : String(e),
+    }
+  }
+}
+
+// Instinct wallets are created empty (no SOL). Jupiter RFQ requires
+// taker == fee payer, so each Instinct wallet must hold enough SOL to pay
+// for its own swap txs. We drip-fund from the treasury before kicking off
+// quotes — target 0.02 SOL covers a fresh-ATA basket of ~10 legs.
+const SOL_TOPUP_TARGET = 20_000_000n // 0.02 SOL
+const SOL_TOPUP_THRESHOLD = 10_000_000n // 0.01 SOL — refill when below this
+
+export async function ensureInstinctSolBalance(
+  instinctAddress: string,
+): Promise<{ ok: true; transferred: bigint } | { ok: false; detail: string }> {
+  const treasuryWalletId = process.env.TREASURY_WALLET_ID
+  const treasuryAddress = await getTreasuryAddress()
+  if (!treasuryWalletId || !treasuryAddress) {
+    return { ok: false, detail: "Treasury wallet not configured" }
+  }
+  const rpcUrl = process.env.RPC_URL
+  if (!rpcUrl) return { ok: false, detail: "RPC_URL not set" }
+
+  const connection = new Connection(rpcUrl, "confirmed")
+  const instinctPk = new PublicKey(instinctAddress)
+  const currentLamports = BigInt(await connection.getBalance(instinctPk))
+  if (currentLamports >= SOL_TOPUP_THRESHOLD) {
+    return { ok: true, transferred: 0n }
+  }
+
+  const lamports = SOL_TOPUP_TARGET - currentLamports
+  const treasuryPk = new PublicKey(treasuryAddress)
+
+  try {
+    const { blockhash } = await connection.getLatestBlockhash()
+    const message = new TransactionMessage({
+      payerKey: treasuryPk,
+      recentBlockhash: blockhash,
+      instructions: [
+        SystemProgram.transfer({
+          fromPubkey: treasuryPk,
+          toPubkey: instinctPk,
+          lamports: Number(lamports),
+        }),
+      ],
+    }).compileToV0Message()
+    const tx = new VersionedTransaction(message)
+    let signedBase64 = Buffer.from(tx.serialize()).toString("base64")
+
+    const r = await privy
+      .wallets()
+      .solana()
+      .signTransaction(treasuryWalletId, { transaction: signedBase64 })
+    signedBase64 = r.signed_transaction
+
+    const sig = await connection.sendRawTransaction(
+      Buffer.from(signedBase64, "base64"),
+    )
+    await connection.confirmTransaction(sig, "confirmed")
+    return { ok: true, transferred: lamports }
   } catch (e) {
     return {
       ok: false,
